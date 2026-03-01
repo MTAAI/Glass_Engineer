@@ -1,3 +1,6 @@
+/* Persian (Vazirmatn) font — loaded from Google Fonts CDN */
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -37,3 +40,24 @@ body {
 .prose-invert pre { background: #1a1f2e; border: 1px solid #2d3748; }
 .prose-invert ul, .prose-invert ol { color: #cbd5e1; }
 .prose-invert li { margin: 4px 0; }
+
+/* RTL support for Persian / Arabic text */
+[dir="rtl"] {
+  font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
+  line-height: 1.8;
+}
+
+[dir="rtl"] .prose-invert p,
+[dir="rtl"] .prose-invert li,
+[dir="rtl"] .prose-invert h1,
+[dir="rtl"] .prose-invert h2,
+[dir="rtl"] .prose-invert h3 {
+  text-align: right;
+  direction: rtl;
+}
+
+/* Persian placeholder text */
+textarea[dir="rtl"]::placeholder {
+  text-align: right;
+  font-family: 'Vazirmatn', 'Tahoma', Arial, sans-serif;
+}

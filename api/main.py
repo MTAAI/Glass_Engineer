@@ -8,7 +8,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from loguru import logger
 from dotenv import load_dotenv
 
@@ -52,17 +52,30 @@ app.include_router(troubleshoot.router, prefix="/api/v1", tags=["Troubleshoot"])
 app.include_router(feedback.router,     prefix="/api/v1", tags=["Feedback"])
 
 # ── Serve React frontend ───────────────────────────────────────────────────────
-_frontend_dist = Path(__file__).parent.parent / "frontend" / "dist"
-if _frontend_dist.exists():
-    app.mount("/assets", StaticFiles(directory=str(_frontend_dist / "assets")), name="assets")
+_project_root = Path(__file__).resolve().parent.parent
+_frontend_dist = _project_root / "frontend" / "dist"
+_assets_dir = _frontend_dist / "assets"
+_index_html = _frontend_dist / "index.html"
 
-    @app.get("/favicon.svg", include_in_schema=False)
-    async def favicon():
-        return FileResponse(str(_frontend_dist / "favicon.svg"))
 
-    @app.get("/", include_in_schema=False)
-    async def serve_frontend():
-        return FileResponse(str(_frontend_dist / "index.html"))
+@app.get("/", include_in_schema=False)
+async def serve_frontend():
+    if _index_html.exists():
+        return FileResponse(str(_index_html))
+    return HTMLResponse("<h1>Glass Expert AI</h1><p>Frontend not built. Run: cd frontend && npm run build</p>")
+
+
+@app.get("/favicon.svg", include_in_schema=False)
+async def favicon():
+    f = _frontend_dist / "favicon.svg"
+    if f.exists():
+        return FileResponse(str(f))
+    return FileResponse(str(_index_html))
+
+
+# Mount static assets LAST — after all @app.get() routes
+if _assets_dir.exists():
+    app.mount("/assets", StaticFiles(directory=str(_assets_dir)), name="assets")
 
 
 @app.on_event("startup")
@@ -72,6 +85,8 @@ async def startup_event():
     logger.info("API Docs available at: http://localhost:8080/docs")
     logger.info("New endpoints: /analyze, /design, /troubleshoot, /feedback, /auth")
     logger.info("Auth endpoints: /api/v1/auth/register, /api/v1/auth/login, /api/v1/auth/me")
+    logger.info(f"Frontend dist: {_frontend_dist} (exists: {_frontend_dist.exists()})")
+    logger.info(f"Assets dir: {_assets_dir} (exists: {_assets_dir.exists()})")
 
 
 if __name__ == "__main__":

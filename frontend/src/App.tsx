@@ -2,41 +2,86 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import ReactMarkdown from 'react-markdown'
 import {
-  Microscope, Send, Trash2, ChevronDown, ChevronUp,
-  ThumbsUp, ThumbsDown, CheckCircle, AlertCircle,
-  BookOpen, FileText, FlaskConical, Layers, Star
+  Microscope,
+  Send,
+  Trash2,
+  ChevronDown,
+  ChevronUp,
+  ThumbsUp,
+  ThumbsDown,
+  CheckCircle,
+  AlertCircle,
+  BookOpen,
+  FileText,
+  FlaskConical,
+  Layers,
+  Star,
+  LogOut,
+  User,
 } from 'lucide-react'
-import { fetchHealth, queryKnowledgeBase, submitFeedback, submitSourceFeedback } from './api/client'
-import type { Message, SourceChunk, HealthResponse } from './types'
 
-// ── Utility ────────────────────────────────────────────────────────────────────
+import {
+  fetchHealth,
+  queryKnowledgeBase,
+  submitFeedback,
+  submitSourceFeedback,
+} from './api/client'
+
+import type { Message, SourceChunk, HealthResponse } from './types'
+import type { UserProfile } from './AuthPage'
+
+// ── RTL / Language Utilities ───────────────────────────────────────────────────
+
+function isPersian(text: string): boolean {
+  return /[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/.test(text)
+}
+
+function langStyle(lang?: string, text?: string): React.CSSProperties {
+  const fa = lang === 'fa' || (text ? isPersian(text) : false)
+  return fa
+    ? {
+        direction: 'rtl',
+        textAlign: 'right',
+        fontFamily: "'Vazirmatn', 'Tahoma', 'Arial', sans-serif",
+        lineHeight: '1.8',
+      }
+    : {}
+}
+
 function formatMs(ms: number): string {
   if (ms < 1000) return `${Math.round(ms)}ms`
   return `${(ms / 1000).toFixed(1)}s`
 }
 
 function langFlag(lang: string): string {
-  return lang === 'fa' ? '🇮🇷' : '🇬🇧'
+  if (lang === 'fa') return '🇮🇷'
+  if (lang === 'en') return '🇬🇧'
+  return '🌐'
 }
 
 function sourceIcon(type: string) {
   switch (type) {
-    case 'textbook': return <BookOpen size={13} className="text-blue-400" />
-    case 'paper': return <FileText size={13} className="text-purple-400" />
-    case 'sop': return <Layers size={13} className="text-yellow-400" />
-    case 'standard': return <Star size={13} className="text-orange-400" />
-    default: return <FlaskConical size={13} className="text-cyan-400" />
+    case 'textbook':
+      return <BookOpen size={13} className="text-blue-400" />
+    case 'paper':
+      return <FileText size={13} className="text-purple-400" />
+    case 'sop':
+      return <Layers size={13} className="text-yellow-400" />
+    case 'standard':
+      return <Star size={13} className="text-orange-400" />
+    default:
+      return <FlaskConical size={13} className="text-cyan-400" />
   }
 }
 
 // ── Source Card ────────────────────────────────────────────────────────────────
+
 interface SourceCardProps {
   source: SourceChunk
-  index: number
   question: string
 }
 
-function SourceCard({ source, index, question }: SourceCardProps) {
+function SourceCard({ source, question }: SourceCardProps) {
   const [voted, setVoted] = useState<'up' | 'down' | null>(null)
   const pct = Math.round(source.similarity * 100)
 
@@ -49,14 +94,18 @@ function SourceCard({ source, index, question }: SourceCardProps) {
         source_type: source.source_type,
         relevant,
       })
-    } catch { /* silent */ }
+    } catch (err) {
+      if (import.meta.env.DEV) console.error('submitSourceFeedback failed:', err)
+    }
   }
 
   return (
     <div className="bg-[#1a2332] border border-[#2d4a6e] rounded-lg p-3 mb-2">
       <div className="flex items-center gap-2 mb-1">
         {sourceIcon(source.source_type)}
-        <span className="text-blue-400 font-medium text-sm truncate flex-1">{source.title}</span>
+        <span className="text-blue-400 font-medium text-sm truncate flex-1">
+          {source.title}
+        </span>
         <span className="text-[10px] bg-[#1e3a5f] text-slate-300 px-2 py-0.5 rounded">
           {source.source_type}
         </span>
@@ -64,7 +113,6 @@ function SourceCard({ source, index, question }: SourceCardProps) {
         <span className="text-green-400 text-xs font-semibold">{pct}%</span>
       </div>
 
-      {/* Similarity bar */}
       <div className="h-1 bg-[#0f1117] rounded-full mb-2">
         <div
           className="h-1 rounded-full bg-gradient-to-r from-blue-500 to-cyan-400"
@@ -72,12 +120,13 @@ function SourceCard({ source, index, question }: SourceCardProps) {
         />
       </div>
 
-      {/* Content preview */}
-      <p className="text-slate-500 text-xs italic leading-relaxed line-clamp-2">
+      <p
+        className="text-slate-500 text-xs italic leading-relaxed line-clamp-2"
+        style={langStyle(source.language, source.content_preview)}
+      >
         {source.content_preview}
       </p>
 
-      {/* Per-source feedback */}
       <div className="flex items-center gap-2 mt-2">
         <span className="text-slate-600 text-xs">Relevant?</span>
         {voted === null ? (
@@ -108,6 +157,7 @@ function SourceCard({ source, index, question }: SourceCardProps) {
 }
 
 // ── Citations Panel ────────────────────────────────────────────────────────────
+
 interface CitationsPanelProps {
   sources: SourceChunk[]
   question: string
@@ -124,14 +174,16 @@ function CitationsPanel({ sources, question }: CitationsPanelProps) {
         className="flex items-center gap-2 text-xs text-slate-400 hover:text-blue-400 transition-colors"
       >
         <BookOpen size={13} />
-        <span>{sources.length} source{sources.length > 1 ? 's' : ''} used</span>
+        <span>
+          {sources.length} source{sources.length > 1 ? 's' : ''} used
+        </span>
         {open ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
       </button>
 
       {open && (
         <div className="mt-2 border-l-2 border-[#2d4a6e] pl-3">
           {sources.map((src, i) => (
-            <SourceCard key={i} source={src} index={i} question={question} />
+            <SourceCard key={i} source={src} question={question} />
           ))}
         </div>
       )}
@@ -140,6 +192,7 @@ function CitationsPanel({ sources, question }: CitationsPanelProps) {
 }
 
 // ── Answer Feedback Bar ────────────────────────────────────────────────────────
+
 interface FeedbackBarProps {
   question: string
   answer: string
@@ -157,14 +210,18 @@ function FeedbackBar({ question, answer }: FeedbackBarProps) {
         helpful,
         rating: helpful ? 4 : 2,
       })
-    } catch { /* silent */ }
+    } catch (err) {
+      if (import.meta.env.DEV) console.error('submitFeedback failed:', err)
+    }
   }
 
   if (sent !== null) {
     return (
       <div className="flex items-center gap-1 mt-2 text-xs text-green-400">
         <CheckCircle size={12} />
-        <span>{sent === 'helpful' ? 'Glad it helped!' : 'Feedback recorded — we\'ll improve.'}</span>
+        <span>
+          {sent === 'helpful' ? 'Glad it helped!' : "Feedback recorded — we'll improve."}
+        </span>
       </div>
     )
   }
@@ -189,42 +246,62 @@ function FeedbackBar({ question, answer }: FeedbackBarProps) {
 }
 
 // ── Message Bubble ─────────────────────────────────────────────────────────────
+
 interface MessageBubbleProps {
   message: Message
 }
 
 function MessageBubble({ message }: MessageBubbleProps) {
   const isUser = message.role === 'user'
+  const lang = message.meta?.language_detected
+  const isRTL = lang === 'fa' || isPersian(message.content)
+  const originalQuestion = message.meta?.original_question ?? ''
 
   if (isUser) {
     return (
-      <div className="flex justify-end mb-4">
-        <div className="max-w-[80%] bg-[#1e3a5f] rounded-2xl rounded-tr-sm px-4 py-3 text-[#e8f4fd] text-sm">
+      <div className="flex mb-4 justify-end">
+        <div
+          className="max-w-[80%] bg-[#1e3a5f] rounded-2xl rounded-tr-sm px-4 py-3 text-[#e8f4fd] text-sm"
+          style={langStyle(undefined, message.content)}
+        >
           {message.content}
         </div>
       </div>
     )
   }
 
-  // Find the preceding user question for feedback context
   return (
     <div className="flex justify-start mb-4">
       <div className="max-w-[85%] bg-[#1a1f2e] border border-[#2d3748] rounded-2xl rounded-tl-sm px-4 py-3">
-        <div className="flex items-center gap-2 mb-2">
+        <div className={`flex items-center gap-2 mb-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
           <Microscope size={14} className="text-blue-400" />
           <span className="text-xs text-slate-500">Glass Expert AI</span>
+          {lang && (
+            <span className="text-xs bg-[#1e3a5f] text-slate-300 px-2 py-0.5 rounded">
+              {langFlag(lang)} {lang.toUpperCase()}
+            </span>
+          )}
           <span className="text-xs text-slate-600">
-            {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            {message.timestamp.toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
           </span>
         </div>
 
-        <div className="text-slate-200 text-sm prose prose-invert prose-sm max-w-none">
+        <div
+          className="text-slate-200 text-sm prose prose-invert prose-sm max-w-none"
+          style={langStyle(lang, message.content)}
+        >
           <ReactMarkdown>{message.content}</ReactMarkdown>
         </div>
 
-        {/* Metadata row */}
         {message.meta && (
-          <div className="flex flex-wrap gap-3 mt-2 text-xs text-slate-600">
+          <div
+            className={`flex flex-wrap gap-3 mt-2 text-xs text-slate-600 ${
+              isRTL ? 'flex-row-reverse' : ''
+            }`}
+          >
             <span>⏱ {formatMs(message.meta.retrieval_time_ms)}</span>
             <span>🌐 {message.meta.language_detected?.toUpperCase()}</span>
             <span>🤖 {message.meta.model_used}</span>
@@ -232,14 +309,12 @@ function MessageBubble({ message }: MessageBubbleProps) {
           </div>
         )}
 
-        {/* Citations panel */}
-        {message.sources && message.sources.length > 0 && (
-          <CitationsPanel sources={message.sources} question={message.content} />
+        {message.sources && message.sources.length > 0 && originalQuestion && (
+          <CitationsPanel sources={message.sources} question={originalQuestion} />
         )}
 
-        {/* Answer feedback */}
-        {message.content && message.content !== 'No answer generated.' && (
-          <FeedbackBar question={message.content} answer={message.content} />
+        {message.content && message.content !== 'No answer generated.' && originalQuestion && (
+          <FeedbackBar question={originalQuestion} answer={message.content} />
         )}
       </div>
     </div>
@@ -247,6 +322,7 @@ function MessageBubble({ message }: MessageBubbleProps) {
 }
 
 // ── Health Badge ───────────────────────────────────────────────────────────────
+
 function HealthBadge({ health }: { health: HealthResponse | null }) {
   if (!health) {
     return (
@@ -255,17 +331,34 @@ function HealthBadge({ health }: { health: HealthResponse | null }) {
       </div>
     )
   }
+
   const ok = health.status === 'healthy'
+  const totalChunks = health.total_chunks ?? 0
+  const totalDocuments = health.total_documents ?? 0
+
   return (
-    <div className={`flex items-center gap-1 text-xs ${ok ? 'text-green-400' : 'text-yellow-400'}`}>
+    <div
+      className={`flex items-center gap-1 text-xs ${
+        ok ? 'text-green-400' : 'text-yellow-400'
+      }`}
+    >
       <CheckCircle size={12} />
-      <span>{health.total_chunks.toLocaleString()} chunks · {health.total_documents} docs</span>
+      <span>
+        {totalChunks.toLocaleString()} chunks · {totalDocuments} docs
+      </span>
     </div>
   )
 }
 
 // ── Main App ───────────────────────────────────────────────────────────────────
-export default function App() {
+
+interface AppProps {
+  token: string
+  user: UserProfile
+  onLogout: () => void
+}
+
+export default function App({ token, user, onLogout }: AppProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -274,65 +367,86 @@ export default function App() {
   const [sourceFilter, setSourceFilter] = useState('all')
   const bottomRef = useRef<HTMLDivElement>(null)
 
-  // Poll health every 30s
+  const inputIsRTL = isPersian(input)
+
   useEffect(() => {
     const poll = async () => {
       try {
         const h = await fetchHealth()
         setHealth(h)
-      } catch { setHealth(null) }
+      } catch (err) {
+        setHealth(null)
+        if (import.meta.env.DEV) console.error('fetchHealth failed:', err)
+      }
     }
+
     poll()
     const id = setInterval(poll, 30_000)
     return () => clearInterval(id)
   }, [])
 
-  // Scroll to bottom on new message
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, loading])
 
-  const sendMessage = useCallback(async (text: string) => {
-    if (!text.trim() || loading) return
-    setInput('')
-    setLoading(true)
+  const sendMessage = useCallback(
+    async (text: string) => {
+      const trimmed = text.trim()
+      if (!trimmed || loading) return
 
-    const userMsg: Message = {
-      id: uuidv4(),
-      role: 'user',
-      content: text.trim(),
-      timestamp: new Date(),
-    }
-    setMessages(prev => [...prev, userMsg])
+      setInput('')
+      setLoading(true)
 
-    try {
-      const res = await queryKnowledgeBase(text.trim(), topK, sourceFilter)
-      const assistantMsg: Message = {
+      const userMsg: Message = {
         id: uuidv4(),
-        role: 'assistant',
-        content: res.answer || 'No answer generated.',
-        sources: res.sources,
-        meta: {
-          retrieval_time_ms: res.retrieval_time_ms,
-          language_detected: res.language_detected,
-          model_used: res.model_used,
-          total_chunks_searched: res.total_chunks_searched,
-        },
+        role: 'user',
+        content: trimmed,
         timestamp: new Date(),
       }
-      setMessages(prev => [...prev, assistantMsg])
-    } catch (err: unknown) {
-      const errorMsg: Message = {
-        id: uuidv4(),
-        role: 'assistant',
-        content: `❌ Error: ${err instanceof Error ? err.message : 'Request failed'}`,
-        timestamp: new Date(),
+
+      setMessages(prev => [...prev, userMsg])
+
+      try {
+        const res = await queryKnowledgeBase(
+          trimmed,
+          topK,
+          sourceFilter === 'all' ? undefined : sourceFilter
+        )
+
+        const assistantMsg: Message = {
+          id: uuidv4(),
+          role: 'assistant',
+          content: res.answer || 'No answer generated.',
+          sources: res.sources,
+          meta: {
+            retrieval_time_ms: res.retrieval_time_ms,
+            language_detected: res.language_detected,
+            model_used: res.model_used,
+            total_chunks_searched: res.total_chunks_searched,
+            original_question: trimmed,
+          },
+          timestamp: new Date(),
+        }
+
+        setMessages(prev => [...prev, assistantMsg])
+      } catch (err: unknown) {
+        const errorMsg: Message = {
+          id: uuidv4(),
+          role: 'assistant',
+          content: `❌ Error: ${err instanceof Error ? err.message : 'Request failed'}`,
+          meta: {
+            original_question: trimmed,
+          },
+          timestamp: new Date(),
+        }
+
+        setMessages(prev => [...prev, errorMsg])
+      } finally {
+        setLoading(false)
       }
-      setMessages(prev => [...prev, errorMsg])
-    } finally {
-      setLoading(false)
-    }
-  }, [loading, topK, sourceFilter])
+    },
+    [loading, topK, sourceFilter]
+  )
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -346,12 +460,12 @@ export default function App() {
     'What causes devitrification in glass manufacturing?',
     'How does silica content affect glass viscosity?',
     'What are the corrective actions for bubbles in glass?',
+    'دمای انتقال شیشه چیست؟',
+    'چگونه ترکیب شیشه بر خواص آن تأثیر می‌گذارد؟',
   ]
 
   return (
     <div className="flex h-screen bg-[#0f1117] text-slate-200 overflow-hidden">
-
-      {/* ── Sidebar ─────────────────────────────────────────────────────────── */}
       <aside className="w-64 flex-shrink-0 bg-[#13161f] border-r border-[#2d3748] flex flex-col p-4 gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
@@ -366,9 +480,27 @@ export default function App() {
           <HealthBadge health={health} />
           {health && (
             <div className="mt-1 space-y-0.5 text-xs text-slate-500">
-              <div>DB: <span className={health.database === 'healthy' ? 'text-green-400' : 'text-red-400'}>{health.database}</span></div>
-              <div>Cache: <span className={health.redis === 'healthy' ? 'text-green-400' : 'text-yellow-400'}>{health.redis}</span></div>
-              <div>v{health.version}</div>
+              <div>
+                DB:{' '}
+                <span
+                  className={
+                    health.database === 'healthy' ? 'text-green-400' : 'text-red-400'
+                  }
+                >
+                  {health.database}
+                </span>
+              </div>
+              <div>
+                Cache:{' '}
+                <span
+                  className={
+                    health.redis === 'healthy' ? 'text-green-400' : 'text-yellow-400'
+                  }
+                >
+                  {health.redis}
+                </span>
+              </div>
+              <div>v{health.version ?? 'unknown'}</div>
             </div>
           )}
         </div>
@@ -377,7 +509,10 @@ export default function App() {
           <p className="text-xs font-semibold text-slate-400 mb-2">Query Settings</p>
           <label className="text-xs text-slate-500">Sources: {topK}</label>
           <input
-            type="range" min={1} max={10} value={topK}
+            type="range"
+            min={1}
+            max={10}
+            value={topK}
             onChange={e => setTopK(Number(e.target.value))}
             className="w-full accent-blue-500 mt-1"
           />
@@ -396,27 +531,54 @@ export default function App() {
           </select>
         </div>
 
-        <div className="mt-auto border-t border-[#2d3748] pt-3">
-          <button
-            onClick={() => setMessages([])}
-            className="flex items-center gap-2 text-xs text-slate-500 hover:text-red-400 transition-colors"
-          >
-            <Trash2 size={13} /> Clear chat
-          </button>
+        <div className="border-t border-[#2d3748] pt-3">
+          <p className="text-xs font-semibold text-slate-400 mb-1">Language</p>
+          <p className="text-xs text-slate-500">🇬🇧 English & 🇮🇷 Persian supported</p>
+          <p className="text-xs text-slate-600 mt-1">Basic RTL text handling enabled</p>
+        </div>
+
+        <div className="mt-auto border-t border-[#2d3748] pt-3 space-y-2">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+              <User size={13} className="text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-slate-300 font-medium truncate">
+                {user.full_name}
+              </p>
+              <p className="text-[10px] text-slate-500 truncate">{user.role}</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setMessages([])}
+              className="flex items-center gap-1 text-xs text-slate-500 hover:text-red-400 transition-colors"
+            >
+              <Trash2 size={12} /> Clear
+            </button>
+            <button
+              onClick={onLogout}
+              className="flex items-center gap-1 text-xs text-slate-500 hover:text-orange-400 transition-colors ml-auto"
+            >
+              <LogOut size={12} /> Sign out
+            </button>
+          </div>
         </div>
       </aside>
 
-      {/* ── Main Chat Area ───────────────────────────────────────────────────── */}
       <main className="flex-1 flex flex-col overflow-hidden">
-
-        {/* Messages */}
         <div className="flex-1 overflow-y-auto px-6 py-4">
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full gap-6">
               <div className="text-center">
                 <Microscope size={48} className="text-blue-400 mx-auto mb-3" />
                 <h2 className="text-xl font-bold text-white mb-1">Glass Expert AI</h2>
-                <p className="text-slate-500 text-sm">Ask any question about glass science, manufacturing, or properties.</p>
+                <p className="text-slate-500 text-sm">
+                  Ask any question about glass science, manufacturing, or properties.
+                </p>
+                <p className="text-slate-600 text-xs mt-1">
+                  سوالات خود را به فارسی یا انگلیسی بپرسید
+                </p>
               </div>
               <div className="grid grid-cols-2 gap-2 max-w-2xl w-full">
                 {suggestions.map((s, i) => (
@@ -424,6 +586,7 @@ export default function App() {
                     key={i}
                     onClick={() => sendMessage(s)}
                     className="text-left text-xs bg-[#1a1f2e] border border-[#2d3748] rounded-lg p-3 text-slate-400 hover:border-blue-500 hover:text-blue-300 transition-all"
+                    style={langStyle(undefined, s)}
                   >
                     {s}
                   </button>
@@ -443,9 +606,18 @@ export default function App() {
                   <Microscope size={14} className="text-blue-400 animate-pulse" />
                   <span className="text-xs text-slate-500">Searching knowledge base...</span>
                   <div className="flex gap-1">
-                    <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                    <span
+                      className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce"
+                      style={{ animationDelay: '0ms' }}
+                    />
+                    <span
+                      className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce"
+                      style={{ animationDelay: '150ms' }}
+                    />
+                    <span
+                      className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce"
+                      style={{ animationDelay: '300ms' }}
+                    />
                   </div>
                 </div>
               </div>
@@ -455,17 +627,24 @@ export default function App() {
           <div ref={bottomRef} />
         </div>
 
-        {/* Input */}
         <div className="border-t border-[#2d3748] px-6 py-4 bg-[#13161f]">
           <div className="flex items-end gap-3 max-w-4xl mx-auto">
             <textarea
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask a glass science question... (Enter to send, Shift+Enter for new line)"
+              placeholder="Ask a glass science question... | سوال خود را بپرسید..."
               rows={1}
+              dir={inputIsRTL ? 'rtl' : 'ltr'}
               className="flex-1 bg-[#1a1f2e] border border-[#2d3748] rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-600 resize-none focus:outline-none focus:border-blue-500 transition-colors"
-              style={{ minHeight: '44px', maxHeight: '120px' }}
+              style={{
+                minHeight: '44px',
+                maxHeight: '120px',
+                fontFamily: inputIsRTL
+                  ? "'Vazirmatn', 'Tahoma', Arial, sans-serif"
+                  : undefined,
+                textAlign: inputIsRTL ? 'right' : 'left',
+              }}
             />
             <button
               onClick={() => sendMessage(input)}
