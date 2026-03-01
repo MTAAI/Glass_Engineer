@@ -1,0 +1,76 @@
+# ============================================================
+# Glass Expert AI — Python Dependencies
+# Phase 2: Full RAG API + Multi-format Ingestion
+# ============================================================
+# IMPORTANT: Install PyTorch CUDA first (before pip install -r requirements.txt):
+#   pip install torch==2.7.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
+
+# ------------------------------------------------------------
+# Database
+# ------------------------------------------------------------
+psycopg2-binary==2.9.9
+pgvector==0.3.2
+sqlalchemy==2.0.30
+
+# ------------------------------------------------------------
+# Embedding Model (BAAI/bge-m3)
+# ------------------------------------------------------------
+FlagEmbedding==1.2.11
+# torch installed separately with CUDA support (see above)
+transformers==4.40.2
+sentence-transformers==3.0.1
+
+# ------------------------------------------------------------
+# Document Extraction (PDF, CSV, NPZ, TXT, DOCX, JSON)
+# ------------------------------------------------------------
+pymupdf==1.24.9           # PDF: supports Farsi/RTL text
+pandas==2.2.2             # CSV extraction
+python-docx==1.1.2        # Word document extraction
+
+# ------------------------------------------------------------
+# Text Processing
+# ------------------------------------------------------------
+langdetect==1.0.9         # Language detection (English vs Farsi)
+tiktoken==0.7.0           # Token counting for chunking
+nltk==3.8.1               # Sentence tokenization
+
+# ------------------------------------------------------------
+# Caching
+# ------------------------------------------------------------
+redis==5.0.4
+
+# ------------------------------------------------------------
+# API Framework (Phase 2 — included now for completeness)
+# ------------------------------------------------------------
+fastapi==0.111.0
+uvicorn[standard]==0.30.1
+python-multipart==0.0.9
+pydantic==2.7.1
+pydantic-settings==2.3.0
+
+# ------------------------------------------------------------
+# Authentication (Phase 2)
+# ------------------------------------------------------------
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# ------------------------------------------------------------
+# LLM Client
+# ------------------------------------------------------------
+openai==1.30.1            # Compatible with vLLM's OpenAI API
+
+# ------------------------------------------------------------
+# Utilities
+# ------------------------------------------------------------
+python-dotenv==1.0.1
+tqdm==4.66.4
+numpy==1.26.4
+httpx==0.27.0
+loguru==0.7.2             # Better logging
+tenacity==8.3.0           # Retry logic
+
+# ------------------------------------------------------------
+# Testing
+# ------------------------------------------------------------
+pytest==8.2.0
+pytest-asyncio==0.23.7
