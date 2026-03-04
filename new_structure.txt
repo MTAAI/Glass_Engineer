@@ -1,0 +1,1167 @@
+Folder PATH listing for volume Windows
+Volume serial number is 64C0-130E
+C:\USERS\ZAINM\GLASS-AI-DATA\GLASS-EXPERT-AI\DATA
++---csv
++---databases
+ж   +---glassbench
+ж   +---sciglass
+ж   +---uci_glass
++---embeddings
++---evaluation
++---papers
+ж   +---cutting_edge
+ж   ж       00001_arxiv_glass_types_Low-loss single-mode integrated waveguides in soda-lime glass.pdf
+ж   ж       00002_arxiv_glass_types_Interface-Driven Thermo-Electric Switching Performance of VO Diffu.pdf
+ж   ж       00003_arxiv_glass_types_Quantum projectors implemented with optical directional couplers fabri.pdf
+ж   ж       00004_arxiv_glass_types_Radiation-induced effects in glass windows for optical readout GEM-bas.pdf
+ж   ж       00005_arxiv_glass_types_In-situ synchrotron microtomography reveals multiple reaction pathways.pdf
+ж   ж       00006_arxiv_glass_types_Tailoring the frictional properties of granular media.pdf
+ж   ж       00007_arxiv_glass_types_A self-assembled two-dimensional thermo-functional material for radiat.pdf
+ж   ж       00009_arxiv_glass_types_Femtosecond laser pulse train interaction with dielectric materials.pdf
+ж   ж       00010_arxiv_glass_types_Oxyfluoride glasses obtained through incorporation of CaF_2 into pho.pdf
+ж   ж       00011_arxiv_glass_types_Raman Scattering of Water and Photoluminescence of Pollutants Arising.pdf
+ж   ж       00012_arxiv_glass_types_Infrared emissivity spectroscopy of a soda-lime silicate glass up to t.pdf
+ж   ж       00013_arxiv_glass_types_Enhancement of hole mobility in high-rate reactively sputtered Cu2O th.pdf
+ж   ж       00014_arxiv_glass_types_Numerical Simulation of Impact Cratering and Induced Seismic Waves in.pdf
+ж   ж       00015_arxiv_glass_types_Sliding wear role of plasticity.pdf
+ж   ж       00016_arxiv_glass_types_More ferroelectrics discovered by switching spectroscopy piezoresponse.pdf
+ж   ж       00017_arxiv_glass_types_Ultra-low-resistivity nitrogen-doped p-type Cu2O thin films fabricated.pdf
+ж   ж       00018_arxiv_glass_types_Mesoscale shock structure in particulate composites.pdf
+ж   ж       00019_arxiv_glass_types_Optical Properties of Aluminium-Doped Zinc Oxide Thin Films Synthesize.pdf
+ж   ж       0001_pubmed_central_PMC5507201.pdf
+ж   ж       00020_arxiv_glass_types_Differential Refractive index sensor based on Photonic molecules and d.pdf
+ж   ж       00021_arxiv_glass_types_Materials processing with a tightly focused femtosecond vortex laser p.pdf
+ж   ж       00022_arxiv_glass_types_Materials processing with tightly focused femtosecond vortex laser bea.pdf
+ж   ж       00023_arxiv_glass_types_The Effect of Na on Cu-K-In-Se Thin Film Growth.pdf
+ж   ж       00024_arxiv_glass_types_An asymptotically compatible treatment of traction loading in linearly.pdf
+ж   ж       00025_arxiv_glass_types_Facile synthesis of Cu2O nanorods in the presence of NaCl by SILAR met.pdf
+ж   ж       00026_arxiv_glass_types_Laser Annealing of Transparent ZnO Thin Films A Route to Improve Elec.pdf
+ж   ж       00027_arxiv_glass_types_A low-temperature synthesis of strongly thermochromic W and Sr co-dope.pdf
+ж   ж       00028_arxiv_glass_types_Grain Size and Texture of Cu2ZnSnS4 Thin Films Synthesized by Cosputte.pdf
+ж   ж       00029_arxiv_glass_types_Specifics of ITO properties deposited on cerium-doped glass for space-.pdf
+ж   ж       0002_pubmed_central_PMC8007009.pdf
+ж   ж       00030_arxiv_glass_types_Anisotropic nanoscale wrinkling in solid state substrates.pdf
+ж   ж       00033_crossref_glass_types_Repair of sodalimesilica glass.pdf
+ж   ж       00036_arxiv_glass_types_Quantitative AFM analysis of phase separated borosilicate glass surfac.pdf
+ж   ж       00037_arxiv_glass_types_Laser Induced Damage Studies in Borosilicate Glass Using nanosecond an.pdf
+ж   ж       00038_arxiv_glass_types_Profile Control of a Borosilicate-Glass Groove Formed by Deep Reactive.pdf
+ж   ж       00039_arxiv_glass_types_Confined Acoustic Phonon in CdS1-xSex Nanoparticles in Borosilicate Gl.pdf
+ж   ж       0003_pubmed_central_PMC10022897.pdf
+ж   ж       00040_arxiv_glass_types_Size dependent Acoustic Phonon Dynamics of CdTe068Se032 Nanoparticle.pdf
+ж   ж       00041_arxiv_glass_types_Shaping convex edges in borosilicate glass by single pass perforation.pdf
+ж   ж       00042_arxiv_glass_types_Transferable potential for molecular dynamics simulations of borosilic.pdf
+ж   ж       00043_arxiv_glass_types_Low Frequency Raman Scattering from Acoustic Phonon Confined in CdS_.pdf
+ж   ж       00044_arxiv_glass_types_A New Transferable Interatomic Potential for Molecular Dynamics Simula.pdf
+ж   ж       00045_arxiv_glass_types_Linear thermal expansion coefficient at temperatures from 130 to 800.pdf
+ж   ж       00046_arxiv_glass_types_Ultrafast opacity in borosilicate glass induced by picosecond bursts o.pdf
+ж   ж       00047_arxiv_glass_types_Adhesion study at the interface of PDMS-elastomer and borosilicate gla.pdf
+ж   ж       00048_arxiv_glass_types_First principles study of a sodium borosilicate glass-former II The g.pdf
+ж   ж       00049_arxiv_glass_types_Near orthogonal launch of SPR modes in Au films.pdf
+ж   ж       00050_arxiv_glass_types_Ultrafast laser writing quill effect in low loss waveguide fabrication.pdf
+ж   ж       00051_arxiv_glass_types_Graphene made easy high quality large-area samples.pdf
+ж   ж       00052_arxiv_glass_types_Laser written waveguides to the sample edge.pdf
+ж   ж       00053_arxiv_glass_types_Fabrication of Glass Micro-Cavities for Cavity QED Experiments.pdf
+ж   ж       00054_arxiv_glass_types_Improved calculation of the Youngs modulus of rectangular prisms from.pdf
+ж   ж       00055_arxiv_glass_types_Structural characterization of SiO2-Na2O-CaO-B2O3-MoO3 glasses.pdf
+ж   ж       00056_arxiv_glass_types_Six-telescope integrated optics beam combiner fabricated using ultrafa.pdf
+ж   ж       00057_arxiv_glass_types_Modeling of microdevices for SAW-based acoustophoresis --- a study of.pdf
+ж   ж       00058_arxiv_glass_types_Influence of roughness on capillary forces between hydrophilic surface.pdf
+ж   ж       00059_arxiv_glass_types_Topological symmetry breaking in viscous coarsening.pdf
+ж   ж       0005_pubmed_central_PMC3003763.pdf
+ж   ж       00060_arxiv_glass_types_CMUT on Glass Substrate for Next-Generation Medical Imaging and Beyond.pdf
+ж   ж       00061_arxiv_glass_types_A next-generation optical sensor for IceCube-Gen2.pdf
+ж   ж       00062_arxiv_glass_types_Non-blinking single-photon emitters in silica.pdf
+ж   ж       00063_arxiv_glass_types_Clock Transitions Generated by Defects in Silica Glass.pdf
+ж   ж       00064_arxiv_glass_types_Low temperature dipolar echo in amorphous dielectrics Significance of.pdf
+ж   ж       00065_arxiv_glass_types_Ultra-Low Dissipation Superfluid Micromechanical Resonator.pdf
+ж   ж       0006_pubmed_central_PMC7401894.pdf
+ж   ж       0007_pubmed_central_PMC10852888.pdf
+ж   ж       00081_arxiv_glass_types_On the origin of near infrared photoluminescence in Bismuth-doped alum.pdf
+ж   ж       00082_arxiv_glass_types_Structural vibrational and elastic properties of a calcium aluminosi.pdf
+ж   ж       00083_arxiv_glass_types_Structural properties of a calcium aluminosilicate glass from molecula.pdf
+ж   ж       00084_arxiv_glass_types_Reduction of helium permeation in microfabricated cells using aluminos.pdf
+ж   ж       00085_arxiv_glass_types_Connecting bond switching to fracture toughness of calcium aluminosili.pdf
+ж   ж       00086_arxiv_glass_types_New interaction potentials for alkali and alkaline-earth aluminosilica.pdf
+ж   ж       00087_arxiv_glass_types_Topological Origins of Flexibility and Internal Stress in Sodium Alumi.pdf
+ж   ж       00088_arxiv_glass_types_The Competing Effect of Initial Crack Depth Versus Chemical Strengthen.pdf
+ж   ж       00089_arxiv_glass_types_The origin of phase separation in binary aluminosilicate glasses.pdf
+ж   ж       0008_pubmed_central_PMC10308225.pdf
+ж   ж       00090_arxiv_glass_types_Diode pumped silicate fiber for visible laser emission.pdf
+ж   ж       00091_arxiv_glass_types_Development of physics-based compositional parameters for predicting t.pdf
+ж   ж       00092_arxiv_glass_types_Rearrangement of the structure during nucleation of a cordierite glass.pdf
+ж   ж       00093_arxiv_glass_types_Harnessing Brillouin Interaction in Rare-earth Aluminosilicate Glass M.pdf
+ж   ж       00094_arxiv_glass_types_Ionic Self-Diffusion and the Glass Transition Anomaly in Aluminosilica.pdf
+ж   ж       00095_arxiv_glass_types_A Sensitive Faraday Rotation Setup Using Triple Modulation.pdf
+ж   ж       00096_arxiv_glass_types_Density functional modeling of the binding energies between aluminosil.pdf
+ж   ж       00097_arxiv_glass_types_Ultra-high temperature Soret effect in a silicate melt SiO2 migration.pdf
+ж   ж       00098_arxiv_glass_types_Theory of Optical Bloch Oscillations in the Zigzag Waveguide Array.pdf
+ж   ж       00099_arxiv_glass_types_On the reduction of gas permeation through the glass windows of microm.pdf
+ж   ж       0009_pubmed_central_PMC6494484.pdf
+ж   ж       00100_arxiv_glass_types_Multiband processing of multimode light combining 3D photonic lantern.pdf
+ж   ж       00101_arxiv_glass_types_New interaction potentials for borate glasses with mixed network forme.pdf
+ж   ж       00102_arxiv_glass_types_Low Bend Loss High Index Composite Morphology Ultra-fast Laser Writt.pdf
+ж   ж       00103_arxiv_glass_types_Influence of Matrix Composition on Microstructural Yielding and Vicker.pdf
+ж   ж       00104_arxiv_glass_types_Predicting the dissolution kinetics of silicate glasses using machine.pdf
+ж   ж       00105_arxiv_glass_types_Machine learning modeling of the atomic structure and physical propert.pdf
+ж   ж       00106_arxiv_glass_types_Polyhedral units and network connectivity in calcium aluminosilicate g.pdf
+ж   ж       00107_arxiv_glass_types_Structural characterization of Nd-doped calcium aluminosilicate glasse.pdf
+ж   ж       00109_crossref_glass_types_Open Electrode Thermal Poling Setup for Treating Lithium-Aluminosilica.pdf
+ж   ж       0010_pubmed_central_PMC6313777.pdf
+ж   ж       00118_crossref_glass_types_Iron-Doped Magnesium Aluminosilicate Transparent Glass-Ceramics Mg-Pe.pdf
+ж   ж       0011_pubmed_central_PMC12207019.pdf
+ж   ж       00125_arxiv_glass_types_Radiation Damage of F8 Lead Glass with 20 MeV Electrons.pdf
+ж   ж       00126_arxiv_glass_types_Active Eye Lens Dosimetry With Dosepix Influence of Measurement Posit.pdf
+ж   ж       00127_arxiv_glass_types_Large phase shift of 11-dimensional nonlocal spatial solitons in le.pdf
+ж   ж       00128_arxiv_glass_types_Large phase shift of spatial solitons in lead glass.pdf
+ж   ж       00129_arxiv_glass_types_Lead-glass detector for NA49.pdf
+ж   ж       0012_pubmed_central_PMC4821556.pdf
+ж   ж       00130_arxiv_glass_types_Large phase shift of spatial soliton in lead glass by cross-phase modu.pdf
+ж   ж       00131_arxiv_glass_types_Measurement of the high energy ?-rays from heavy ion reactions using.pdf
+ж   ж       00132_arxiv_glass_types_Comparative analysis of corneal and lens doses in nuclear medicine and.pdf
+ж   ж       00133_arxiv_glass_types_Detection of low energy electrons by a total absorption Cherenkov spec.pdf
+ж   ж       00134_arxiv_glass_types_A High Position Resolution X-ray Detector an Edge on Illuminated Capi.pdf
+ж   ж       00135_arxiv_glass_types_The large-angle photon veto system for the NA62 experiment at the CERN.pdf
+ж   ж       00136_arxiv_glass_types_The Large-Angle Photon Veto System for the NA62 Experiment at CERN.pdf
+ж   ж       00137_arxiv_glass_types_Charm hadroproduction results from Selex.pdf
+ж   ж       00138_arxiv_glass_types_Hyperon Physics Results from SELEX.pdf
+ж   ж       00139_arxiv_glass_types_Performance of the PrimEx Electromagnetic Calorimeter.pdf
+ж   ж       0013_pubmed_central_PMC8797219.pdf
+ж   ж       00140_arxiv_glass_types_First Charm Hadroproduction Results from SELEX.pdf
+ж   ж       00141_arxiv_glass_types_Optimising longitudinal and lateral calorimeter granularity for softwa.pdf
+ж   ж       00142_arxiv_glass_types_Detecting the Quasi-Two-Body Decays of t Leptons in Short-Baseline.pdf
+ж   ж       00143_arxiv_glass_types_A dump leakage calorimeter to measure the flux of high-energy electron.pdf
+ж   ж       00144_arxiv_glass_types_Using machine learning to separate hadronic and electromagnetic intera.pdf
+ж   ж       00145_arxiv_glass_types_Lead tungstate calorimeter of the Jefferson Lab Eta Factory experiment.pdf
+ж   ж       00146_arxiv_glass_types_Experimental observation of anisotropic diffraction induced by orbital.pdf
+ж   ж       00147_arxiv_glass_types_The HIBEAMNNBAR Calorimeter Prototype.pdf
+ж   ж       00148_arxiv_glass_types_Lead fluoride Cherenkov detector read out by avalanche photodiodes for.pdf
+ж   ж       00149_arxiv_glass_types_The lead-glass electromagnetic calorimeters for the magnetic spectrome.pdf
+ж   ж       00150_arxiv_glass_types_A Compact Beam Stop for a Rare Kaon Decay Experiment.pdf
+ж   ж       00151_arxiv_glass_types_Performance of the Electromagnetic Calorimeter of the HERMES Experimen.pdf
+ж   ж       00152_arxiv_glass_types_An Electromagnetic Calorimeter for the JLab Real Compton Scattering Ex.pdf
+ж   ж       00153_arxiv_glass_types_Intrinsic Energy Resolution of Plastic Scintillator Tiles Muon Beamte.pdf
+ж   ж       00154_arxiv_glass_types_Electron identification using the TOPAZ detector at TRISTAN.pdf
+ж   ж       0015_pubmed_central_PMC4045236.pdf
+ж   ж       0016_pubmed_central_PMC12182027.pdf
+ж   ж       00172_arxiv_glass_types_Very high quality factor measured in annealed fused silica.pdf
+ж   ж       00173_arxiv_glass_types_Deep multilevel wet etching of fused silica glass microstructures in B.pdf
+ж   ж       00174_arxiv_glass_types_Dissipation of mechanical energy in fused silica fibers.pdf
+ж   ж       00175_arxiv_glass_types_A novel approach to study laser induced void array formation in fused.pdf
+ж   ж       00176_arxiv_glass_types_On the mechanical quality factors of cryogenic test masses from fused.pdf
+ж   ж       00177_arxiv_glass_types_Effect of Optical Coating and Surface Treatments on Mechanical Loss in.pdf
+ж   ж       00178_arxiv_glass_types_Systematic measurement of the intrinsic losses in various kinds of bul.pdf
+ж   ж       00179_arxiv_glass_types_Lattice Dynamics Calculation of the Thermal Expansion of Pure and Ti-B.pdf
+ж   ж       0017_pubmed_central_PMC7457662.pdf
+ж   ж       00180_arxiv_glass_types_Sacrificial Template Replication Fabrication of arbitrary three-dimen.pdf
+ж   ж       00181_arxiv_glass_types_Low scatter and ultra-low reflectivity measured in a fused silica wind.pdf
+ж   ж       00182_arxiv_glass_types_Optical Properties of the DIRC Fused Silica Cherenkov Radiator.pdf
+ж   ж       00183_arxiv_glass_types_On the uniaxial static stress relaxation in fused silica at room tempe.pdf
+ж   ж       00184_arxiv_glass_types_Temperature Dependence of the Index of Refraction of Fused Silica.pdf
+ж   ж       00185_arxiv_glass_types_Preventing overfitting in infrared ellipsometry using temperature depe.pdf
+ж   ж       00186_arxiv_glass_types_Femtosecond laser-shockwave induced densification in fused silica.pdf
+ж   ж       00187_arxiv_glass_types_A six degree-of-freedom fused silica seismometer Design and tests of.pdf
+ж   ж       00188_arxiv_glass_types_The Anomalous Yield Behavior of Fused Silica Glass.pdf
+ж   ж       00189_arxiv_glass_types_3D large-scale fused silica microfluidic chips enabled by hybrid laser.pdf
+ж   ж       0018_pubmed_central_PMC11484877.pdf
+ж   ж       00190_arxiv_glass_types_Direct observation of the reversible and irreversible processes in fem.pdf
+ж   ж       00191_arxiv_glass_types_High quality factor measured in fused silica.pdf
+ж   ж       00192_arxiv_glass_types_Hybrid Femtosecond Laser and Ion-Implantation Processing for Controlle.pdf
+ж   ж       00193_arxiv_glass_types_Frequency and surface dependence of the mechanical loss in fused silic.pdf
+ж   ж       00194_arxiv_glass_types_Optical Transmission Characterization of Fused Silica Materials Irradi.pdf
+ж   ж       00195_arxiv_glass_types_Effects of electrical charging on the mechanical Q of a fused silica d.pdf
+ж   ж       00196_arxiv_glass_types_22Na Activation Level Measurements of Fused Silica Rods in the LH.pdf
+ж   ж       00197_arxiv_glass_types_Great enhancement of strong-field ionization in femtosecond-laser subw.pdf
+ж   ж       00198_arxiv_glass_types_Formation of plano-convex micro-lens array in fused silica glass using.pdf
+ж   ж       00199_arxiv_glass_types_Pendulum Mode Thermal Noise in Advanced Interferometers A comparison.pdf
+ж   ж       00200_arxiv_glass_types_Tuning the Thermal Expansion Properties of Optical Reference Cavities.pdf
+ж   ж       00201_arxiv_glass_types_Femtosecond laser written low-loss multiscan waveguides in fused silic.pdf
+ж   ж       00206_arxiv_glass_types_A ship-in-a-bottle quantum gas microscope setup for magnetic mixtures.pdf
+ж   ж       00207_arxiv_glass_types_Suppression of the slow component of BaF_2 crystal luminescence wi.pdf
+ж   ж       00208_arxiv_glass_types_Fabrication method for micro vapor cells for alkali atoms.pdf
+ж   ж       00209_arxiv_glass_types_Terahertz whispering gallery mode bubble resonator.pdf
+ж   ж       00210_arxiv_glass_types_The laser synthesis of linear carbon chains.pdf
+ж   ж       00211_arxiv_glass_types_Experimental Investigation of an Incremental Contact Model for Hyperel.pdf
+ж   ж       00212_arxiv_glass_types_Winding light beams along elliptical helical trajectories.pdf
+ж   ж       00213_arxiv_glass_types_High-Tc BaTiO3 ferroelectric films with frozen negative pressure state.pdf
+ж   ж       00214_arxiv_glass_types_Transparent TiO2 Nanotubes Arrays Directly Grown on Quartz Glass Used.pdf
+ж   ж       00215_arxiv_glass_types_The effect of germanium sublayer on the native corrosion of ultrathin.pdf
+ж   ж       00216_arxiv_glass_types_A half-wave voltage regulation method of electro-optic crystal based o.pdf
+ж   ж       00217_arxiv_glass_types_On the origin of incoherent magnetic exchange coupling in MnBiFe_xC.pdf
+ж   ж       00218_arxiv_glass_types_Optical chopper driven by the Casimir force.pdf
+ж   ж       00219_arxiv_glass_types_Quick and repeatable shear modulus measurement based on torsional reso.pdf
+ж   ж       00220_arxiv_glass_types_A space-resolved visible spectrometer system using compact endoscopic.pdf
+ж   ж       00221_arxiv_glass_types_Sputtered Spontaneously Nano-porous VO2-based Films via PTFE Self-Temp.pdf
+ж   ж       00222_arxiv_glass_types_Engineering on-surface spin crossover spin-state switching in a self-.pdf
+ж   ж       00232_arxiv_glass_types_Influence of thermal history on the structure and properties of silica.pdf
+ж   ж       00233_arxiv_glass_types_Towards high-rate RPC-based thermal neutron detectors using low-resist.pdf
+ж   ж       00234_arxiv_glass_types_Fabrication characterization and simulation of glass devices with Al.pdf
+ж   ж       00235_arxiv_glass_types_A high rate and high timing photoelectric detector prototype with RPC.pdf
+ж   ж       00236_arxiv_glass_types_Frozen capillary waves on glass surfaces an AFM study.pdf
+ж   ж       00237_arxiv_glass_types_Improving count rate capability of timing RPCs by increasing the detec.pdf
+ж   ж       00238_arxiv_glass_types_Optical and mechanical properties of amorphous Mg-Si-O-N thin films de.pdf
+ж   ж       00239_arxiv_glass_types_Boron-10 lined RPCs for sub-millimeter resolution thermal neutron dete.pdf
+ж   ж       00240_arxiv_glass_types_Float borosilicate and tellurites as cover glasses in Si photovoltaic.pdf
+ж   ж       00241_arxiv_glass_types_Development and characterization of single gap glass RPC.pdf
+ж   ж       00242_arxiv_glass_types_Effect of shatterproof polymer film application on the fracture types.pdf
+ж   ж       00243_arxiv_glass_types_Open-structure composite mirrors for the Cherenkov Telescope Array.pdf
+ж   ж       00244_arxiv_glass_types_mTOF performance during mCBM beam time at GSI.pdf
+ж   ж       00245_arxiv_glass_types_Study of Glass and Bakelite properties as electrodes in RPCs.pdf
+ж   ж       00246_arxiv_glass_types_MRPC3b mass production for CBM-TOF and eTOF at STAR.pdf
+ж   ж       00247_arxiv_glass_types_Status of technology of MRPC time of flight system.pdf
+ж   ж       00248_arxiv_glass_types_Signal coupling and signal integrity in multi-strip Resistive Plate Ch.pdf
+ж   ж       00249_arxiv_glass_types_Batch test of MRPC3b for CBM-TOFSTAR-eTOF.pdf
+ж   ж       00250_arxiv_glass_types_Scan-less hyperspectral dual-comb single-pixel-imaging in both amplitu.pdf
+ж   ж       00260_crossref_glass_types_Robotic Reconfigurable Sand Molding for Doubly Curved Float Glass.pdf
+ж   ж       00261_crossref_glass_types_The strength of waterjet cut float glass.pdf
+ж   ж       00271_arxiv_glass_types_Development of mirrors made of chemically tempered glass foils for fut.pdf
+ж   ж       00272_arxiv_glass_types_Revisiting in-depth chemical analysis for alkali ions-exchanged glass.pdf
+ж   ж       00276_crossref_glass_types_Remaining stress-state and strain-energy in tempered glass fragments.pdf
+ж   ж       00282_crossref_glass_types_Deformations and strain energy in fragments of tempered glass experim.pdf
+ж   ж       00283_crossref_glass_types_Optical anisotropy effects in laminated tempered glass.pdf
+ж   ж       00284_crossref_glass_types_Fragmentation of wedge loaded tempered structural glass.pdf
+ж   ж       00288_arxiv_glass_types_Finite element model based on refined plate theories for laminated gla.pdf
+ж   ж       00289_arxiv_glass_types_Numerical model of elastic laminated glass beams under finite strain.pdf
+ж   ж       00290_arxiv_glass_types_Simulating progressive failure in laminated glass beams with a layer-w.pdf
+ж   ж       00291_arxiv_glass_types_On modal analysis of laminated glass Usability of simplified methods.pdf
+ж   ж       00292_arxiv_glass_types_Phase-field Fracture Modelling of Thin Monolithic and Laminated Glass.pdf
+ж   ж       00293_arxiv_glass_types_Experimental study on the gradual fracture of layers in multi-layer la.pdf
+ж   ж       00294_arxiv_glass_types_Comparison of viscoelastic finite element models for laminated glass b.pdf
+ж   ж       00295_arxiv_glass_types_Simple Numerical Model of Laminated Glass Beams.pdf
+ж   ж       00296_arxiv_glass_types_Newmark algorithm for dynamic analysis with Maxwell chain model.pdf
+ж   ж       00297_arxiv_glass_types_Low magnetic Johnson noise electric field plates for precision measure.pdf
+ж   ж       00298_crossref_glass_types_Reducing Carbon Footprint of Laminated Glass Through the Use of Struct.pdf
+ж   ж       00301_crossref_glass_types_Adhesion Properties of Polyvinyl-Butyral-Laminated Glass under High-Sp.pdf
+ж   ж       00303_crossref_glass_types_Behaviour of laminated circular glass plates.pdf
+ж   ж       00304_crossref_glass_types_A Portable Technology for Measuring Haze Levels in Thick Laminated Gla.pdf
+ж   ж       00307_arxiv_glass_types_Quantum vacuum radiation in optical glass.pdf
+ж   ж       00308_arxiv_glass_types_Ultra-high-Q tunable whispering-gallery-mode microresonator.pdf
+ж   ж       00309_arxiv_glass_types_Ultra-dispersive adaptive prism.pdf
+ж   ж       00310_arxiv_glass_types_The Cryogenic Refractive Indices of S-FTM16 a Unique Optical Glass fo.pdf
+ж   ж       00311_arxiv_glass_types_8E-17 fractional laser frequency instability with a long room-temperat.pdf
+ж   ж       00312_arxiv_glass_types_A single atom vibration sensor.pdf
+ж   ж       00313_arxiv_glass_types_X-ray computed ╡-tomography for the characterization of optical fibe.pdf
+ж   ж       00314_arxiv_glass_types_Resonant-state-expansion Born approximation for waveguides with disper.pdf
+ж   ж       00315_arxiv_glass_types_Method of EASs Cherenkov and fluorescent light separation using silic.pdf
+ж   ж       00316_arxiv_glass_types_Resonant-state expansion for a simple dispersive medium.pdf
+ж   ж       00317_arxiv_glass_types_Tests of cryogenic Fabry-Perot cavity with mirrors on different substr.pdf
+ж   ж       00318_arxiv_glass_types_Apparatus for measuring the uniformity of the optical transmittance of.pdf
+ж   ж       00319_arxiv_glass_types_The atmospheric dispersion corrector for the Large Sky Area Multi--obj.pdf
+ж   ж       00320_arxiv_glass_types_Optical system for extremely large spectroscopic survey telescope.pdf
+ж   ж       00321_arxiv_glass_types_Statistics of modal condensation in nonlinear multimode fibers.pdf
+ж   ж       00322_arxiv_glass_types_Narrow-linewidth 852-nm DBR-LD with self-injection lock based on high-.pdf
+ж   ж       00323_arxiv_glass_types_High Speed Precise Refractive Index Modification for Photonic Chips th.pdf
+ж   ж       00324_arxiv_glass_types_Designing optical glasses by machine learning coupled with a genetic a.pdf
+ж   ж       00325_arxiv_glass_types_Faraday rotation effect in periodic graphene structure.pdf
+ж   ж       00326_arxiv_glass_types_Emergence of structural anisotropy in Optical Glasses treated to suppo.pdf
+ж   ж       00327_arxiv_glass_types_Evidence of Microscopic-Scale Modifications in Optical Glasses Support.pdf
+ж   ж       00328_arxiv_glass_types_On-chip beam rotators adiabatic mode converters and waveplates throu.pdf
+ж   ж       00329_arxiv_glass_types_TeO2-BaO-Bi2O3 tellurite optical glasses II -- Linear and non-linear.pdf
+ж   ж       00330_arxiv_glass_types_Stabilization of vortex beams in Kerr media by nonlinear absorption.pdf
+ж   ж       00331_arxiv_glass_types_Dual regimes of ion migration in high repetition rate femtosecond lase.pdf
+ж   ж       00336_arxiv_glass_types_Vertical coupling of laser glass microspheres to buried silicon nitrid.pdf
+ж   ж       00337_arxiv_glass_types_15 GHz Pulse Generation From a Monolithic Waveguide Laser With a Grap.pdf
+ж   ж       00338_arxiv_glass_types_Compensating data shortages in manufacturing with monotonicity knowled.pdf
+ж   ж       00339_arxiv_glass_types_Spin Dynamics of Rare Earth Ions in Phosphate Laser Glasses.pdf
+ж   ж       00340_arxiv_glass_types_Locating Transparent Objects to Millimetre Accuracy.pdf
+ж   ж       00341_arxiv_glass_types_The influence of femtosecond laser wavelength on waveguide fabrication.pdf
+ж   ж       00346_arxiv_glass_types_Incoherent Slow and Fast Light.pdf
+ж   ж       00360_arxiv_glass_types_High-Performance High-Index-Contrast Chalcogenide Glass Photonics on.pdf
+ж   ж       00361_arxiv_glass_types_Phase-change chalcogenide glass metamaterial.pdf
+ж   ж       00362_arxiv_glass_types_High-Q mid-infrared chalcogenide glass resonators.pdf
+ж   ж       00363_arxiv_glass_types_Fabrication and characterization of femtosecond laser written waveguid.pdf
+ж   ж       00364_arxiv_glass_types_Ultrafast Laser Inscription of High Performance Mid-Infrared Waveguide.pdf
+ж   ж       00365_arxiv_glass_types_Local tuning of photonic crystal cavities using chalcogenide glasses.pdf
+ж   ж       00366_arxiv_glass_types_Simulation of the physical properties of the chalcogenide glass As_2.pdf
+ж   ж       00367_arxiv_glass_types_Electron irradiation induced reduction of the permittivity in chalcoge.pdf
+ж   ж       00368_arxiv_glass_types_Chalcogenide Glass-on-Graphene Photonics.pdf
+ж   ж       00369_arxiv_glass_types_Three-dimensional mid-infrared photonic circuits in chalcogenide glass.pdf
+ж   ж       00370_arxiv_glass_types_Evolution of structural a relaxation-time anomalies in GexSe1-x Chal.pdf
+ж   ж       00371_arxiv_glass_types_Bipolaron Model of Superconductivity in Chalcogenide Glasses.pdf
+ж   ж       00372_arxiv_glass_types_Chalcogenide-glass polarization-maintaining photonic crystal fiber for.pdf
+ж   ж       00373_arxiv_glass_types_Chalcogenide glass planar MIR couplers for future chip based Bracewell.pdf
+ж   ж       00374_arxiv_glass_types_Waveguide-Integrated Mid-Infrared Photodetection using Graphene on a S.pdf
+ж   ж       00375_arxiv_glass_types_Machine learning unveils composition-property relationships in chalcog.pdf
+ж   ж       00376_arxiv_glass_types_Numerical studies of the vibrational isocoordinate rule in chalcogenid.pdf
+ж   ж       00377_arxiv_glass_types_Accelerated Design of Chalcogenide Glasses through Interpretable Machi.pdf
+ж   ж       00378_arxiv_glass_types_Comparative analysis of different preparation methods of chalcogenide.pdf
+ж   ж       00379_arxiv_glass_types_Direct ab initio MD simulation of silver ion diffusion in chalcogenide.pdf
+ж   ж       00380_arxiv_glass_types_Quantification of nonlinear absorption in ternary As-Sb-Se chalcogenid.pdf
+ж   ж       00381_arxiv_glass_types_Ion beam effect on Ge-Se chalcogenide glass films Non-volatile memory.pdf
+ж   ж       00382_arxiv_glass_types_Colossal photostructural changes in chalcogenide glasses Athermal pho.pdf
+ж   ж       00383_arxiv_glass_types_Melt homogenization and self-organization of chalcogenides glasses ev.pdf
+ж   ж       00384_arxiv_glass_types_Modelling and design of lanthanide ion doped chalcogenide fiber lasers.pdf
+ж   ж       00385_arxiv_glass_types_n-Type Chalcogenides by Ion Implantation.pdf
+ж   ж       00386_arxiv_glass_types_Chalcogenide hyperbolic metamaterial with switchable negative refracti.pdf
+ж   ж       00387_arxiv_glass_types_Solvable models of Glass Transition.pdf
+ж   ж       00388_arxiv_glass_types_2-10 ╡m Mid-infrared Supercontinuum Generation in As2Se3 Photonic Crys.pdf
+ж   ж       00389_arxiv_glass_types_Spectroscopy of vanadium III doped gallium lanthanum sulphide chalco.pdf
+ж   ж       00393_arxiv_glass_types_Study of the validity of a combined potential model using the hybrid r.pdf
+ж   ж       00394_arxiv_glass_types_Ultrafast Laser-Fabricated Fluoride Glass Waveguides with Exceptionall.pdf
+ж   ж       00395_arxiv_glass_types_Optical Fiber-Waveguide Hybrid Architecture for Mid-Infrared Ring Lase.pdf
+ж   ж       00396_arxiv_glass_types_Probing the dispersive properties of optical fibers with an array of f.pdf
+ж   ж       00397_arxiv_glass_types_Upconversion channels in Er3ZBLALiP multicolour microspherical ligh.pdf
+ж   ж       00398_arxiv_glass_types_Feedback-controlled laser fabrication of micromirror substrates.pdf
+ж   ж       00399_arxiv_glass_types_10 um wavefront spatial filtering first results with chalcogenide fib.pdf
+ж   ж       00400_arxiv_glass_types_A study of PbF2 nanoparticles crystallization mechanism in mixed oxyde.pdf
+ж   ж       00401_arxiv_glass_types_Reverse Monte Carlo and Rietveld modelling of BaMnFeVF7 glass struc.pdf
+ж   ж       00402_arxiv_glass_types_Ultrafast laser inscribed waveguides in tailored fluoride glasses An.pdf
+ж   ж       00403_arxiv_glass_types_Crystallization Behavior of ZBLAN Glass Under Combined Thermal and Vib.pdf
+ж   ж       00410_arxiv_glass_types_Post-melting encapsulation of glass microwires for multipath light wav.pdf
+ж   ж       00411_arxiv_glass_types_Optical bistability in Er-Yb co-doped phosphate glass microspheres at.pdf
+ж   ж       00412_arxiv_glass_types_RPC with low-resistive phosphate glass electrodes as a candidate for t.pdf
+ж   ж       00413_arxiv_glass_types_X-ray absorption XANES and photoelectron spectroscopy XPS of gamma.pdf
+ж   ж       00414_arxiv_glass_types_Effect of gamma irradiation on the structure and valence state of Nd i.pdf
+ж   ж       00415_arxiv_glass_types_Study of gamma induced defects in Nd doped phosphate glass using UV-Vi.pdf
+ж   ж       00416_arxiv_glass_types_Iron phosphate glass structure at different length scale with emphasis.pdf
+ж   ж       00417_arxiv_glass_types_Z-scan applied to phosphate glasses doped with Er3-Yb3 and.pdf
+ж   ж       00418_arxiv_glass_types_Non-linear dissolution mechanisms of sodium calcium phosphate glasses.pdf
+ж   ж       00419_arxiv_glass_types_Effect of the addition of Al2O3 TiO2 and ZnO on the thermal structur.pdf
+ж   ж       00420_arxiv_glass_types_Towards atomistic understanding of Iron phosphate glass a first-princ.pdf
+ж   ж       00421_arxiv_glass_types_A Directly-Written Monolithic Waveguide-Laser Incorporating a DFB Wave.pdf
+ж   ж       00422_arxiv_glass_types_A 100 mW monolithic Yb waveguide laser fabricated using the femtosecon.pdf
+ж   ж       00423_arxiv_glass_types_Investigation of ultrafast laser photonic material interactions chall.pdf
+ж   ж       00424_arxiv_glass_types_Three-dimensional imaging of direct-written photonic structures.pdf
+ж   ж       00425_arxiv_glass_types_The evolution of the structure and mechanical properties of fully bior.pdf
+ж   ж       00426_arxiv_glass_types_Thermo-Optical Tuning of Whispering Gallery Modes in ErYb Doped Glass.pdf
+ж   ж       00427_arxiv_glass_types_Spin-orbital entanglement in Cr3-doped glasses.pdf
+ж   ж       00428_arxiv_glass_types_Investigation of Bioglass-Electrode Interfaces after Thermal Poling.pdf
+ж   ж       00429_arxiv_glass_types_Demonstration of fundamental mode only propagation in highly multimode.pdf
+ж   ж       00430_arxiv_glass_types_High Proton Conductivity of HxWO3 at Intermediate Temperatures Unlock.pdf
+ж   ж       00431_arxiv_glass_types_Developing atomistic glass models using potential-free Monte Carlo met.pdf
+ж   ж       00432_arxiv_glass_types_Optical properties of Er3 doped alkali-chloro phosphate glasses for o.pdf
+ж   ж       00433_arxiv_glass_types_The anisotropic photorefractive effect in lithium sulfo-phosphate glas.pdf
+ж   ж       00434_arxiv_glass_types_Structural dielectric and energy storage properties of BaO-Na2O-Nb2O5.pdf
+ж   ж       00435_arxiv_glass_types_Structural electrical and energy storage properties of BaO Na2O Nb2O5.pdf
+ж   ж       00436_arxiv_glass_types_Designing artificial zinc phosphate tribofilms with tailored mechanica.pdf
+ж   ж       00437_arxiv_glass_types_Controlling plasma distributions as driving forces for ion migration d.pdf
+ж   ж       00438_arxiv_glass_types_Evaluation of GlassNet for physics-informed machine learning of glass.pdf
+ж   ж       00464_arxiv_glass_types_Ultrastrong and Ultrastable Metallic Glass.pdf
+ж   ж       00465_arxiv_glass_types_Nanosized Monoatomic Palladium Metallic Glass.pdf
+ж   ж       00466_arxiv_glass_types_Origin of the excess specific heat in metallic glass forming liquids.pdf
+ж   ж       00467_arxiv_glass_types_Transformation-mediated Plasticity in CuZr based Metallic Glass Compos.pdf
+ж   ж       00468_arxiv_glass_types_Five-fold Symmetry in Au-Si Metallic Glass.pdf
+ж   ж       00472_arxiv_glass_types_X-Ray Photon Correlation Spectroscopy Reveals Intermittent Aging Dynam.pdf
+ж   ж       00473_arxiv_glass_types_Active microrheology of a bulk metallic glass.pdf
+ж   ж       00474_arxiv_glass_types_Ultrastable Metallic Glass Nanoparticles with Size-Dependent Mechanica.pdf
+ж   ж       00475_arxiv_glass_types_Stochastic evolution elasto-plastic modeling of a metallic glass.pdf
+ж   ж       00476_arxiv_glass_types_Soft mode parameter as an indicator for the activation energy spectra.pdf
+ж   ж       00477_arxiv_glass_types_Characterization of nanoscale mechanical heterogeneity in a metallic g.pdf
+ж   ж       00478_arxiv_glass_types_Revealing Rejuvenated Disorder States towards Crystallization in a Sup.pdf
+ж   ж       00479_arxiv_glass_types_Thermodynamics kinetics and fragility of bulk metallic glass forming.pdf
+ж   ж       00480_arxiv_glass_types_Introduction to bulk metallic glass composite and its recent applicati.pdf
+ж   ж       00481_arxiv_glass_types_Transient Nature of Fast Relaxation in Metallic Glass.pdf
+ж   ж       00482_arxiv_glass_types_Unveiling the early stage evolution of local atomic structures in the.pdf
+ж   ж       00483_arxiv_glass_types_Structure-dynamics relationships in cryogenically deformed bulk metall.pdf
+ж   ж       00484_arxiv_glass_types_Observation of High-frequency Transverse Phonons in Metallic Glasses.pdf
+ж   ж       00485_arxiv_glass_types_On the formation of metallic glass.pdf
+ж   ж       00486_arxiv_glass_types_Confinement effects on the spatially inhomogeneous dynamics in metalli.pdf
+ж   ж       00487_arxiv_glass_types_Interface-controlled creep in metallic glass composites.pdf
+ж   ж       00488_arxiv_glass_types_Intrinsic dissipation mechanisms in metallic glass resonators.pdf
+ж   ж       00489_arxiv_glass_types_Exactly solvable model of sliding in metallic glass.pdf
+ж   ж       00490_arxiv_glass_types_Glassy nature of Ce65Al25Co10 alloy A metallic glass.pdf
+ж   ж       00491_arxiv_glass_types_Efficient sampling method for multi-component ZrCuAl metallic glasse.pdf
+ж   ж       00492_arxiv_glass_types_Sub-micron strain analysis of local stick-slip motion of individual sh.pdf
+ж   ж       00493_arxiv_glass_types_Correlation between Internal States and Strength in Bulk Metallic Glas.pdf
+ж   ж       00498_arxiv_glass_types_Topological Amorphous Metals.pdf
+ж   ж       00499_arxiv_glass_types_Machine learning-based prediction of elastic properties of amorphous m.pdf
+ж   ж       00500_arxiv_glass_types_Neural network as a tool for design of amorphous metal alloys with des.pdf
+ж   ж       00501_arxiv_glass_types_Structural properties of amorphous metal carbides theory and experime.pdf
+ж   ж       00502_arxiv_glass_types_Measurement of High Density Electrons Above a Helium Film on an Amorph.pdf
+ж   ж       00503_arxiv_glass_types_Amorphous metal oxide mixtures for high-Q integrated nonlinear photoni.pdf
+ж   ж       00504_arxiv_glass_types_Strain dependence of the acoustic properties of amorphous metals below.pdf
+ж   ж       00505_arxiv_glass_types_Comprehensive study of amorphous metal oxide and Ta_2O_5-based mix.pdf
+ж   ж       00506_arxiv_glass_types_Microscopic Structural and Dynamical Properties of Amorphous Metallic.pdf
+ж   ж       00507_arxiv_glass_types_Antiferromagnetic interlayer exchange coupling across an amorphous met.pdf
+ж   ж       00508_arxiv_glass_types_Is hydrogen diffusion in amorphous metals non-Arrhenian.pdf
+ж   ж       00509_arxiv_glass_types_The structure and topology of an amorphous metal-organic framework.pdf
+ж   ж       00510_arxiv_glass_types_Transport Measurements of Surface Electrons in 200 nm Deep Helium-Fill.pdf
+ж   ж       00511_arxiv_glass_types_Electronic structure and transport in amorphous metal oxide and amorph.pdf
+ж   ж       00512_arxiv_glass_types_Structure and Stability of an Amorphous Metal.pdf
+ж   ж       00513_arxiv_glass_types_On the relation between disorder and homogeneity in an amorphous metal.pdf
+ж   ж       00514_arxiv_glass_types_Template-Assisted Direct Growth of 1Tdin2 Bit Patterned Media.pdf
+ж   ж       00515_arxiv_glass_types_Role of electronic thermal transport in amorphous metal recrystallizat.pdf
+ж   ж       00516_arxiv_glass_types_Effects of dopants in InOx-based amorphous oxide semiconductors for th.pdf
+ж   ж       00517_arxiv_glass_types_Possible origin of ▀-relaxation in amorphous metal alloys from atomi.pdf
+ж   ж       00518_arxiv_glass_types_The Eliashberg Function of Amorphous Metals.pdf
+ж   ж       00519_arxiv_glass_types_Mechanical Response of Mesoporous Amorphous NiTi Alloy to External Def.pdf
+ж   ж       00520_arxiv_glass_types_Atomistic Models of Amorphous Metal-Organic Frameworks.pdf
+ж   ж       00521_arxiv_glass_types_Structure and Dielectric Properties of Amorphous High-kappa Oxides Hf.pdf
+ж   ж       00522_arxiv_glass_types_Structural heterogeneity-induced enhancement of transverse magneto-the.pdf
+ж   ж       00523_arxiv_glass_types_Superconductivity in Layered van der Waals Hydrogenated Germanene at H.pdf
+ж   ж       00524_arxiv_glass_types_Structure and properties of an amorphous metal--organic framework.pdf
+ж   ж       00525_arxiv_glass_types_Amorphous Ni50Ti50 Alloy with Nanoporous Structure Generated by Ultraf.pdf
+ж   ж       00526_arxiv_glass_types_Temperature Dependence of Transport Coefficients in Liquid and Amorpho.pdf
+ж   ж       00527_arxiv_glass_types_Cavity nucleation in single-component homogeneous amorphous solids und.pdf
+ж   ж       00528_arxiv_glass_types_Impact of micro-alloying on the plasticity of Pd-based Bulk Metallic G.pdf
+ж   ж       00529_arxiv_glass_types_Evolution of Magnetic Glass on Partial Crystallization of a Bulk Metal.pdf
+ж   ж       00530_arxiv_glass_types_Zr-based bulk metallic glass clamp cell for high-pressure inelastic ne.pdf
+ж   ж       00531_arxiv_glass_types_Compliant morphing structures from twisted bulk metallic glass ribbons.pdf
+ж   ж       00532_arxiv_glass_types_Shear band relaxation in a deformed bulk metallic glass.pdf
+ж   ж       00533_arxiv_glass_types_Origin of Ultrafast Ag Radiotracer Diffusion in Shear Bands of Deforme.pdf
+ж   ж       00534_arxiv_glass_types_The role of minor alloying in the plasticity of bulk metallic glasses.pdf
+ж   ж       00535_arxiv_glass_types_First principles modeling of the structural electronic and vibration.pdf
+ж   ж       00536_arxiv_glass_types_Cycle deformation enabled controllable mechanical polarity of bulk met.pdf
+ж   ж       00538_arxiv_glass_types_What renders bulk metallic glass ductilebrittle -- new insight from.pdf
+ж   ж       00539_arxiv_glass_types_Partial crystallization in a Zr-based bulk metallic glass in selective.pdf
+ж   ж       00540_arxiv_glass_types_Zr-Co-Al bulk metallic glass composites containing B2 ZrCo via rapid q.pdf
+ж   ж       00541_arxiv_glass_types_Universality of the nonphononic vibrational spectrum across different.pdf
+ж   ж       00542_arxiv_glass_types_Spectral descriptors for bulk metallic glasses based on the thermodyna.pdf
+ж   ж       00543_arxiv_glass_types_In situ visualization of Ni-Nb bulk metallic glasses phase transition.pdf
+ж   ж       00544_arxiv_glass_types_Structural Aspects of Deformation Defects in Bulk Metallic Glasses.pdf
+ж   ж       00545_arxiv_glass_types_Bulk metallic glass-like structure of small icosahedral metallic nanop.pdf
+ж   ж       00546_arxiv_glass_types_On the shear-affected zone of shear bands in bulk metallic glasses.pdf
+ж   ж       00547_arxiv_glass_types_Intrinsic Correlation between Hardness and Elasticity in Polycrystalli.pdf
+ж   ж       00548_arxiv_glass_types_Splitting up entropy into vibrational and configurational contribution.pdf
+ж   ж       00549_arxiv_glass_types_Computational Study of Density Fluctuation-Induced Shear Bands Formati.pdf
+ж   ж       00550_arxiv_glass_types_Special Glass Structures for First Principles Studies of Bulk Metallic.pdf
+ж   ж       00551_arxiv_glass_types_Computational studies of the glass-forming ability of model bulk metal.pdf
+ж   ж       00555_arxiv_glass_types_Modern Definition of Bioactive Glasses and Glass-Ceramics.pdf
+ж   ж       00556_arxiv_glass_types_X-ray microanalysis in STEM of short-term physico-chemical reactions a.pdf
+ж   ж       00557_arxiv_glass_types_Response of RAW 2647 and J774A1 macrophages to particles and nanopar.pdf
+ж   ж       00558_arxiv_glass_types_Effects of a mesoporous bioactive glass on osteoblasts osteoclasts an.pdf
+ж   ж       00559_arxiv_glass_types_Mesoporous bioactive glasse-polycaprolactone scaffolds promote bone r.pdf
+ж   ж       00560_arxiv_glass_types_Mechanism and Kinetics of Na Ion Depletion under the Anode during Ele.pdf
+ж   ж       00561_arxiv_glass_types_Multifunctional antibiotic- and zinc-containing mesoporous bioactive g.pdf
+ж   ж       00562_arxiv_glass_types_Femtosecond laser induced surface modification for prevention of bacte.pdf
+ж   ж       00563_arxiv_glass_types_In Vivo Study of Bone Growth Around Additively Manufactured Implants w.pdf
+ж   ж       00564_arxiv_glass_types_Microfluidic 3D Cell Culture Potential Application of Collagen Hydrog.pdf
+ж   ж       00565_arxiv_glass_types_The response of pre-osteoblasts and osteoclasts to gallium containing.pdf
+ж   ж       00566_arxiv_glass_types_Molecular gates in mesoporous bioactive glasses for the treatment of b.pdf
+ж   ж       00567_arxiv_glass_types_Development and evaluation of copper-containing mesoporous bioactive g.pdf
+ж   ж       00568_arxiv_glass_types_Strontium-releasing mesoporous bioactive glasses with anti-adhesive zw.pdf
+ж   ж       00569_arxiv_glass_types_Fluoride doping into SiO2-MgO-CaO bioactive glass nanoparticles bioac.pdf
+ж   ж       00570_arxiv_glass_types_Density-Diffusion Relationship in Soda-Lime Phosphosilicate.pdf
+ж   ж       00571_arxiv_glass_types_Induction of VEGF secretion from bone marrow stromal cell line ST-2.pdf
+ж   ж       00572_arxiv_glass_types_Biological activity of a SiO2-CaO-P2O5 sol-gel glass highlighted by PI.pdf
+ж   ж       00573_arxiv_glass_types_Atomistic insights into the mixed-alkali effect in phosphosilicate gla.pdf
+ж   ж       00574_arxiv_glass_types_Assessment of sol-gel derived iron oxide substituted 45S5 bioglass-cer.pdf
+ж   ж       00575_arxiv_glass_types_Enhancing Mechanical Stimuli in Functionally Graded Bone Scaffolds Thr.pdf
+ж   ж       00576_arxiv_glass_types_Novel ion-doped mesoporous glasses for bone tissue engineering Study.pdf
+ж   ж       00577_arxiv_glass_types_Osteostatin potentiates the bioactivity of mesoporous glass scaffolds.pdf
+ж   ж       00578_arxiv_glass_types_Fabrication and in vitro characterization of three-dimensional organic.pdf
+ж   ж       00579_arxiv_glass_types_Prevention of bacterial adhesion to zwitterionic biocompatible mesopor.pdf
+ж   ж       00580_arxiv_glass_types_The effect of biomimetic mineralization of 3D-printed mesoporous biogl.pdf
+ж   ж       00589_arxiv_glass_types_Cooling Rate Effects on the Structure of 45S5 Bioglass Computational.pdf
+ж   ж       00590_arxiv_glass_types_Multiscale porosity in mesoporous bioglass 3D-printed scaffolds for bo.pdf
+ж   ж       00591_arxiv_glass_types_Advances in ion-doping of Ca-Mg silicate bioceramics for bone tissue e.pdf
+ж   ж       00592_crossref_glass_types_Aluminum-free glass ionomer cements containing 45S5 Bioglass and its.pdf
+ж   ж       00595_arxiv_glass_types_Light Scattering in Transparent Glass Ceramics.pdf
+ж   ж       00596_arxiv_glass_types_Nanoscopic Study of the Ion Dynamics in a LiAlSiO_4 Glass Ceramic by.pdf
+ж   ж       00597_arxiv_glass_types_Influence of additives CoO CaO B2O3 on thermal and dielectric prop.pdf
+ж   ж       00598_arxiv_glass_types_Photonic glass-ceramics consolidated outcomes and prospects.pdf
+ж   ж       00599_arxiv_glass_types_Properties of LiMnBO3 glasses and nanostructured glass-ceramics.pdf
+ж   ж       00600_arxiv_glass_types_Lithium-ion conducting glass ceramics for electrostatic gating.pdf
+ж   ж       00601_arxiv_glass_types_Fabrication of Rare Earth-Doped Transparent Glass Ceramic Optical Fibe.pdf
+ж   ж       00602_arxiv_glass_types_Ultratransparent glass-ceramics the structure factor and the quenchin.pdf
+ж   ж       00603_arxiv_glass_types_Laser-written integrated photonics in glass-ceramics Zerodur.pdf
+ж   ж       00604_arxiv_glass_types_Effect of temperature and excitation power on down-conversion process.pdf
+ж   ж       00605_arxiv_glass_types_Characterization of the Microstructure of Zirconolite-Based Glass-Cera.pdf
+ж   ж       00606_arxiv_glass_types_Low self-affine exponents of fracture surfaces of glass ceramics.pdf
+ж   ж       00607_arxiv_glass_types_Investigation of the effect of Au2O3 dopant on elastic properties of P.pdf
+ж   ж       00608_arxiv_glass_types_Tantalum electrodeposition using a nanoporous anodic alumina template.pdf
+ж   ж       00609_arxiv_glass_types_AI-Aided Mapping of the Structure-Composition-Conductivity Relationshi.pdf
+ж   ж       00610_arxiv_glass_types_In-Situ Grown Erbium-Doped Dielectric Nanoparticles in Silica-Based Tr.pdf
+ж   ж       00611_arxiv_glass_types_Enhanced ionic conductivity through crystallization of glass-Li_3PS.pdf
+ж   ж       00612_arxiv_glass_types_First principles derivation of a Rayleigh Gans Debye model for scatter.pdf
+ж   ж       00613_arxiv_glass_types_Active optics in astronomy - Freeform mirror for the MESSIER telescope.pdf
+ж   ж       00614_arxiv_glass_types_Pressure-driven homogenization of lithium disilicate glasses.pdf
+ж   ж       00615_arxiv_glass_types_A Redox-based Ion-Gating Reservoir Utilizing Double Reservoir States.pdf
+ж   ж       00616_arxiv_glass_types_Transformations induced by hydrostatic pressure on lead metasilicate p.pdf
+ж   ж       00617_arxiv_glass_types_Adjustable picometer-stable interferometers for testing space-based gr.pdf
+ж   ж       00618_arxiv_glass_types_Thermal properties of Ba3Ti3B2O12 glasses.pdf
+ж   ж       00619_arxiv_glass_types_Tunneling anomalous Hall effect in the nanogranular CoFe-B-Al-O films.pdf
+ж   ж       00628_crossref_glass_types_Thermal Poling Assisted Ion Exchange in LAS Glass and Glass-Ceramic.pdf
+ж   ж       00629_arxiv_glass_types_Multiple beam interference in a quadrupolar glass fiber.pdf
+ж   ж       00630_arxiv_glass_types_The Properties of Glass Fiber Reinforced Polypropylene Filaments Recyc.pdf
+ж   ж       00631_arxiv_glass_types_Fully Convolutional Deep Network Architectures for Automatic Short Gla.pdf
+ж   ж       00632_arxiv_glass_types_Fluorescent diamond microparticles doped glass fiber for magnetic fiel.pdf
+ж   ж       00633_arxiv_glass_types_Optical decoherence and spectral diffusion in an erbium-doped silica g.pdf
+ж   ж       00634_arxiv_glass_types_Conquering the Rayleigh scattering limit of silica glass fiber at visi.pdf
+ж   ж       00635_arxiv_glass_types_Investigating the acoustical properties of carbon fiber- glass fiber-.pdf
+ж   ж       00636_arxiv_glass_types_Efficient and long-lived Zeeman-sublevel atomic population storage in.pdf
+ж   ж       00637_arxiv_glass_types_Reference Setup for Quantitative Comparison of Segmentation Techniques.pdf
+ж   ж       00638_arxiv_glass_types_Water Aging Effects on Graphene Nanoplatelets and Multi-walled Carbon.pdf
+ж   ж       00639_arxiv_glass_types_Spatial beam self-cleaning in multimode lanthanum aluminum silicate gl.pdf
+ж   ж       00640_arxiv_glass_types_Non-magnetic glass-fiber cryostat for MADMAX prototype tests.pdf
+ж   ж       00641_arxiv_glass_types_Rotating-slit scintigraphy using scintillating glass fibers First res.pdf
+ж   ж       00642_arxiv_glass_types_Effect of severe thermo-oxidative aging on the mechanical behavior and.pdf
+ж   ж       00643_arxiv_glass_types_Enhancement of mechanical properties of high modulus polypropylene gra.pdf
+ж   ж       00644_arxiv_glass_types_Global-in-time solutions for the isothermal Matovich-Pearson equations.pdf
+ж   ж       00645_arxiv_glass_types_Thermal emission from a single glass fiber.pdf
+ж   ж       00646_arxiv_glass_types_Adsorption and onset of lubrication by a double-chained cationic surfa.pdf
+ж   ж       00647_arxiv_glass_types_Spontaneous emission enhancement of a single molecule by a double-sphe.pdf
+ж   ж       00648_arxiv_glass_types_Metacomposite characteristics and their influential factors of polymer.pdf
+ж   ж       00649_arxiv_glass_types_Monte Carlo simulation of a very high resolution thermal neutron detec.pdf
+ж   ж       00650_arxiv_glass_types_Laser Cooled High-Power Fiber Amplifier.pdf
+ж   ж       00651_arxiv_glass_types_Flexible Trilayer Cellulosic Paper Separators engineered with BaTiO_3.pdf
+ж   ж       00652_arxiv_glass_types_Design and integration of end-effector for 3D printing of novel UV-cur.pdf
+ж   ж       00653_arxiv_glass_types_Vectorial modeling of near-field imaging with uncoated fiber probes T.pdf
+ж   ж       00654_arxiv_glass_types_Microrheology measurements with a hanging-fiber AFM probe.pdf
+ж   ж       00655_arxiv_glass_types_Spontaneous emission in the near-field of 2D photonic crystals.pdf
+ж   ж       00656_arxiv_glass_types_Near-field imaging and frequency tuning of a high-Q photonic crystal m.pdf
+ж   ж       00658_crossref_glass_types_Difference of color stability of E-glass fiber dental and E-glass fibe.pdf
+ж   ж       00668_arxiv_glass_types_Passive Daytime Radiative Cooling Enabled by Bio-Derived Ceramic-Polym.pdf
+ж   ж       00669_arxiv_glass_types_Thermal Conductivity of Thermally-Isolating Polymeric and Composite St.pdf
+ж   ж       00670_arxiv_glass_types_RoboGrind Intuitive and Interactive Surface Treatment with Industrial.pdf
+ж   ж       00671_arxiv_glass_types_Thermal architecture for a cryogenic super-pressure balloon payload d.pdf
+ж   ж       00672_arxiv_glass_types_Demonstration of new MeV-scale capabilities in large neutrino LArTPCs.pdf
+ж   ж       00673_arxiv_glass_types_The Thermal Environment of the Fiber Glass Dome for the New Solar Tele.pdf
+ж   ж       00674_arxiv_glass_types_Failure time and microcrack nucleation.pdf
+ж   ж       00675_arxiv_glass_types_Thermal architecture for the SPIDER flight cryostat.pdf
+ж   ж       00676_arxiv_glass_types_Wildfire Smoke -- A Rigorous Challenge for HVAC Air Filters.pdf
+ж   ж       00677_arxiv_glass_types_Analysis of a wet scrubber network in the air remediation of industria.pdf
+ж   ж       00678_arxiv_glass_types_Failure time and critical behaviour of fracture precursors in heteroge.pdf
+ж   ж       00679_arxiv_glass_types_The long duration cryogenic system of the OLIMPO balloon--borne experi.pdf
+ж   ж       00684_arxiv_glass_types_Denture reinforcement via topology optimization.pdf
+ж   ж       00685_arxiv_glass_types_Reduced-Dimension Surrogate Modeling to Characterize the Damage Tolera.pdf
+ж   ж       00686_arxiv_glass_types_Composite Biomarker Image for Advanced Visualization in Histopathology.pdf
+ж   ж       00687_arxiv_glass_types_On the quantification and efficient propagation of imprecise probabili.pdf
+ж   ж       00700_crossref_glass_types_Glass up-casting a review on the current challenges in glass recyclin.pdf
+ж   ж       00702_arxiv_glass_types_MgB2Cu Racetrack Coil Winding and Transport Testing.pdf
+ж   ж       00703_arxiv_glass_types_Short range order and topology of binary Ge-S glasses.pdf
+ж   ж       00704_arxiv_glass_types_Infrared luminescence in Bi-doped Ge-S and As-Ge-S chalcogenide glasse.pdf
+ж   ж       00705_arxiv_glass_types_Solenoidal Coils Made from Monofilamentary and Multifilamentary MgB2 s.pdf
+ж   ж       00706_arxiv_glass_types_The structure of near stoichiometric Ge-Ga-Sb-S glasses a reverse Mon.pdf
+ж   ж       00707_arxiv_glass_types_Atomic level structure of Ge-Sb-S glasses chemical short range order.pdf
+ж   ж       00708_arxiv_glass_types_On the possibility of mid-IR supercontinuum generation in As-Se-TeAs-.pdf
+ж   ж       00710_arxiv_properties_Inverse design of glass structure with deep graph neural networks.pdf
+ж   ж       00711_arxiv_properties_Three-dimensional printing of silica-glass structures with submicromet.pdf
+ж   ж       00712_arxiv_properties_Physics-Informed Glass-Structure Descriptors for Assessing the Intrins.pdf
+ж   ж       00713_arxiv_properties_Visualizing the strain evolution during the indentation of colloidal g.pdf
+ж   ж       00714_arxiv_properties_Refining glass structure in two dimensions.pdf
+ж   ж       00715_arxiv_properties_Erratum Instantaneous frequency and amplitude identification using wa.pdf
+ж   ж       00716_arxiv_properties_Instantaneous frequency and amplitude identification using wavelets A.pdf
+ж   ж       00717_arxiv_properties_Temperature and strain characterization of regenerated gratings.pdf
+ж   ж       00718_arxiv_properties_Effect of changing the rare earth cation type on the structure and cry.pdf
+ж   ж       00719_arxiv_properties_Relaxation processes of densified silica glass.pdf
+ж   ж       00720_arxiv_properties_Correlated disorder in a well relaxed model binary glass through a loc.pdf
+ж   ж       00721_arxiv_properties_Cooling rate dependence of simulated rm Cu_645Zr_355 metall.pdf
+ж   ж       00722_arxiv_properties_The slope equations a universal relationship between local structure.pdf
+ж   ж       00723_arxiv_properties_Nature and distribution of iron sites in a sodium silicate glass inves.pdf
+ж   ж       00724_arxiv_properties_Thermal behavior of NIR active centers in Bi-doped optical fibers.pdf
+ж   ж       00725_arxiv_properties_Vortex matter in superconducting mesoscopic disks Structure magnetiz.pdf
+ж   ж       00726_arxiv_properties_Polymerisation Degree and Raman Identification of Ancient Glasses used.pdf
+ж   ж       00727_arxiv_properties_Optical absorption and structure of impurity Ni2 center in tungs.pdf
+ж   ж       00728_arxiv_properties_Geometric interpretation of pre-vitrification in hard sphere liquids.pdf
+ж   ж       00729_arxiv_properties_Revealing the Atomic Structure of Silicate Glasses by Force-Enhanced A.pdf
+ж   ж       00730_arxiv_properties_Density hardening plasticity and mechanical aging of silica glass unde.pdf
+ж   ж       00731_arxiv_properties_Glassy dynamics and crystalline local order in two-dimensional amorpho.pdf
+ж   ж       00732_arxiv_properties_Predicting the location of shear band initiation in a metallic glass.pdf
+ж   ж       00733_arxiv_properties_Exploring structural inhomogeneities in glasses during cavitation.pdf
+ж   ж       00734_arxiv_properties_Revealing the Void-Size Distribution of Silica Glass using Persistent.pdf
+ж   ж       00735_arxiv_properties_Structural vibrational and thermal properties of densified silicates.pdf
+ж   ж       00751_arxiv_properties_Variation of the glass transition temperature with rigidity and chemic.pdf
+ж   ж       00752_arxiv_properties_Simple rules for the prediction of the value of the glass transition t.pdf
+ж   ж       00753_arxiv_properties_Glass Transition Temperature and Fractal Dimension of Protein Free Ene.pdf
+ж   ж       00754_arxiv_properties_Glass transition temperature of PMMAmodified alumina nanocomposite M.pdf
+ж   ж       00755_arxiv_properties_On the glass transition temperature in covalent glasses.pdf
+ж   ж       00756_arxiv_properties_How the shift of the glass transition temperature of thin polymer film.pdf
+ж   ж       00757_arxiv_properties_The Glass Transition Temperature of Water A Simulation Study.pdf
+ж   ж       00758_arxiv_properties_Glass transition temperature variation cross-linking and structure in.pdf
+ж   ж       00759_arxiv_properties_Glass Transition Temperature and Dynamics of a-Process in Thin Polym.pdf
+ж   ж       00760_arxiv_properties_Glass transition temperature of thin polymer films.pdf
+ж   ж       00761_arxiv_properties_Experimental determination of the glass transition temperature in a ve.pdf
+ж   ж       00762_arxiv_properties_Deviatoric Stress Driven Transient Melting Below the Glass Transition.pdf
+ж   ж       00763_arxiv_properties_Prediction of Reduced Glass Transition Temperature using Machine Learn.pdf
+ж   ж       00764_arxiv_properties_Influence of grafting on the glass transition temperature of PS thin f.pdf
+ж   ж       00765_arxiv_properties_Glass Transition Temperature in Polystyrene Supported Thin Films a SP.pdf
+ж   ж       00766_arxiv_properties_Supercooled Liquid Water Diffusivity at Temperatures near the Glass Tr.pdf
+ж   ж       00767_arxiv_properties_New Insights into the Dependence of Glass Transition Temperature and D.pdf
+ж   ж       00768_arxiv_properties_The viscoelastic and anelastic responses of amorphous polymers in the.pdf
+ж   ж       00769_arxiv_properties_Molecular-level relation between intra-particle glass transition tempe.pdf
+ж   ж       00770_arxiv_properties_Linear Modeling of the Glass Transition Temperature of the system SiO.pdf
+ж   ж       00771_arxiv_properties_Resolving the controversy on the glass transition temperature of water.pdf
+ж   ж       00772_arxiv_properties_Explainability and Transferability of Machine Learning Models for Pred.pdf
+ж   ж       00773_arxiv_properties_Reduction of the Glass Transition Temperature in Polymer Films A Mole.pdf
+ж   ж       00774_arxiv_properties_Boson peak elasticity and glass transition temperature in polymer gl.pdf
+ж   ж       00775_arxiv_properties_A fast transferable method for predicting the glass transition tempera.pdf
+ж   ж       00776_arxiv_properties_Is the Molecular Weight Dependence of the Glass Transition Temperature.pdf
+ж   ж       00777_arxiv_properties_The uncertainty of glass transition temperature in molecular dynamics.pdf
+ж   ж       00778_arxiv_properties_A macroscopic model that connects the molar excess entropy of a deeply.pdf
+ж   ж       00779_arxiv_properties_Influence of the cooling-rate on the glass transition temperature and.pdf
+ж   ж       00782_crossref_properties_Erratum to Maxwell equation and classical theories of glass transiti.pdf
+ж   ж       00786_arxiv_properties_Glass Viscosity Curvature from Constraint-Driven Actualization A Phys.pdf
+ж   ж       00787_arxiv_properties_Structure and crystallization of SiO2 and B2O3 doped lithium disilicat.pdf
+ж   ж       00788_arxiv_properties_Vogel-Fulcher law of glass viscosity A new approach.pdf
+ж   ж       00789_arxiv_properties_Defect model for the mixed mobile ion effect.pdf
+ж   ж       00813_arxiv_properties_Structural transformations in porous glasses under mechanical loading.pdf
+ж   ж       00814_arxiv_properties_Structural transformations in porous glasses under mechanical loading.pdf
+ж   ж       00815_arxiv_properties_Failure to Reproduce the Results of A new transferable interatomic po.pdf
+ж   ж       00816_arxiv_properties_Experimental evidence for a Bragg glass density wave phase in a transi.pdf
+ж   ж       00817_arxiv_properties_Data-driven prediction of room temperature density for multicomponent.pdf
+ж   ж       00818_arxiv_properties_Glass fracture surface energy calculated from crystal structure and bo.pdf
+ж   ж       00819_arxiv_properties_Distributions of pore sizes and atomic densities in binary glasses rev.pdf
+ж   ж       00820_arxiv_properties_Slow relaxation dynamics in binary glasses during stress-controlled t.pdf
+ж   ж       00821_arxiv_properties_Structural relaxation of porous glasses due to internal stresses and d.pdf
+ж   ж       00822_arxiv_properties_Optimization of Transferable Interatomic Potentials for Glasses toward.pdf
+ж   ж       00823_arxiv_properties_Isomorphs in sheared binary Lennard-Jones glass Transient response.pdf
+ж   ж       00824_arxiv_properties_Curvature in the Looking-Glass Optimal Methods to Exploit Curvature o.pdf
+ж   ж       00825_arxiv_properties_Predicting densities and elastic moduli of SiO2-based glasses by machi.pdf
+ж   ж       00826_arxiv_properties_Elastic anomalies in glasses the string theory understanding in the c.pdf
+ж   ж       00827_arxiv_properties_Evidence of polyamorphic transitions during densified SiO_2 glass an.pdf
+ж   ж       00828_arxiv_properties_Evolution of the pore size distribution in sheared binary glasses.pdf
+ж   ж       00829_arxiv_properties_Critical Role of Disorder for Superconductivity in the Series of Epita.pdf
+ж   ж       00848_arxiv_properties_Measuring light with light dependent resistors an easy approach for o.pdf
+ж   ж       00849_arxiv_properties_Measuring chromatic aberrations in imaging systems using plasmonic nan.pdf
+ж   ж       00877_crossref_properties_Experimental research on mechanical properties and elastic modulus of.pdf
+ж   ж       00882_arxiv_properties_Glass Hardness Predicting Composition and Load Effects via Symbolic R.pdf
+ж   ж       00883_arxiv_properties_Marginal Stability in Structural Spin and Electron Glasses.pdf
+ж   ж       00884_arxiv_properties_Field-Driven Hysteresis of the d3 Ising Spin Glass Hard-Spin Mean-Fi.pdf
+ж   ж       00885_arxiv_properties_A route to engineered high aspect-ratio silicon nanostructures through.pdf
+ж   ж       00894_crossref_properties_Effect of E-glass fibers addition on compressive strength flexural st.pdf
+ж   ж       00916_arxiv_properties_KSbOSiO_4 microcrystallites as a source of corrosion of blue-green l.pdf
+ж   ж       00917_arxiv_properties_Waste forms for actinides borosilicate glasses.pdf
+ж   ж       00918_arxiv_properties_Crystallites in Color Glass Beads of the 19th Century and Their Influe.pdf
+ж   ж       00919_arxiv_properties_Thermal-fluctuation mechanism of long-term corrosion of glass caused b.pdf
+ж   ж       00920_arxiv_properties_Study of deteriorating semiopaque turquoise lead-potassium glass beads.pdf
+ж   ж       00937_crossref_properties_Data-driven predictive models for chemical durability of oxide glass u.pdf
+ж   ж       00939_crossref_properties_Assessing the Chemical Durability of Textured Glass-Coat for Building.pdf
+ж   ж       00940_crossref_properties_Chemical durability of sintered glass-composite prepared from glass cu.pdf
+ж   ж       00942_crossref_properties_Glass weathering chemical composition prediction model.pdf
+ж   ж       00944_crossref_properties_Prediction of the chemical composition of ancient glass objects before.pdf
+ж   ж       00945_crossref_properties_Potash-lime-silica glass protection from weathering.pdf
+ж   ж       00946_crossref_properties_COMPARISON OF OPTICAL METHODS FOR CHARACTERIZATION OF GLASS MOSAIC WEA.pdf
+ж   ж       00947_crossref_properties_Quantitative Study of Ancient Glass Weathering Based on Chemical Compo.pdf
+ж   ж       00950_arxiv_properties_Density Functional Modeling and Total Scattering Analysis of the Atomi.pdf
+ж   ж       00957_crossref_properties_Impacts of glass composition pH and temperature on glass forward dis.pdf
+ж   ж       00958_arxiv_processing_Evidence of a T0 Quantum Critical Point Associated with the Crossover.pdf
+ж   ж       00959_arxiv_processing_Microscopic Theory for the Role of Attractive Forces in the Dynamics o.pdf
+ж   ж       00960_arxiv_processing_Delocalization in two dimensional disordered Bose systems and depinnin.pdf
+ж   ж       00961_arxiv_processing_Experimental Study of the Inductance of Pinned Vortices in Superconduc.pdf
+ж   ж       00962_arxiv_processing_XANES determination of chromium oxidation states in glasses compariso.pdf
+ж   ж       00963_arxiv_processing_Freeform microfluidic networks encapsulated in laser printed three-dim.pdf
+ж   ж       00964_arxiv_processing_Microscopic Theory of the Elastic Shear Modulus and Length-Scale-Depen.pdf
+ж   ж       00965_arxiv_processing_Direct determination of the collective pinning radius in high temperat.pdf
+ж   ж       00966_arxiv_processing_How can computer simulations contribute to the understanding of the dy.pdf
+ж   ж       00967_arxiv_processing_Fate of the Peak Effect in a Type-II Superconductor Multicriticality.pdf
+ж   ж       00968_arxiv_processing_Nanodiamond in tellurite glass Part I origin of loss in nanodiamond-d.pdf
+ж   ж       00969_arxiv_processing_Quantum Glass Transition in a Periodic Long-Range Josephson Array.pdf
+ж   ж       00970_arxiv_processing_Vortex-Glass Melting Transition and Scaling Behavior in the Cuprate Su.pdf
+ж   ж       00971_arxiv_processing_Effect of lithium bisoxalatoborate on the Structural microstructura.pdf
+ж   ж       00972_arxiv_processing_Universal properties of many-body delocalization transitions.pdf
+ж   ж       00973_arxiv_processing_Nanodiamond in tellurite glass Part II practical nanodiamond-doped fi.pdf
+ж   ж       00974_arxiv_processing_CsPbBrClI3 quantum dots in fluorophosphate glasses.pdf
+ж   ж       00975_arxiv_processing_A new interpretation of the dynamic structure model of ion transport i.pdf
+ж   ж       00976_arxiv_processing_Cathodoluminescence of CdZnSSe crystals synthesized in 19th century be.pdf
+ж   ж       00977_arxiv_processing_Defect model for the mixed mobile ion effect revisited an importance.pdf
+ж   ж       00978_arxiv_processing_Phase diagram of randomly pinned vortex matter in layered superconduct.pdf
+ж   ж       01001_arxiv_processing_A Machine Learning Framework for Predicting Glass-Forming Ability in T.pdf
+ж   ж       01002_arxiv_processing_Inherent Structure Approach to the Study of Glass Forming Liquids.pdf
+ж   ж       01003_arxiv_processing_The new face of the activation volume in glass forming systems.pdf
+ж   ж       01004_arxiv_processing_Stress-tunable abilities of glass forming and mechanical amorphization.pdf
+ж   ж       01005_arxiv_processing_Effective Potential in Glass Forming Liquids.pdf
+ж   ж       01006_arxiv_processing_Structural Heterogeneity Ductility and Glass Forming Ability of Zr-B.pdf
+ж   ж       01007_arxiv_processing_Density and Glass Forming Ability in Amorphous Atomic Alloys the Role.pdf
+ж   ж       01008_arxiv_processing_Molecular Dynamic Characteristic Temperatures for Predicting Metallic.pdf
+ж   ж       01009_arxiv_processing_Generalized Compressibility in a Glass Forming Liquid.pdf
+ж   ж       01010_arxiv_processing_Composition dependence of the glass forming ability in binary mixtures.pdf
+ж   ж       01011_arxiv_processing_Structure and glass-forming ability of simulated Ni-Zr alloys.pdf
+ж   ж       01012_arxiv_processing_Onset Temperature of Slow Dynamics in Glass Forming Liquids.pdf
+ж   ж       01013_arxiv_processing_Mechanical Properties of Glass Forming Systems.pdf
+ж   ж       01014_arxiv_processing_Structural and dynamical heterogeneity in a glass forming liquid.pdf
+ж   ж       01015_arxiv_processing_Viscoelastic shear stress relaxation in two-dimensional glass forming.pdf
+ж   ж       01016_arxiv_processing_Ageing and Relaxation in Glass Forming Systems.pdf
+ж   ж       01017_arxiv_processing_Confinement effects on glass forming liquids probed by DMA.pdf
+ж   ж       01018_arxiv_processing_Exploration of Characteristic Temperature Contributions to Metallic Gl.pdf
+ж   ж       01019_arxiv_processing_Simple strong glass forming models mean-field solution with activatio.pdf
+ж   ж       01020_arxiv_processing_Geometrical explanation and scaling of dynamical heterogeneities in gl.pdf
+ж   ж       01021_arxiv_processing_Molecular simulation-derived features for machine learning predictions.pdf
+ж   ж       01022_arxiv_processing_Revealing the pure confinement effect in glass-forming liquids by dyna.pdf
+ж   ж       01023_arxiv_processing_Cage-jump motion reveals universal dynamics and non-universal structur.pdf
+ж   ж       01024_arxiv_processing_Which glass stability parameters can assess the glass-forming ability.pdf
+ж   ж       01025_arxiv_processing_Efficient Monte Carlo simulation of a glass forming binary mixture.pdf
+ж   ж       01026_arxiv_processing_Nonlinear Energy Response of Glass Forming Materials.pdf
+ж   ж       01027_arxiv_processing_Dynamical Heterogeneity in Glass-Forming Liquids.pdf
+ж   ж       01037_arxiv_processing_Front propagation versus bulk relaxation in the annealing dynamics of.pdf
+ж   ж       01038_arxiv_processing_Break-down of the relationship between a-relaxation and equilibration.pdf
+ж   ж       01039_arxiv_processing_Microscopic mechanism of structural and volume relaxation below glass.pdf
+ж   ж       01040_arxiv_processing_Initial Stages of Rejuvenation of Vapor-Deposited Glasses during Isoth.pdf
+ж   ж       01087_arxiv_processing_Crack Bridging Mechanism for Glass Strengthening by Organosilane Water.pdf
+ж   ж       01110_arxiv_processing_Laser-induced radial birefringence and spin-to-orbital optical angular.pdf
+ж   ж       01111_arxiv_processing_Hybrid integrated optical waveguides in glass for enhanced visible pho.pdf
+ж   ж       01112_arxiv_processing_Measures of Basicity in Silicate Minerals Revealed by Alkali Exchange.pdf
+ж   ж       01124_arxiv_processing_Magneto-impedance of glass-coated Fe-Ni-Cu microwires.pdf
+ж   ж       01125_arxiv_processing_Effect of the metal-to-wire ratio on the high-frequency magnetoimpedan.pdf
+ж   ж       01126_arxiv_processing_Stress-Dependent Magnetoimpedance in Co-Based Amorphous Wires and Appl.pdf
+ж   ж       01127_arxiv_processing_How do magnetic microwires interact magnetostatically.pdf
+ж   ж       01128_arxiv_processing_Effects of Ox-LDL on Macrophages NADPH Autofluorescence Changes by T.pdf
+ж   ж       01129_arxiv_processing_Improved oxidation resistance of high emissivity coatings on fibrous c.pdf
+ж   ж       01130_arxiv_processing_A self-sensing microwireepoxy composite optimized by dual interfaces.pdf
+ж   ж       01131_arxiv_processing_Giant Magnetoimpedance of Glass-Covered Amorphous Microwires of Co-Mn-.pdf
+ж   ж       01132_arxiv_processing_A High-Pressure Polarized 3He Gas Target for Nuclear Physics Experi.pdf
+ж   ж       01133_arxiv_processing_Ferromagnetic Wires Composite Media with Tunable Scattering Spectra at.pdf
+ж   ж       01134_arxiv_processing_A gapless micro-dielectric-barrier-discharge ion source for analytical.pdf
+ж   ж       01159_arxiv_processing_Corrugated probe for SNOM - Optimization of energy throughput via plas.pdf
+ж   ж       01172_arxiv_processing_Characterization of diamond-turned optics for SCALES.pdf
+ж   ж       01206_arxiv_processing_A compact atomic beam based system for Doppler-free laser spectroscopy.pdf
+ж   ж       01207_arxiv_processing_Construction of an inexpensive molecular Iodine spectrometer using a s.pdf
+ж   ж       01208_arxiv_processing_Laser-actuated hermetic seals for integrated atomic devices.pdf
+ж   ж       01225_arxiv_processing_PtIr protective coating system for precision glass molding tools desi.pdf
+ж   ж       01226_arxiv_processing_Design and performance of a F-conversion microlens for Prime Focus S.pdf
+ж   ж       01227_arxiv_processing_Design analysis and manufacturing of a glass-plastic hybrid minimali.pdf
+ж   ж       01228_arxiv_processing_Progress with the Prime Focus Spectrograph for the Subaru Telescope a.pdf
+ж   ж       01244_arxiv_processing_Structural studies of the sol-gel glasses with copper selenide nanopar.pdf
+ж   ж       01245_arxiv_processing_Structural studies of the silica sol-gel glasses doped with copper sel.pdf
+ж   ж       01250_crossref_processing_Correction to Sol-gel technologies for additive manufacturing glass m.pdf
+ж   ж       01262_crossref_processing_Correction to Transparent oxyfluoride glass-ceramics obtained by diff.pdf
+ж   ж       01263_arxiv_processing_A carbon-nanofiber glass composite with high electrical conductivity.pdf
+ж   ж       01319_arxiv_fundamentals_Nucleation model for the description of glass formation.pdf
+ж   ж       01320_arxiv_fundamentals_Generalized Entropy Theory of Glass Formation in Polymer Melts with Sp.pdf
+ж   ж       01321_arxiv_fundamentals_Modeling multiple time scales during glass formation with phase-field.pdf
+ж   ж       01322_arxiv_fundamentals_Glass formation in a mixture of hard disks and hard ellipses.pdf
+ж   ж       01323_arxiv_fundamentals_Polymer Glass Formation Role of Activation Free Energy Configuration.pdf
+ж   ж       01325_arxiv_fundamentals_Configurational constraints on glass formation in the liquid calcium a.pdf
+ж   ж       01326_arxiv_fundamentals_Quantum fluctuations can promote or inhibit glass formation.pdf
+ж   ж       01327_arxiv_fundamentals_Signatures of glass formation in a fluidized bed of hard spheres.pdf
+ж   ж       01328_arxiv_fundamentals_Critical cooling rate for the glass formation of ferromagnetic Fe40Ni4.pdf
+ж   ж       01329_arxiv_fundamentals_Influence of Cohesive Energy and Chain Stiffness on Polymer Glass Form.pdf
+ж   ж       01330_arxiv_fundamentals_Hard Spheres Crystallization and Glass Formation.pdf
+ж   ж       01331_arxiv_fundamentals_Glass formation in binary alloys with different atomic symmetries.pdf
+ж   ж       01332_arxiv_fundamentals_Polymer Glass-Formation in Variable Dimension.pdf
+ж   ж       01333_arxiv_fundamentals_Comment on the paper entitled Limited surface mobility inhibits stable.pdf
+ж   ж       01334_arxiv_fundamentals_Effects of Si solute on the glass formation and atomic structure of Pd.pdf
+ж   ж       01335_arxiv_fundamentals_A high-throughput structural and electrochemical study of metallic gla.pdf
+ж   ж       01336_arxiv_fundamentals_Generalized entropy theory of glass-formation in fully flexible polyme.pdf
+ж   ж       01337_arxiv_fundamentals_Rotational dynamics ionic conductivity and glass formation in a ZnCl.pdf
+ж   ж       01338_arxiv_fundamentals_Influence of Similar Atom Substitution on Glass Formation in La-Ce-A.pdf
+ж   ж       01339_arxiv_fundamentals_Glass formation in mechanically interlocked ring polymers the role of.pdf
+ж   ж       01340_arxiv_fundamentals_Involvement of structural dynamics in the charge-glass formation in mo.pdf
+ж   ж       01341_arxiv_fundamentals_Effect of chain stiffness on the competition between crystallization a.pdf
+ж   ж       01342_arxiv_fundamentals_Avoided quantum criticality and cluster-glass formation in itinerant f.pdf
+ж   ж       01343_arxiv_fundamentals_Self-assembly and glass-formation in a lattice model of telechelic pol.pdf
+ж   ж       01344_arxiv_fundamentals_Raman scattering as a probe of intermediate phases in glassy networks.pdf
+ж   ж       01345_arxiv_fundamentals_Pinning effects in a two-dimensional cluster glass.pdf
+ж   ж       01346_arxiv_fundamentals_How a liquid becomes a glass both on cooling and on heating.pdf
+ж   ж       01347_arxiv_fundamentals_Direct experimental evidence of a growing length scale accompanying th.pdf
+ж   ж       01369_arxiv_fundamentals_Enhancing thermoelectric figure-of-merit by low-dimensional electrical.pdf
+ж   ж       01370_arxiv_fundamentals_Sparse Gaussian Process Potentials Application to Lithium Diffusivity.pdf
+ж   ж       01371_arxiv_fundamentals_Temperature-Modulated Differential Scanning Calorimetry Analysis of Hi.pdf
+ж   ж       01372_arxiv_fundamentals_Competition of glass and crystal phase-field model.pdf
+ж   ж       01373_arxiv_fundamentals_From metallic glasses to nanocrystals Molecular dynamics simulations.pdf
+ж   ж       01374_arxiv_fundamentals_Direct evidence of void induced structural relaxations in colloidal gl.pdf
+ж   ж       01375_arxiv_fundamentals_The Center is Everywhere.pdf
+ж   ж       01376_arxiv_fundamentals_Rotation of crystal seed during early stages of growth reveals the ani.pdf
+ж   ж       01377_arxiv_fundamentals_Investigating meV-scale Equilibrium Atomic Dynamics with X-Rays focus.pdf
+ж   ж       01378_arxiv_fundamentals_Quasicrystal nucleation in an intermetallic glass-former.pdf
+ж   ж       01379_arxiv_fundamentals_Magnetism quantum criticality and metal-insulator transitions in R.pdf
+ж   ж       01380_crossref_fundamentals_Controlling Internal Crystallization of Li2Si2O5 Glass-Ceramics Using.pdf
+ж   ж       01383_crossref_fundamentals_Preface 13th International Symposium on Crystallization in Glasses an.pdf
+ж   ж       01392_arxiv_fundamentals_Magnetic glasses and structural glasses devitrification and a reentra.pdf
+ж   ж       01395_arxiv_fundamentals_Phase separation kinetics of a symmetric binary mixture of glass-formi.pdf
+ж   ж       01396_arxiv_fundamentals_Phase separation in a two-dimensional binary colloidal mixture by quor.pdf
+ж   ж       01397_arxiv_fundamentals_Insight into the partitioning and clustering mechanism of rare-earth c.pdf
+ж   ж       01398_arxiv_fundamentals_Chaos in a quantum rotor model.pdf
+ж   ж       01399_arxiv_fundamentals_Thermal properties of slow dynamics.pdf
+ж   ж       01415_arxiv_fundamentals_Entropy bounds for Glass networks.pdf
+ж   ж       01416_arxiv_fundamentals_Periodic orbits in general Glass networks.pdf
+ж   ж       01417_arxiv_fundamentals_Computer-aided analysis of high-dimensional Glass networks periodicit.pdf
+ж   ж       01418_arxiv_fundamentals_Topological Constraint Model of Alkaline Earth Vanadate Glasses.pdf
+ж   ж       01419_arxiv_fundamentals_New interaction potentials for alkaline earth silicate and borate glas.pdf
+ж   ж       01420_arxiv_fundamentals_Self-organization with equilibration a model for the intermediate pha.pdf
+ж   ж       01421_arxiv_fundamentals_Coexistence of fast photodarkening and slow photobleaching in Ge19As21.pdf
+ж   ж       01422_arxiv_fundamentals_Improvement of the Tm33H4 level lifetime in silica optical fibres by.pdf
+ж   ж       01423_arxiv_fundamentals_Nonlinear optical birefringence in Li2SO4-MgO-P2O5 amorphous system-in.pdf
+ж   ж       01424_arxiv_fundamentals_Atomic Structure and Modifiers Clustering in Silicate glasses Effect.pdf
+ж   ж       01425_arxiv_fundamentals_The role of Ce3Ce4 in the spectroscopic properties of cer.pdf
+ж   ж       01426_arxiv_fundamentals_Optical absorption of excimer laser-induced dichlorine monoxide in sil.pdf
+ж   ж       01427_arxiv_fundamentals_Structural physical and Judd-Ofelt analysis of germanium magnesium-t.pdf
+ж   ж       01428_arxiv_fundamentals_Ultrafast light-induced softening of chalcogenide thin films above the.pdf
+ж   ж       01429_arxiv_fundamentals_Effect of the nature of alkali and alkaline-earth oxides on the struct.pdf
+ж   ж       01430_arxiv_fundamentals_Topological Constraints and Rigidity of Network Glasses from Molecular.pdf
+ж   ж       01431_arxiv_fundamentals_Fast-ion conduction and flexibility and rigidity of solid electrolyte.pdf
+ж   ж       01432_arxiv_fundamentals_Interstitial bismuth dimers and single atoms as possible centres of br.pdf
+ж   ж       01438_crossref_fundamentals_Leonardos Successors.pdf
+ж   ж       01439_crossref_fundamentals_The Pythagopod.pdf
+ж   ж       01444_crossref_fundamentals_Anticipating complex network vulnerabilities through abstraction-based.pdf
+ж   ж       01445_arxiv_fundamentals_Role of CaO addition in the local order around Erbium in SiO2 GeO2 P.pdf
+ж   ж       01446_arxiv_fundamentals_Er doped oxide nanoparticles in silica based optical fibres.pdf
+ж   ж       01459_arxiv_fundamentals_Reduced strength and extent of dynamic heterogeneity in a strong glass.pdf
+ж   ж       01460_arxiv_fundamentals_B2O3 glass former as a molecular matter revealed by heat capacity.pdf
+ж   ж       01461_arxiv_fundamentals_Nonlinear Acoustics at GHz Frequencies in a Viscoelastic Fragile Glass.pdf
+ж   ж       01462_arxiv_fundamentals_Morphology of cooperatively rearranging regions in active glass former.pdf
+ж   ж       01463_arxiv_fundamentals_Fragile-strong transitions and polyamorphism in glass former fluids.pdf
+ж   ж       01464_arxiv_fundamentals_Role of Fragility of the Glass Formers in the Yielding Transition unde.pdf
+ж   ж       01465_arxiv_fundamentals_Mode Coupling relaxation scenario in a confined glass former.pdf
+ж   ж       01466_arxiv_fundamentals_Liquid-liquid phase transition in an atomistic model glass former.pdf
+ж   ж       01467_arxiv_fundamentals_Finite size effects in the specific heat of glass-formers.pdf
+ж   ж       01468_arxiv_fundamentals_Dependence of the fragility of a glass former on the softness of inter.pdf
+ж   ж       01469_arxiv_fundamentals_Universal Scaling in the Aging of the Strong Glass Former SiO_2.pdf
+ж   ж       01470_arxiv_fundamentals_Activation energy spectrum for relaxation and polyamorphism in an ultr.pdf
+ж   ж       01471_arxiv_fundamentals_Molecular dynamics simulation of the fragile glass former ortho-terphe.pdf
+ж   ж       01472_arxiv_fundamentals_Universal properties of high-frequency spectra in glass formers.pdf
+ж   ж       01473_arxiv_fundamentals_Coarse-grained microscopic model of glass formers.pdf
+ж   ж       01474_arxiv_fundamentals_Anomaly of the non-ergodicity parameter and crossover to white noise i.pdf
+ж   ж       01475_arxiv_fundamentals_Numerical detection of the Gardner transition in a mean-field glass fo.pdf
+ж   ж       01476_arxiv_fundamentals_Density dependence of relaxation dynamics in glass formers and the de.pdf
+ж   ж       01477_arxiv_fundamentals_Numerical and Theoretical Study of a Monodisperse Hard-Sphere Glass Fo.pdf
+ж   ж       01478_arxiv_fundamentals_A simple monatomic ideal glass former the glass transition by a first.pdf
+ж   ж       01479_arxiv_fundamentals_Structure and dynamics in glass-formers predictability at large lengt.pdf
+ж   ж       01480_arxiv_fundamentals_Binary mixture of hard disks as a model glass former Caging and uncag.pdf
+ж   ж       01481_arxiv_fundamentals_Benchmarking thermostat algorithms in molecular dynamics simulations o.pdf
+ж   ж       01482_arxiv_fundamentals_Equilibrium phase diagram of a randomly pinned glass-former.pdf
+ж   ж       01483_arxiv_fundamentals_Devitrification of the Kob-Andersen glass former Competition with the.pdf
+ж   ж       01484_arxiv_fundamentals_Jamming relaxation and memory in a structureless glass former.pdf
+ж   ж       01485_arxiv_fundamentals_Enhanced diffusion in finite-size simulations of a fragile diatomic gl.pdf
+ж   ж       01486_arxiv_fundamentals_Granular packing as model glass formers.pdf
+ж   ж       01487_arxiv_fundamentals_Insight into properties of sizable glass former from volumetric measur.pdf
+ж   ж       01488_arxiv_fundamentals_Configurational Entropy of Self Propelled Glass Formers.pdf
+ж   ж       01500_arxiv_fundamentals_Disordered Quantum Solids.pdf
+ж   ж       01501_arxiv_fundamentals_Magnetic phase separation in La1-xSrxCoO3 by 59Co NMR.pdf
+ж   ж       01502_arxiv_fundamentals_Competition of random and periodic potentials in interacting fermionic.pdf
+ж   ж       01513_crossref_fundamentals_Bєkmentaliga virksemi Sverra Dahl.pdf
+ж   ж       01514_crossref_fundamentals_Louis Zachariasen.pdf
+ж   ж       01515_arxiv_fundamentals_An Information Theory of Compute-Optimal Size Scaling Emergence and.pdf
+ж   ж       01517_arxiv_fundamentals_Beyond R_0 Heterogeneity in secondary infections and probabilistic.pdf
+ж   ж       01518_arxiv_fundamentals_Population Density Equations for Stochastic Processes with Memory Kern.pdf
+ж   ж       01528_arxiv_applications_Selective laser etching of displays Closing the gap between optical s.pdf
+ж   ж       01529_arxiv_applications_Glass-like thermal conductivity and narrow insulating gap of EuTiO_3.pdf
+ж   ж       01530_arxiv_applications_Comment on Spherical 2  p spin-glass model An analytically solvabl.pdf
+ж   ж       01531_arxiv_applications_Smart Guiding Glasses for Visually Impaired People in Indoor Environme.pdf
+ж   ж       01532_arxiv_applications_Evidence of long-range ferromagnetic order and spin frustration effect.pdf
+ж   ж       01533_arxiv_applications_Spectral responses in granular compaction.pdf
+ж   ж       01553_arxiv_applications_Optical Deformations in Solar Glass Filters for High Precision Astrome.pdf
+ж   ж       01555_arxiv_applications_Structure and Function of Window Glass and Pyrex.pdf
+ж   ж       01556_arxiv_applications_Reversibility Window Aging and Nanoscale Phase Separation in GexAsxS.pdf
+ж   ж       01557_arxiv_applications_Machine learning-informed structuro-elastoplasticity predicts ductilit.pdf
+ж   ж       01558_arxiv_applications_Thermal Insulating Polymer-Air Multilayer for Window Energy Efficiency.pdf
+ж   ж       01559_arxiv_applications_Vortices Freeze like Window Glass the Vortex Molasses Scenario.pdf
+ж   ж       01560_arxiv_applications_Bonding and the dynamics of glassy network liquids.pdf
+ж   ж       01561_arxiv_applications_Seeing through Unclear Glass Occlusion Removal with One Shot.pdf
+ж   ж       01562_arxiv_applications_Waterdrop Stereo.pdf
+ж   ж       01563_arxiv_applications_Determining the three-dimensional atomic structure of a metallic glass.pdf
+ж   ж       01564_arxiv_applications_Universal Non-Landau Self-Organized Lattice Disordering Percolative.pdf
+ж   ж       01565_arxiv_applications_Spectrally-tunable Dielectric Grating-based Metasurface for Broadband.pdf
+ж   ж       01566_arxiv_applications_Aging Fragility and Reversibility Window in Bulk Alloy Glasses.pdf
+ж   ж       01567_arxiv_applications_Self-Organization and the Physics of Glassy Networks.pdf
+ж   ж       01568_arxiv_applications_Influence of surface roughness on superhydrophobicity.pdf
+ж   ж       01569_arxiv_applications_Optically-Transparent EM Skins for Outdoor-to-Indoor mm-Wave Wireless.pdf
+ж   ж       01570_arxiv_applications_Fragile superconductivity a kinetic glass transition in the vortex.pdf
+ж   ж       01571_arxiv_applications_Neutron interferometric measurement of the scattering length differenc.pdf
+ж   ж       01592_arxiv_applications_Artificial neural networks for predicting the viscosity of lead-contai.pdf
+ж   ж       01593_arxiv_applications_Modeling Short-Range and Three-Membered Ring Structures in Lithium Bor.pdf
+ж   ж       01594_arxiv_applications_Real-Time Glass Detection and Reprojection using Sensor Fusion Onboard.pdf
+ж   ж       01622_arxiv_applications_The Shapes of Cooperatively Rearranging Regions in Glass Forming Liqui.pdf
+ж   ж       01623_arxiv_applications_Glass-like dynamical behavior in hierarchical models submitted to cont.pdf
+ж   ж       01624_arxiv_applications_Microscopically based calculations of the free energy barrier and dyna.pdf
+ж   ж       01648_arxiv_applications_Method of measuring the chromatic dispersion parameter of optical fibe.pdf
+ж   ж       01649_arxiv_applications_A Quantum Key Distribution Network Through Single Mode Optical Fiber.pdf
+ж   ж       01650_arxiv_applications_Multimode optical fiber radiation modal decomposition.pdf
+ж   ж       01651_arxiv_applications_Optical Fiber MIMO Channel Model and its Analysis.pdf
+ж   ж       01652_arxiv_applications_Model-aided Geometrical Shaping of Dual-polarization 4D Formats in the.pdf
+ж   ж       01653_arxiv_applications_Long Light Storage Time in an Optical Fiber.pdf
+ж   ж       01654_arxiv_applications_Semantic optical fiber communication system.pdf
+ж   ж       01655_arxiv_applications_Empowering high-dimensional optical fiber communications with integrat.pdf
+ж   ж       01656_arxiv_applications_PIDT Physics-Informed Digital Twin for Optical Fiber Parameter Estima.pdf
+ж   ж       01657_arxiv_applications_Efficient quantum dot single photon extraction into an optical fiber u.pdf
+ж   ж       01658_arxiv_applications_An Optical-Fiber-Based Key for Remote Authentication of Users and Opti.pdf
+ж   ж       01659_arxiv_applications_Highly efficient coupling from an optical fiber to a nanoscale silicon.pdf
+ж   ж       01660_arxiv_applications_Diffusion of optical pulses in dispersion-shifted randomly birefringen.pdf
+ж   ж       01661_arxiv_applications_Film Thickness Gauge Based on Interferometric Principle of Y-shaped Op.pdf
+ж   ж       01662_arxiv_applications_Full Optical Fiber Link Characterization with the BSS-Lasso.pdf
+ж   ж       01663_arxiv_applications_Miniaturized Fluorescence Excitation Platform with Optical Fiber for B.pdf
+ж   ж       01664_arxiv_applications_Nonlinear limits to the information capacity of optical fiber communic.pdf
+ж   ж       01665_arxiv_applications_Fundamental Limits of Optical Fiber MIMO Channels With Finite Blocklen.pdf
+ж   ж       01666_arxiv_applications_Multiple-beam Propagation in an Anderson Localized Optical Fiber.pdf
+ж   ж       01667_arxiv_applications_Dispersion Compensation using High-Positive Dispersive Optical Fibers.pdf
+ж   ж       01668_arxiv_applications_Coupling of light from an optical fiber taper into silver nanowires.pdf
+ж   ж       01669_arxiv_applications_Generation of solitons and periodic wave trains in birefringent optica.pdf
+ж   ж       01670_arxiv_applications_Entanglement Manipulation in a Quantum Chaotic Optical Fiber by Modify.pdf
+ж   ж       01671_arxiv_applications_A Transformer-Based Approach for Diagnosing Fault Cases in Optical Fib.pdf
+ж   ж       01672_arxiv_applications_Polymer optical fiber fuse.pdf
+ж   ж       01673_arxiv_applications_Practical quantum key distribution over a 48-km optical fiber network.pdf
+ж   ж       01674_arxiv_applications_Polymer-Based Self-Calibrated Optical Fiber Tactile Sensor.pdf
+ж   ж       01675_arxiv_applications_Unseeded One-Third Harmonic Generation in Optical Fibers.pdf
+ж   ж       01676_arxiv_applications_Three-dimensional microfabrication through a multimode optical fiber.pdf
+ж   ж       01677_arxiv_applications_Optical Fiber CommunicationsGroup of the Nonlinear Transformations.pdf
+ж   ж       01678_arxiv_applications_Role of ion migrations and structural reorganisations in femtosecond l.pdf
+ж   ж       01679_arxiv_applications_Supercontinuum generation in dispersion engineered highly doped silica.pdf
+ж   ж       01680_arxiv_applications_Terahertz bandwidth integrated radio frequency spectrum analyzer via n.pdf
+ж   ж       01681_arxiv_applications_Interaction-induced localization of anomalously-diffracting nonlinear.pdf
+ж   ж       01682_arxiv_applications_Mid-infrared surface plasmon polariton chemical sensing on fiber-coupl.pdf
+ж   ж       01683_arxiv_applications_Generation of heralded single photons beyond 1100 nm by spontaneous fo.pdf
+ж   ж       01684_arxiv_applications_Multiphoton ionization of standard optical fibers.pdf
+ж   ж       01685_arxiv_applications_Giant absorption of light by molecular vibrations on a chip.pdf
+ж   ж       01686_arxiv_applications_Mid-infrared optical waveguides missing link of integrated photonics.pdf
+ж   ж       01687_arxiv_applications_Propagation-invariant space-time supermodes in a multimode waveguide.pdf
+ж   ж       01688_arxiv_applications_Suspended waveguide-enhanced near-infrared photothermal spectroscopy f.pdf
+ж   ж       01689_arxiv_applications_An integrated diamond Raman laser pumped in the near-visible.pdf
+ж   ж       01690_arxiv_applications_Stimulated Brillouin scattering enhancement in silicon inverse opal wa.pdf
+ж   ж       01691_arxiv_applications_Photonic Integrated Devices for Nonlinear Optics.pdf
+ж   ж       01692_arxiv_applications_1 Low power continuous-wave nonlinear optics in silica glass integrate.pdf
+ж   ж       01693_arxiv_applications_Nanophotonic approaches for integrated quantum photonics.pdf
+ж   ж       01694_arxiv_applications_High Density Vertical Optical Interconnects for Passive Assembly.pdf
+ж   ж       01697_arxiv_applications_Adhesive contact of model randomly rough rubber surfaces.pdf
+ж   ж       01698_arxiv_applications_Friction of viscoelastic elastomers with rough surfaces under torsiona.pdf
+ж   ж       01699_arxiv_applications_Micro-optics fabrication using blurred tomography.pdf
+ж   ж       01700_arxiv_applications_Surface pressure and shear stress field within a frictional contact on.pdf
+ж   ж       01701_arxiv_applications_Enhancement of adhesion strength through microvibrations modeling and.pdf
+ж   ж       01702_arxiv_applications_Rate-dependent adhesion of viscoelastic contacts Part I contact area.pdf
+ж   ж       01703_arxiv_applications_Photoacoustic microscopy with meta-optics.pdf
+ж   ж       01704_arxiv_applications_Bulk and fracture process zone contribution to the rate-dependent adhe.pdf
+ж   ж       01705_arxiv_applications_Single Image Reflection Removal with Physically-Based Training Images.pdf
+ж   ж       01706_crossref_applications_Evoluчуo dos Materiais de Lentes Oftсlmicas do Vidro ao Policarbonato.pdf
+ж   ж       01710_crossref_applications_Creating a Glass Lens - a Metaphor for Learning.pdf
+ж   ж       01711_arxiv_applications_Characterization and Comparison of Glass Electrodes.pdf
+ж   ж       01712_arxiv_applications_Effect of electrical properties of glass electrodes on the performance.pdf
+ж   ж       01713_arxiv_applications_Ageing studies of Multi-Strip Multi-Gap Resistive Plate Counters based.pdf
+ж   ж       01714_arxiv_applications_Characterization of 3 mm Glass Electrodes and Development of RPC Detec.pdf
+ж   ж       01715_arxiv_applications_An embedded measurement system for electrical characterization of EGFE.pdf
+ж   ж       01716_arxiv_applications_Characterisation of Glass Electrodes and RPC Detectors for INO-ICAL.pdf
+ж   ж       01717_arxiv_applications_Development and Performance Analysis of Glass-Based Gas-Tight RPCs for.pdf
+ж   ж       01718_arxiv_applications_Performance studies of MRPC prototypes for CBM.pdf
+ж   ж       01719_arxiv_applications_Time and position resolution of high granularity high counting rate M.pdf
+ж   ж       01720_arxiv_applications_Optimisation and Characterisation of Glass RPC for India-based Neutrin.pdf
+ж   ж       01721_arxiv_applications_Development and Characterization of 6-gap Bakelite Multi-gap Resistive.pdf
+ж   ж       01722_arxiv_applications_The new HADES ToF Forward Detector.pdf
+ж   ж       01738_crossref_applications_MOISTURE SENSITIVITY OF SILICATE GLASS AND CREATION OF A SENSOR BASED.pdf
+ж   ж       01740_crossref_applications_Monolithic-integrated piezoresistive MEMS accelerometer pressure senso.pdf
+ж   ж       01741_arxiv_applications_Theoretical proposal for the dynamical control of the nonlinear optica.pdf
+ж   ж       01742_arxiv_applications_Ultrafast pulse generation in a mode-locked Erbium chip waveguide lase.pdf
+ж   ж       01743_arxiv_applications_Anisotropic crystallization in solution processed chalcogenide thin fi.pdf
+ж   ж       01744_arxiv_applications_Bremsstrahlung emission and plasma characterization driven by moderate.pdf
+ж   ж       01745_arxiv_applications_Super stealth dicing of transparent solids with nanometric precision.pdf
+ж   ж       01746_arxiv_applications_Fast Ignition Laser Fusion Using In-Situ Ion Acceleration With Pulsed.pdf
+ж   ж       01747_arxiv_applications_Target density effects on charge tansfer of laser-accelerated carbon i.pdf
+ж   ж       01764_crossref_composition_A logistic regression-based model for classification and evaluation of.pdf
+ж   ж       01795_arxiv_composition_Atomic-scale Deformation Process of Glasses Unveiled by Stress-induced.pdf
+ж   ж       01805_arxiv_composition_The cationic energy landscape in alkali silicate glasses properties a.pdf
+ж   ж       01806_arxiv_composition_Surface properties of alkali silicate glasses Influence of the modifi.pdf
+ж   ж       01807_arxiv_composition_Contributions to the mixed-alkali effect in molecular dynamics simulat.pdf
+ж   ж       01808_arxiv_composition_Multilevel Tunnelling Systems and Fractal Clustering in the Low-Temper.pdf
+ж   ж       01809_arxiv_composition_Stretched Exponential Relaxation of Glasses Origin of the Mixed Alkal.pdf
+ж   ж       01826_arxiv_composition_Photoelasticity of sodium silicate glass from first principles.pdf
+ж   ж       01827_arxiv_composition_Channel Formation and Intermediate Range Order in Sodium Silicate Melt.pdf
+ж   ж       01828_arxiv_composition_First principles study of the surface of silica and sodium silicate gl.pdf
+ж   ж       01829_arxiv_composition_Slow Dynamics in Ion-Conducting Sodium Silicate Melts Simulation and.pdf
+ж   ж       01830_arxiv_composition_Cooling-Rate Effects in Sodium Silicate Glasses Bridging the Gap betw.pdf
+ж   ж       01831_arxiv_composition_Structural and dynamical properties of sodium silicate melts An inves.pdf
+ж   ж       01832_arxiv_composition_Mechanical strength and millimeter-wave transmittance spectrum of stac.pdf
+ж   ж       01833_arxiv_composition_Structure and vibrational properties of sodium silicate glass surfaces.pdf
+ж   ж       01834_arxiv_composition_Ion-Exchange Strengthening of Glasses Atomic Topology Matters.pdf
+ж   ж       01835_arxiv_composition_The critical role of the interaction potential and simulation protocol.pdf
+ж   ж       01836_arxiv_composition_The importance of intermediate range order in silicates molecular dyn.pdf
+ж   ж       01837_arxiv_composition_Topological Origin of Fracture Toughening in Complex Solids the Viewp.pdf
+ж   ж       01838_arxiv_composition_Pattern of confined chemical garden controlled by injection speed.pdf
+ж   ж       01839_arxiv_composition_Thermal conductivity in modified oxide glasses is governed by modal ph.pdf
+ж   ж       01840_arxiv_composition_Nanoindentation-induced evolution of atomic-level properties in silica.pdf
+ж   ж       01841_arxiv_composition_Matrix controlled channel diffusion of sodium in amorphous silica.pdf
+ж   ж       01842_arxiv_composition_Three-dimensional structure determination from a single view.pdf
+ж   ж       01843_arxiv_composition_Multiscale Experimental Evidence of a Transitory State in the HDA-LDA.pdf
+ж   ж       01844_arxiv_composition_Fracture of silicate glasses Micro-cavities and correlations between.pdf
+ж   ж       01845_arxiv_composition_Optimisation of Activator Solutions for Geopolymer Synthesis Thermoch.pdf
+ж   ж       01846_arxiv_composition_Revealing hidden medium-range order in silicate glass-formers using ma.pdf
+ж   ж       01852_crossref_composition_Synthesis of inorganic polymer sodium aluminum silicate system based o.pdf
+ж   ж       01855_arxiv_composition_Influence of Polymers on the Nucleation of Calcium Silicate Hydrates.pdf
+ж   ж       01856_arxiv_composition_First-principles anharmonic vibrational study of the structure of calc.pdf
+ж   ж       01857_arxiv_composition_A high-efficiency neuroevolution potential for tobermorite and calcium.pdf
+ж   ж       01858_arxiv_composition_Modeling the Early Stage Formation Mechanisms of Calcium Silicate Hydr.pdf
+ж   ж       01859_arxiv_composition_Nanoscale Charge Balancing Mechanism in Alkali Substituted Calcium-Sil.pdf
+ж   ж       01860_arxiv_composition_Fracture toughness of calcium-silicate-hydrate grains from molecular d.pdf
+ж   ж       01861_arxiv_composition_Symmetry induced stability in alkali doped calcium-silicate-hydrate.pdf
+ж   ж       01862_arxiv_composition_Investigation of Accelerated Hydration in Nanosilica Incorporated Tric.pdf
+ж   ж       01863_arxiv_composition_Determination of Hydrated Phases of Nanosilica incorporated C3S and b.pdf
+ж   ж       01864_arxiv_composition_A model for reactive porous transport during re-wetting of hardened co.pdf
+ж   ж       01865_arxiv_composition_Comsol Simulations of Cracking in Point Loaded Masonry with Randomly D.pdf
+ж   ж       01866_arxiv_composition_Raman thresholds and rigid to floppy transitions in calcium silicate g.pdf
+ж   ж       01867_arxiv_composition_StriderNET A Graph Reinforcement Learning Approach to Optimize Atomic.pdf
+ж   ж       01868_arxiv_composition_Creep in reactive colloidal gels a nanomechanical study of cement hyd.pdf
+ж   ж       01869_arxiv_composition_Assessing the feasibility and consequences of nuclear georeactors in t.pdf
+ж   ж       01870_arxiv_composition_Do cement nanoparticles exist in space.pdf
+ж   ж       01871_arxiv_composition_Allegro-FM Towards Equivariant Foundation Model for Exascale Molecula.pdf
+ж   ж       01872_arxiv_composition_Speeding up reactive transport simulations in cement systems by surrog.pdf
+ж   ж       01873_arxiv_composition_Thermoelectric properties of cement composite analogues from first pri.pdf
+ж   ж       01874_arxiv_composition_Creep of Bulk C--S--H Insights from Molecular Dynamics Simulations.pdf
+ж   ж       01875_arxiv_composition_Is Cement a Glassy Material.pdf
+ж   ж       01876_arxiv_composition_Topological Control on Atomic Networks Relaxation Under Stress.pdf
+ж   ж       01877_arxiv_composition_Modeling of Nuclear Waste Forms State-of-the-Art and Perspectives.pdf
+ж   ж       01878_arxiv_composition_Suppressed-scattering windows for radiative cooling applications.pdf
+ж   ж       01879_arxiv_composition_The physics of cement cohesion.pdf
+ж   ж       01880_arxiv_composition_Enhanced Vascularity in Gelatin Scaffolds via Copper-Doped Magnesium-C.pdf
+ж   ж       01881_arxiv_composition_Does a dissolution-precipitation mechanism explain concrete creep in m.pdf
+ж   ж       01882_arxiv_composition_Dielectric and energy-storage properties of Ba085Ca015Zr010Ti090O3.pdf
+ж   ж       01883_arxiv_composition_Integrated 3D printing of transparency-on-demand glass microstructure.pdf
+ж   ж       01884_arxiv_composition_Impact of Li_29B_09S_01O_31 glass additive on the.pdf
+ж   ж       01885_arxiv_composition_Tunable kHz distributed feedback fiber laser enabled by glass additive.pdf
+ж   ж       01886_arxiv_composition_Effect of the BaO-Na_2O-Nb_2O_5-P_2O_5 glass addition on mic.pdf
+ж   ж       01896_semantic_scholar_composition_INFLUENCE OF FINING AGENTS ON GLASS MELTING A REVIEW PART 1.pdf
+ж   ж       01900_semantic_scholar_composition_INFLUENCE OF FINING AGENTS ON GLASS MELTING A REVIEW PART 2.pdf
+ж   ж       01921_crossref_composition_Analisis Kekuatan Las Pada Sambungan Bejana Tekan Decolorizer.pdf
+ж   ж       01950_arxiv_advanced_Self healing slip pulses along a gelglass interface.pdf
+ж   ж       01951_arxiv_advanced_Anisotropic super-attenuation of capillary waves on driven glass inter.pdf
+ж   ж       01952_arxiv_advanced_Reactive Glass Metal Interaction under Ambient Conditions Enables Surf.pdf
+ж   ж       01953_arxiv_advanced_Cooling dynamics and thermal interface resistance of glass-embedded me.pdf
+ж   ж       01954_arxiv_advanced_Simple Method for the Direct Measurement of Cohesive Forces Between Mi.pdf
+ж   ж       01955_arxiv_advanced_Study of the 4He crystal surface.pdf
+ж   ж       01956_arxiv_advanced_New method of determination of the tilt angle at a liquid crystal-glas.pdf
+ж   ж       01957_arxiv_advanced_Spin polarization separation of reflected light at Brewster angle.pdf
+ж   ж       01958_arxiv_advanced_Observation of nonspecular effects for Gaussian Schell-model light bea.pdf
+ж   ж       01959_arxiv_advanced_An Efficient and Compact Excitation of Surface Plasmons Using a Si Gab.pdf
+ж   ж       01960_arxiv_advanced_Display in the Air Balancing Distraction and Workload in AR Glasses I.pdf
+ж   ж       01961_arxiv_advanced_Electrically generated surface plasmons by electroluminescence of indi.pdf
+ж   ж       01962_arxiv_advanced_Non-reciprocal optical reflection from a bidimensional array of subwav.pdf
+ж   ж       01963_arxiv_advanced_Observation of the geometric spin Hall effect of light.pdf
+ж   ж       01964_arxiv_advanced_Air-clad fibers pump absorption assisted by chaotic wave dynamics.pdf
+ж   ж       01965_arxiv_advanced_Control of optical spin Hall shift in phase-discontinuity metasurface.pdf
+ж   ж       01966_arxiv_advanced_Fractal dimension of spin glasses interfaces in dimensions d2 and.pdf
+ж   ж       01967_arxiv_advanced_Front propagation in ultrastable glasses is dynamically heterogeneous.pdf
+ж   ж       01968_arxiv_advanced_Ageing memory and glassiness of a driven vortex system.pdf
+ж   ж       01969_arxiv_advanced_Interface-Sensitive Raman Microspectroscopy of Water via Confinement w.pdf
+ж   ж       01970_arxiv_advanced_Effect of colloidal weight at different planar interfaces.pdf
+ж   ж       01971_arxiv_advanced_Contact with coupled adhesion and friction Computational framework a.pdf
+ж   ж       01972_arxiv_advanced_Self-assembly and complex manipulation of colloidal mesoscopic particl.pdf
+ж   ж       01973_arxiv_advanced_Improved transmission method for measuring the optical extinction coef.pdf
+ж   ж       01974_arxiv_advanced_Unraveling the Corrosion Mechanism of Boro-Alumino-Phospho-Silicate Gl.pdf
+ж   ж       01975_arxiv_advanced_Probing surfactant bilayer interactions by tracking optically trapped.pdf
+ж   ж       01976_arxiv_advanced_Thin-wall Single-crystal Gold Nanoelectrodes towards Advanced Chemical.pdf
+ж   ж       01977_arxiv_advanced_Multiscale Dynamics of Roughness-Driven Flow in Soft Interfaces.pdf
+ж   ж       01985_arxiv_advanced_High-Q two-dimensional photonic crystal nanocavity on glass with an up.pdf
+ж   ж       01986_arxiv_advanced_Magnetron Sputtered Non-Toxic and Precious Element-Free Ti-Zr-Ge Metal.pdf
+ж   ж       01987_arxiv_advanced_Observation of a crossover in kinetic aggregation of Palladium colloid.pdf
+ж   ж       01992_arxiv_advanced_Femtosecond laser direct-write photoconductive patterns on tellurite g.pdf
+ж   ж       02005_crossref_advanced_Tensile Strength Matrix Composite Waste Glass Fiber Reinforced Plastic.pdf
+ж   ж       02010_arxiv_advanced_Luminescence of non-bridging oxygen hole centers as a marker of partic.pdf
+ж   ж       02011_crossref_advanced_Structural Changes in Silica Glass under the Action of Electron Beam I.pdf
+ж   ж       02016_crossref_advanced_Cellular Glass Manufactured by Microwave Irradiation of Residual Glass.pdf
+ж   ж       02022_arxiv_advanced_Development of structural descriptors to predict dissolution rate of v.pdf
+ж   ж       02023_arxiv_advanced_Comparison of intermediate-range order in GeO_2 glass molecular dyn.pdf
+ж   ж       02024_arxiv_advanced_A Multiscale Approach to Structural Relaxation and Diffusion in Metall.pdf
+ж   ж       02031_arxiv_advanced_The spin glass transition of the three dimensional Heisenberg spin gla.pdf
+ж   ж       02032_arxiv_advanced_The Compressible Ising Spin Glass Simulation Results.pdf
+ж   ж       02033_arxiv_advanced_Multicanonical Spin Glass Simulations.pdf
+ж   ж       02034_arxiv_advanced_A New Approach to Spin Glass Simulations.pdf
+ж   ж       02035_arxiv_advanced_Simulated-tempering approach to spin-glass simulations.pdf
+ж   ж       02036_arxiv_advanced_Controllable Josephson junction for photon Bose-Einstein condensates.pdf
+ж   ж       02037_arxiv_advanced_A strategy for solving difficulties in spin-glass simulations.pdf
+ж   ж       02038_arxiv_advanced_Parallel Tempering Simulation of the three-dimensional Edwards-Anderso.pdf
+ж   ж       02039_arxiv_advanced_Exchange Monte Carlo Method and Application to Spin Glass Simulations.pdf
+ж   ж       02040_arxiv_advanced_An optical Ising spin glass simulator with tuneable short range coupli.pdf
+ж   ж       02041_arxiv_advanced_Optimization of population annealing Monte Carlo for large-scale spin-.pdf
+ж   ж       02042_arxiv_advanced_Glassy dynamics in thermally-activated list sorting.pdf
+ж   ж       02043_arxiv_advanced_Nature of vibrational eigenmodes in topologically disordered solids.pdf
+ж   ж       02044_arxiv_advanced_Accelerating equilibrium spin-glass simulations using quantum annealer.pdf
+ж   ж       02045_arxiv_advanced_Numerical study of barriers and valleys in the free-energy landscape o.pdf
+ж   ж       02046_arxiv_advanced_Connection between vibrational dynamics and topological order in simpl.pdf
+ж   ж       02047_arxiv_advanced_Numerical Simulations and Replica Symmetry Breaking.pdf
+ж   ж       02048_arxiv_advanced_Coulomb glass simulations Creation of a set of low-energy many-partic.pdf
+ж   ж       02049_arxiv_advanced_Overcoming system-size limitations in spin glasses.pdf
+ж   ж       02050_arxiv_advanced_Numerical study of the SK Model in magnetic field.pdf
+ж   ж       02051_arxiv_advanced_Scalable spin-glass optical simulator.pdf
+ж   ж       02052_arxiv_advanced_Optical spin glasses a new model for glassy systems.pdf
+ж   ж       02053_arxiv_advanced_Evidence for the double degeneracy of the ground-state in the 3D pm.pdf
+ж   ж       02054_arxiv_advanced_On Modeling of Statistical Properties of Classical 3D Spin Glasses.pdf
+ж   ж       02055_arxiv_advanced_Reconfigurable computing for Monte Carlo simulations results and pros.pdf
+ж   ж       02056_arxiv_advanced_Incorporating rank-free coupling and external field via an amplitude-o.pdf
+ж   ж       02064_arxiv_advanced_A free-form lensing model of A370 revealing stellar mass dominated BCG.pdf
+ж   ж       02065_arxiv_advanced_The Grism Lens-Amplified Survey from Space GLASS VI Comparing the.pdf
+ж   ж       02066_arxiv_advanced_The Grism Lens-Amplified Survey from Space GLASS IV Mass reconstru.pdf
+ж   ж       02086_crossref_advanced_Trace phase formation crystallization kinetics and crystallographic e.pdf
+ж   ж       
+ж   +---research
++---qa_pairs
+ж   +---augmented
+ж   +---backup
+ж   ж       papers_qa_backup_20260227_133050.jsonl
+ж   ж       papers_qa_backup_20260227_133348.jsonl
+ж   ж       sciglass_qa_backup_20260227_133050.jsonl
+ж   ж       sciglass_qa_backup_20260227_133348.jsonl
+ж   ж       textbooks_qa_backup_20260227_133050.jsonl
+ж   ж       textbooks_qa_backup_20260227_133348.jsonl
+ж   ж       uci_qa_backup_20260227_133050.jsonl
+ж   ж       uci_qa_backup_20260227_133348.jsonl
+ж   ж       
+ж   +---final
+ж   +---metadata
+ж   ж       quality_report.json
+ж   ж       statistics.json
+ж   ж       
+ж   +---raw
+ж           papers_qa.jsonl
+ж           sciglass_qa.jsonl
+ж           textbooks_qa.jsonl
+ж           uci_qa.jsonl
+ж           
++---source_documents
+ж   +---internal
+ж   ж   +---manuals
+ж   ж   +---reports
+ж   ж   +---sops
+ж   +---papers
+ж   ж   +---cutting_edge
+ж   ж   ж       Glass_Breaking_Damage_2024.pdf
+ж   ж   ж       Grokking_Glass_Relaxation_2025.pdf
+ж   ж   ж       Polymer_Glass_Transition_ML_2026.pdf
+ж   ж   ж       
+ж   ж   +---research
+ж   +---standards
+ж   +---textbooks
+ж       +---ancient
+ж       ж       Ancient_Glass_Getty_Museum.pdf
+ж       ж       Ancient_Glass_India.pdf
+ж       ж       Glass_Ancient_Mediterranean_McClung.pdf
+ж       ж       Glass_Making_Greco_Roman_World.pdf
+ж       ж       
+ж       +---art
+ж       ж       Art_Technique_Modern_Glass_2500F.pdf
+ж       ж       Glassblowing_Bible_Bellinger.pdf
+ж       ж       Tulane_Student_Glass_Handbook.pdf
+ж       ж       
+ж       +---technical
+ж               01_Varshneya_Fundamentals_Inorganic_Glasses.pdf
+ж               02_Glass_Tempering_Handbook.pdf
+ж               03_Pilkington_Glass_Handbook_2014.pdf
+ж               04_Industrial_Glass_Melting_Furnaces_Lehigh.pdf
+ж               
++---textbooks
+    ж   01_Varshneya_Fundamentals_Inorganic_Glasses.pdf
+    ж   02_Glass_Tempering_Handbook.pdf
+    ж   03_Pilkington_Glass_Handbook_2014.pdf
+    ж   04_Industrial_Glass_Melting_Furnaces_Lehigh.pdf
+    ж   05_Glass_Ceramic_Technology.pdf
+    ж   07_Coatings_on_Glass.pdf
+    ж   08_Coatings_Technology_Handbook.pdf
+    ж   09_ASTM_Glass_Standards.pdf
+    ж   10_ASTM_C1036_Flat_Glass_Standard.pdf
+    ж   12_Glass_Materials_Guide_Specialty.pdf
+    ж   13_Sealing_Glass_Guide_MoSci.pdf
+    ж   14_Handbook_Optical_Design.pdf
+    ж   15_Fiberglass_Glass_Technology.pdf
+    ж   16_Glass_Handbook_Part_A.pdf
+    ж   17_Glass_Manufacture_1919.pdf
+    ж   18_Ceramic_Glass_Materials.pdf
+    ж   20_Glass_Recycling_Guidebook.pdf
+    ж   21_MIT_Glass_Lecture_Notes.pdf
+    ж   22_MIT_Glass_Shaping.pdf
+    ж   A_handbook_of_laboratory_glass-blowing_(IA_handbookoflabora02bolarich).pdf
+    ж   complete_book_glass_technology.pdf
+    ж   fiberglass_glass_technology.pdf
+    ж   Muёoz_Phosphate Glasses_cap_Springer_Handbook_Glass.pdf
+    ж   Robert H. Doremus - Glass Science-Wiley-Interscience (1994).pdf
+    ж   schott_glass_manufacturing.pdf
+    ж   shelby_intro_glass_science_2ed.pdf
+    ж   
+    +---ancient
+    +---art
+    +---technical
+            05_Glass_Ceramic_Technology.pdf
+            07_Coatings_on_Glass.pdf
+            08_Coatings_Technology_Handbook.pdf
+            09_ASTM_Glass_Standards.pdf
+            10_ASTM_C1036_Flat_Glass_Standard.pdf
+            12_Glass_Materials_Guide_Specialty.pdf
+            13_Sealing_Glass_Guide_MoSci.pdf
+            14_Handbook_Optical_Design.pdf
+            15_Fiberglass_Glass_Technology.pdf
+            16_Glass_Handbook_Part_A.pdf
+            17_Glass_Manufacture_1919.pdf
+            18_Ceramic_Glass_Materials.pdf
+            20_Glass_Recycling_Guidebook.pdf
+            21_MIT_Glass_Lecture_Notes.pdf
+            22_MIT_Glass_Shaping.pdf
+            A_handbook_of_laboratory_glass-blowing_(IA_handbookoflabora02bolarich).pdf
+            complete_book_glass_technology.pdf
+            fiberglass_glass_technology.pdf
+            Muёoz_Phosphate Glasses_cap_Springer_Handbook_Glass.pdf
+            Robert H. Doremus - Glass Science-Wiley-Interscience (1994).pdf
+            schott_glass_manufacturing.pdf
+            shelby_intro_glass_science_2ed.pdf
+            

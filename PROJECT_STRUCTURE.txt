@@ -1,0 +1,25 @@
+.
+├── PROJECT_STRUCTURE.txt
+├── QUICKSTART.md
+├── README.md
+├── data
+├── docs
+│   ├── DEPLOYMENT_GUIDE.md
+│   └── QA_GENERATION_STRATEGY.md
+├── notebooks
+├── requirements.txt
+├── scripts
+│   ├── __init__.py
+│   ├── database
+│   │   ├── __init__.py
+│   │   └── schema.sql
+│   ├── qa_generation
+│   │   ├── __init__.py
+│   │   └── generate_qa_master.py
+│   └── utils
+│       ├── __init__.py
+│       ├── pdf_utils.py
+│       └── text_utils.py
+└── tests
+
+8 directories, 14 files
