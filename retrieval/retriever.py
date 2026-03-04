@@ -23,11 +23,11 @@ from ingestion.embedder import embed_query
 load_dotenv()
 
 # ── Configuration ──────────────────────────────────────────────────────────────
-TOP_K           = int(os.getenv("RETRIEVAL_TOP_K", 20))
-FINAL_TOP_K     = int(os.getenv("RETRIEVAL_FINAL_TOP_K", 5))
+TOP_K                  = int(os.getenv("RETRIEVAL_TOP_K", 20))
+FINAL_TOP_K            = int(os.getenv("RETRIEVAL_FINAL_TOP_K", 5))
 _SIM_THRESHOLD_DEFAULT = 0.45
-REDIS_URL       = os.getenv("REDIS_URL", "redis://localhost:6379")
-REDIS_TTL       = int(os.getenv("REDIS_TTL_SECONDS", 86400))
+REDIS_URL              = os.getenv("REDIS_URL", "redis://localhost:6379")
+REDIS_TTL              = int(os.getenv("REDIS_TTL_SECONDS", 86400))
 
 
 # ── Database connection ────────────────────────────────────────────────────────
@@ -92,20 +92,9 @@ def retrieve(
     language_filter: str = None,
     source_type_filter: str = None,
     use_cache: bool = True,
-) -> list[dict]:
+) -> list:
     """
     Retrieve the most relevant document chunks for a query using dense search.
-
-    Args:
-        query:               The user's question.
-        top_k:               Number of results to return (default from .env).
-        language_filter:     Filter by language: 'en', 'fa', or None (both).
-        source_type_filter:  Filter by source type: 'textbook', 'paper', etc.
-        use_cache:           Whether to use Redis cache (default: True).
-
-    Returns:
-        List of dicts with keys: id, title, source_type, language,
-                                  content, metadata, similarity
     """
     top_k = top_k or FINAL_TOP_K
 
@@ -153,7 +142,7 @@ def retrieve(
 
     conn = _get_db_connection()
     cur = conn.cursor()
-
+    rows = []
     try:
         cur.execute(sql, params_final)
         rows = cur.fetchall()
@@ -161,11 +150,11 @@ def retrieve(
         cur.close()
         conn.close()
 
-        # Build result list and filter by similarity threshold
+    # Build result list and filter by similarity threshold
+    sim_threshold = float(os.getenv("SIMILARITY_THRESHOLD", str(_SIM_THRESHOLD_DEFAULT)))
     results = []
     for row in rows:
         similarity = float(row[6])
-        sim_threshold = float(os.getenv("SIMILARITY_THRESHOLD", str(_SIM_THRESHOLD_DEFAULT)))
         if similarity < sim_threshold:
             continue
         results.append({
@@ -178,8 +167,17 @@ def retrieve(
             "similarity":  round(similarity, 4),
         })
 
-    # Return top_k results
-    results = results[:top_k]
+    # ── Reranking (cross-encoder) ────────────────────────────────────────────
+    try:
+        from retrieval.reranker import rerank, RERANK_ENABLED
+        if RERANK_ENABLED and len(results) > 1:
+            results = rerank(query, results, top_n=top_k)
+            logger.debug(f"Reranking applied: {len(results)} chunks after rerank")
+        else:
+            results = results[:top_k]
+    except Exception as e:
+        logger.warning(f"Reranking skipped: {e}")
+        results = results[:top_k]
 
     # Cache the results
     if use_cache and results:
@@ -194,12 +192,15 @@ def retrieve_with_auto_language(
     top_k: int = None,
     source_type_filter: str = None,
     language_override: str = None,
-) -> tuple[list[dict], str]:
+) -> tuple:
     """
     Retrieve results with automatic language detection.
     Returns (results, detected_language).
     """
-    language = language_override if language_override else detect_language(query)
+    if language_override and language_override != "auto":
+        language = language_override
+    else:
+        language = detect_language(query)
     logger.info(f"Detected query language: {language.upper()}")
 
     results = retrieve(
@@ -211,7 +212,7 @@ def retrieve_with_auto_language(
     return results, language
 
 
-def format_context_for_llm(results: list[dict]) -> str:
+def format_context_for_llm(results: list) -> str:
     """
     Format retrieved chunks into a structured context block for the LLM prompt.
     """

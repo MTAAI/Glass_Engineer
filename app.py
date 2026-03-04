@@ -28,10 +28,7 @@ API_BASE = os.getenv("API_BASE_URL", "http://localhost:8080/api/v1")
 # ── Custom CSS ─────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-    /* Main background */
     .stApp { background-color: #0f1117; }
-
-    /* Chat message styling */
     .user-message {
         background: #1e3a5f;
         border-radius: 12px 12px 2px 12px;
@@ -49,8 +46,6 @@ st.markdown("""
         color: #e2e8f0;
         font-size: 15px;
     }
-
-    /* Source card */
     .source-card {
         background: #1a2332;
         border: 1px solid #2d4a6e;
@@ -67,8 +62,12 @@ st.markdown("""
         border-radius: 2px;
         margin-top: 6px;
     }
-
-    /* Metrics */
+    .feedback-bar {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+        align-items: center;
+    }
     .metric-box {
         background: #1a1f2e;
         border: 1px solid #2d3748;
@@ -83,12 +82,8 @@ st.markdown("""
         font-weight: bold;
         color: #60a5fa;
     }
-
-    /* Hide Streamlit branding */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
-
-    /* Input box */
     .stTextInput > div > div > input {
         background-color: #1a1f2e;
         color: #e2e8f0;
@@ -106,11 +101,12 @@ if "total_queries" not in st.session_state:
     st.session_state.total_queries = 0
 if "avg_response_time" not in st.session_state:
     st.session_state.avg_response_time = 0.0
+if "feedback_sent" not in st.session_state:
+    st.session_state.feedback_sent = {}  # msg_index → True/False
 
 
 # ── Helper Functions ───────────────────────────────────────────────────────────
 def check_api_health():
-    """Check if the FastAPI backend is running."""
     try:
         r = httpx.get(f"{API_BASE}/health", timeout=5)
         return r.json()
@@ -119,13 +115,11 @@ def check_api_health():
 
 
 def query_rag(question: str, top_k: int, source_type: str = None, language: str = None) -> dict:
-    """Send a query to the RAG API and return the response."""
     payload = {"question": question, "top_k": top_k}
     if source_type and source_type != "All":
         payload["source_type"] = source_type.lower()
     if language and language != "Auto-detect":
         payload["language"] = "fa" if language == "Farsi" else "en"
-
     try:
         r = httpx.post(f"{API_BASE}/query", json=payload, timeout=120)
         return r.json()
@@ -137,11 +131,48 @@ def query_rag(question: str, top_k: int, source_type: str = None, language: str 
         return {"error": str(e)}
 
 
-def render_source_card(source: dict, index: int):
-    """Render a source citation card."""
-    similarity_pct = int(source["similarity"] * 100)
+def submit_feedback(question: str, answer: str, helpful: bool, rating: int, comment: str = None):
+    """Submit overall answer feedback to the API."""
+    try:
+        r = httpx.post(
+            f"{API_BASE}/feedback",
+            json={
+                "question": question,
+                "answer": answer,
+                "helpful": helpful,
+                "rating": rating,
+                "comment": comment,
+            },
+            timeout=10,
+        )
+        return r.json()
+    except Exception as e:
+        return {"success": False, "message": str(e)}
+
+
+def submit_source_feedback(question: str, source_title: str, source_type: str, relevant: bool):
+    """Submit per-source relevance feedback to the API."""
+    try:
+        r = httpx.post(
+            f"{API_BASE}/feedback/source",
+            json={
+                "question": question,
+                "source_title": source_title,
+                "source_type": source_type,
+                "relevant": relevant,
+            },
+            timeout=10,
+        )
+        return r.json()
+    except Exception:
+        return {"success": False}
+
+
+def render_source_card(source: dict, index: int, question: str, msg_index: int):
+    """Render a source citation card with thumbs up/down for relevance."""
+    similarity_pct = int(source.get("similarity", 0) * 100)
     bar_width = similarity_pct
-    lang_flag = "🇮🇷" if source["language"] == "fa" else "🇬🇧"
+    lang_flag = "🇮🇷" if source.get("language") == "fa" else "🇬🇧"
 
     st.markdown(f"""
     <div class="source-card">
@@ -156,19 +187,78 @@ def render_source_card(source: dict, index: int):
         </span>
         <div class="similarity-bar" style="width:{bar_width}%;"></div>
         <div style="margin-top:6px; color:#64748b; font-size:12px; font-style:italic;">
-            {source['content_preview'][:200]}...
+            {source.get('content_preview', '')[:200]}...
         </div>
     </div>
     """, unsafe_allow_html=True)
+
+    # Per-source thumbs up/down
+    src_key = f"src_fb_{msg_index}_{index}"
+    if st.session_state.feedback_sent.get(src_key) is None:
+        col_a, col_b, col_c = st.columns([1, 1, 8])
+        with col_a:
+            if st.button("👍", key=f"src_up_{msg_index}_{index}", help="This source was relevant"):
+                result = submit_source_feedback(
+                    question=question,
+                    source_title=source["title"],
+                    source_type=source.get("source_type", "unknown"),
+                    relevant=True,
+                )
+                st.session_state.feedback_sent[src_key] = True
+                st.rerun()
+        with col_b:
+            if st.button("👎", key=f"src_dn_{msg_index}_{index}", help="This source was not relevant"):
+                result = submit_source_feedback(
+                    question=question,
+                    source_title=source["title"],
+                    source_type=source.get("source_type", "unknown"),
+                    relevant=False,
+                )
+                st.session_state.feedback_sent[src_key] = False
+                st.rerun()
+    else:
+        voted = st.session_state.feedback_sent[src_key]
+        st.caption("✅ Relevant — thank you!" if voted else "✅ Noted — thank you!")
+
+
+def render_feedback_bar(msg_index: int, question: str, answer: str):
+    """Render the overall answer feedback bar (thumbs up/down + rating)."""
+    fb_key = f"answer_fb_{msg_index}"
+
+    if st.session_state.feedback_sent.get(fb_key) is None:
+        st.markdown("**Was this answer helpful?**")
+        col1, col2, col3, col4, col5, col6 = st.columns([1, 1, 1, 1, 1, 5])
+        with col1:
+            if st.button("👍", key=f"ans_up_{msg_index}", help="Yes, helpful"):
+                submit_feedback(question=question, answer=answer, helpful=True, rating=4)
+                st.session_state.feedback_sent[fb_key] = "helpful"
+                st.rerun()
+        with col2:
+            if st.button("👎", key=f"ans_dn_{msg_index}", help="No, not helpful"):
+                submit_feedback(question=question, answer=answer, helpful=False, rating=2)
+                st.session_state.feedback_sent[fb_key] = "not_helpful"
+                st.rerun()
+        with col3:
+            if st.button("⭐⭐⭐⭐⭐", key=f"ans_5_{msg_index}", help="Excellent"):
+                submit_feedback(question=question, answer=answer, helpful=True, rating=5)
+                st.session_state.feedback_sent[fb_key] = "excellent"
+                st.rerun()
+    else:
+        fb_val = st.session_state.feedback_sent[fb_key]
+        if fb_val == "helpful":
+            st.caption("✅ Glad it helped! Feedback recorded.")
+        elif fb_val == "not_helpful":
+            st.caption("✅ Feedback recorded. We'll improve.")
+        else:
+            st.caption("⭐ Thank you for the rating!")
 
 
 # ── Sidebar ────────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("## 🔬 Glass Expert AI")
-    st.markdown("*Powered by BAAI/bge-m3 + pgvector*")
+    st.markdown("*Powered by BAAI/bge-large-en-v1.5 + pgvector*")
     st.divider()
 
-    # API Health Check
     health = check_api_health()
     if health:
         db_color = "🟢" if health.get("database") == "healthy" else "🔴"
@@ -186,21 +276,16 @@ with st.sidebar:
 
     st.divider()
 
-    # Query Settings
     st.markdown("**Query Settings**")
     top_k = st.slider("Sources to retrieve", min_value=1, max_value=10, value=5)
     source_filter = st.selectbox(
         "Filter by source type",
         ["All", "Textbook", "Paper", "SOP", "Standard", "Manual", "QA Pair"],
     )
-    language_mode = st.selectbox(
-        "Language",
-        ["Auto-detect", "English", "Farsi"],
-    )
+    language_mode = st.selectbox("Language", ["Auto-detect", "English", "Farsi"])
 
     st.divider()
 
-    # Session Stats
     st.markdown("**Session Stats**")
     col1, col2 = st.columns(2)
     with col1:
@@ -221,14 +306,13 @@ with st.sidebar:
 
     st.divider()
 
-    # Clear chat
     if st.button("🗑️ Clear Chat", use_container_width=True):
         st.session_state.messages = []
         st.session_state.total_queries = 0
         st.session_state.avg_response_time = 0.0
+        st.session_state.feedback_sent = {}
         st.rerun()
 
-    # Ingest new file
     st.markdown("**Add to Knowledge Base**")
     uploaded_file = st.file_uploader(
         "Upload a document",
@@ -237,7 +321,6 @@ with st.sidebar:
     )
     ingest_type = st.selectbox("Document type", ["textbook", "paper", "sop", "standard", "manual"])
     if uploaded_file and st.button("📥 Ingest Document", use_container_width=True):
-        # Save to temp location and trigger ingestion
         temp_path = Path("data/uploads") / uploaded_file.name
         temp_path.parent.mkdir(parents=True, exist_ok=True)
         temp_path.write_bytes(uploaded_file.getvalue())
@@ -262,20 +345,25 @@ with st.sidebar:
 st.markdown("## 🔬 Glass Expert AI")
 st.markdown("Ask any question about glass science, manufacturing, composition, defects, or properties.")
 
-# Render chat history
 chat_container = st.container()
 with chat_container:
-    for msg in st.session_state.messages:
+    for msg_idx, msg in enumerate(st.session_state.messages):
         if msg["role"] == "user":
             st.markdown(f'<div class="user-message">👤 {msg["content"]}</div>', unsafe_allow_html=True)
         else:
             st.markdown(f'<div class="assistant-message">🔬 {msg["content"]}</div>', unsafe_allow_html=True)
 
-            # Show sources if available
+            # Show sources with per-source thumbs up/down
             if msg.get("sources"):
                 with st.expander(f"📚 {len(msg['sources'])} source(s) used — click to view", expanded=False):
-                    for i, source in enumerate(msg["sources"]):
-                        render_source_card(source, i)
+                    for src_idx, source in enumerate(msg["sources"]):
+                        # Find the preceding user question
+                        user_question = ""
+                        for prev in reversed(st.session_state.messages[:msg_idx]):
+                            if prev["role"] == "user":
+                                user_question = prev["content"]
+                                break
+                        render_source_card(source, src_idx, user_question, msg_idx)
 
             # Show metadata
             if msg.get("meta"):
@@ -285,6 +373,16 @@ with chat_container:
                 cols[1].caption(f"🌐 {meta.get('language_detected', 'en').upper()}")
                 cols[2].caption(f"🤖 {meta.get('model_used', 'unknown')}")
                 cols[3].caption(f"📊 {meta.get('total_chunks_searched', 0)} chunks searched")
+
+            # Overall answer feedback bar
+            if msg.get("content") and msg["content"] != "No answer generated.":
+                user_question = ""
+                for prev in reversed(st.session_state.messages[:msg_idx]):
+                    if prev["role"] == "user":
+                        user_question = prev["content"]
+                        break
+                render_feedback_bar(msg_idx, user_question, msg["content"])
+
 
 # ── Suggested Questions ────────────────────────────────────────────────────────
 if not st.session_state.messages:
@@ -303,10 +401,10 @@ if not st.session_state.messages:
                 st.session_state._pending_question = suggestion
                 st.rerun()
 
+
 # ── Chat Input ─────────────────────────────────────────────────────────────────
 question = st.chat_input("Ask a glass science question...")
 
-# Handle suggested question clicks
 if hasattr(st.session_state, "_pending_question"):
     question = st.session_state._pending_question
     del st.session_state._pending_question
@@ -316,10 +414,8 @@ if question:
         st.error("⚠️ The API server is not running. Start it first:\n```\npython -m uvicorn api.main:app --port 8080 --reload\n```")
         st.stop()
 
-    # Add user message
     st.session_state.messages.append({"role": "user", "content": question})
 
-    # Query the RAG API
     with st.spinner("🔍 Searching knowledge base..."):
         start_time = time.time()
         response = query_rag(
@@ -338,7 +434,6 @@ if question:
             "meta": {},
         })
     else:
-        # Update session stats
         st.session_state.total_queries += 1
         n = st.session_state.total_queries
         prev_avg = st.session_state.avg_response_time
