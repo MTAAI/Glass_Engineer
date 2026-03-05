@@ -1,6 +1,6 @@
 """
 Glass Expert AI — FastAPI Backend
-Phase 3: RAG Query API + Specialized Engineering Endpoints + React Chat UI
+Phase 2: RAG Query API + Specialized Engineering Endpoints
 """
 import os
 import sys
@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 # Load environment variables from .env BEFORE importing routers
 load_dotenv(Path(__file__).parent.parent / ".env")
 
-from api.routers import query, health, ingest, analyze, design, troubleshoot, feedback
+from api.routers import query, health, ingest, analyze, design, troubleshoot, feedback, auth
 
 app = FastAPI(
     title="Glass Expert AI",
@@ -36,6 +36,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ── Auth endpoints ────────────────────────────────────────────────────────────
+app.include_router(auth.router,         prefix="/api/v1/auth", tags=["Auth"])
 
 # ── Core endpoints ─────────────────────────────────────────────────────────────
 app.include_router(health.router,       prefix="/api/v1", tags=["Health"])
@@ -67,7 +70,8 @@ async def startup_event():
     logger.info("Glass Expert AI API v3.0.0 starting up...")
     logger.info("Chat UI available at: http://localhost:8080/")
     logger.info("API Docs available at: http://localhost:8080/docs")
-    logger.info("Endpoints: /analyze, /design, /troubleshoot, /feedback")
+    logger.info("New endpoints: /analyze, /design, /troubleshoot, /feedback, /auth")
+    logger.info("Auth endpoints: /api/v1/auth/register, /api/v1/auth/login, /api/v1/auth/me")
 
 
 if __name__ == "__main__":
