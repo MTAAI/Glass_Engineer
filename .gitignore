@@ -1,73 +1,52 @@
-__pycache__/
-*.py[cod]
+# Virtual environment
+venv/
+.venv/
+venv_train/
+
+# Environment variables (contains passwords)
 .env
-*.log
-data/textbooks/*.pdf
-data/papers/*.pdf
-data/csv/*.csv
-data/large_datasets/*
-data/qa_pairs/raw/*
-*.db
-*.sqlite
-.ipynb_checkpoints/
-.DS_Store
-
-# Large data files — keep local only
-data/source_documents/
-data/textbooks/
-data/papers/
-data/processed/
-data/csv/
-data/databases/
-data/embeddings/
-data/qa_pairs/raw/
-data/qa_pairs/generated/
-data/qa_pairs/backup/
-data/qa_pairs/augmented/
-data/qa_pairs/metadata/
-
-# Virtual environments
-.venv/
-venv/
-venv_train/
-
-# Logs
-logs/
-*.log
-
-# Model checkpoints (too large — keep only final/ locally)
-models/glass-expert-v1/checkpoint-*/
-models/glass-expert-v2/checkpoint-*/
-
-# Virtual environments
-.venv/
-venv/
-venv_train/
-
-# Large data files — keep local only
-data/source_documents/
-data/textbooks/
-data/papers/
-data/processed/
-data/csv/
-data/databases/
-data/embeddings/
-data/qa_pairs/raw/
-data/qa_pairs/generated/
-data/qa_pairs/backup/
-data/qa_pairs/augmented/
-data/qa_pairs/metadata/
-
-# Logs
-logs/
-*.log
-
-# Model checkpoints (large binary files)
-models/
-*.safetensors
-*.bin
-*.pt
 
 # Python cache
 __pycache__/
-*.pyc
+*.py[cod]
+*.pyo
+
+# Model checkpoints (large binary files)
+models/
+*.bin
+*.safetensors
+*.pt
+
+# Large data files - keep local only
+data/source_documents/
+data/textbooks/
+data/papers/
+data/processed/
+data/csv/
+data/databases/
+data/embeddings/
+data/qa_pairs/raw/
+data/qa_pairs/generated/
+data/qa_pairs/backup/
+data/qa_pairs/augmented/
+data/qa_pairs/metadata/
+data/large_datasets/
+
+# Logs
+logs/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Database files
+*.db
+*.sqlite
+
+# Node modules (frontend)
+node_modules/
+frontend/dist/
