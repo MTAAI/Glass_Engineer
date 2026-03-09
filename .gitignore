@@ -11,8 +11,8 @@ __pycache__/
 *.py[cod]
 *.pyo
 
-# Model checkpoints (large binary files)
-models/
+# Model checkpoints (large binary files — root level only)
+/models/
 *.bin
 *.safetensors
 *.pt
