@@ -103,25 +103,11 @@ async def analyze_glass(request: AnalyzeRequest):
     prompt = _build_analyze_prompt(request, context_block)
 
     try:
-        from retrieval.llm import _call_openai_compatible
-        import os
-        openai_key = os.getenv("OPENAI_API_KEY", "")
-        if openai_key:
-            analysis_text = await _call_openai_compatible(
-                base_url="https://api.openai.com/v1",
-                api_key=openai_key,
-                model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
-                system_prompt="You are Glass Expert AI, a highly specialized glass science and manufacturing expert.",
-                user_message=prompt,
-                temperature=0.2,
-                max_tokens=1500,
-            )
-            model_used = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
-        else:
-            analysis_text = (
-                "LLM not available. Retrieved context:\n\n" + context_block
-            )
-            model_used = "retrieval-only"
+        analysis_text, model_used = await generate_answer(
+            question=prompt,
+            context=context_block,
+            language="en",
+        )
     except Exception as e:
         logger.error(f"Analyze LLM error: {e}")
         analysis_text = "LLM generation failed. Retrieved context:\n\n" + context_block

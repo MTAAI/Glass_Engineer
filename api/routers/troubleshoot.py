@@ -3,7 +3,6 @@ Glass Expert AI — Troubleshoot Router
 POST /api/v1/troubleshoot
 Given a defect description, returns root causes and corrective actions.
 """
-import os
 import time
 from fastapi import APIRouter, HTTPException
 from loguru import logger
@@ -128,26 +127,12 @@ async def troubleshoot_defect(request: TroubleshootRequest):
     prompt = _build_troubleshoot_prompt(request, context_block, defect_class)
 
     try:
-        from retrieval.llm import _call_openai_compatible
-        openai_key = os.getenv("OPENAI_API_KEY", "")
-        if openai_key:
-            analysis_text = await _call_openai_compatible(
-                base_url="https://api.openai.com/v1",
-                api_key=openai_key,
-                model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
-                system_prompt=(
-                    "You are Glass Expert AI, a highly specialized glass manufacturing "
-                    "troubleshooting expert with deep knowledge of defect analysis, "
-                    "root cause investigation, and corrective actions."
-                ),
-                user_message=prompt,
-                temperature=0.2,
-                max_tokens=2000,
-            )
-            model_used = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
-        else:
-            analysis_text = "LLM not available. Retrieved context:\n\n" + context_block
-            model_used = "retrieval-only"
+        from retrieval.llm import generate_answer
+        analysis_text, model_used = await generate_answer(
+            question=prompt,
+            context=context_block,
+            language="en",
+        )
     except Exception as e:
         logger.error(f"Troubleshoot LLM error: {e}")
         analysis_text = "LLM generation failed. Retrieved context:\n\n" + context_block

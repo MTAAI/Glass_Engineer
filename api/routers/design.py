@@ -3,7 +3,6 @@ Glass Expert AI — Design Router
 POST /api/v1/design
 Suggests glass compositions to meet target property requirements.
 """
-import os
 import time
 from fastapi import APIRouter, HTTPException
 from loguru import logger
@@ -97,22 +96,12 @@ async def design_glass(request: DesignRequest):
     prompt = _build_design_prompt(request, context_block)
 
     try:
-        from retrieval.llm import _call_openai_compatible
-        openai_key = os.getenv("OPENAI_API_KEY", "")
-        if openai_key:
-            design_text = await _call_openai_compatible(
-                base_url="https://api.openai.com/v1",
-                api_key=openai_key,
-                model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
-                system_prompt="You are Glass Expert AI, a highly specialized glass science and manufacturing expert.",
-                user_message=prompt,
-                temperature=0.3,
-                max_tokens=2000,
-            )
-            model_used = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
-        else:
-            design_text = "LLM not available. Retrieved context:\n\n" + context_block
-            model_used = "retrieval-only"
+        from retrieval.llm import generate_answer
+        design_text, model_used = await generate_answer(
+            question=prompt,
+            context=context_block,
+            language="en",
+        )
     except Exception as e:
         logger.error(f"Design LLM error: {e}")
         design_text = "LLM generation failed. Retrieved context:\n\n" + context_block

@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 # Load environment variables from .env BEFORE importing routers
 load_dotenv(Path(__file__).parent.parent / ".env")
 
-from api.routers import query, health, ingest, analyze, design, troubleshoot, feedback
+from api.routers import query, health, ingest, analyze, design, troubleshoot, feedback, conversations
 
 app = FastAPI(
     title="Glass Expert AI",
@@ -29,9 +29,10 @@ app = FastAPI(
     version="3.0.0",
 )
 
+_allowed_origins = os.getenv("ALLOWED_ORIGINS", "*").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -47,6 +48,7 @@ app.include_router(analyze.router,      prefix="/api/v1", tags=["Analyze"])
 app.include_router(design.router,       prefix="/api/v1", tags=["Design"])
 app.include_router(troubleshoot.router, prefix="/api/v1", tags=["Troubleshoot"])
 app.include_router(feedback.router,     prefix="/api/v1", tags=["Feedback"])
+app.include_router(conversations.router, prefix="/api/v1", tags=["Conversations"])
 
 # ── Serve React frontend ───────────────────────────────────────────────────────
 _frontend_dist = Path(__file__).parent.parent / "frontend" / "dist"
@@ -64,10 +66,28 @@ if _frontend_dist.exists():
 
 @app.on_event("startup")
 async def startup_event():
+    port = os.getenv("API_PORT", "8080")
     logger.info("Glass Expert AI API v3.0.0 starting up...")
-    logger.info("Chat UI available at: http://localhost:8080/")
-    logger.info("API Docs available at: http://localhost:8080/docs")
-    logger.info("Endpoints: /analyze, /design, /troubleshoot, /feedback")
+    logger.info(f"Chat UI available at: http://0.0.0.0:{port}/")
+    logger.info(f"API Docs available at: http://0.0.0.0:{port}/docs")
+    logger.info("Endpoints: /analyze, /design, /troubleshoot, /feedback, /conversations")
+
+    # Ensure anonymous user exists (for pre-auth usage)
+    try:
+        import psycopg2
+        conn = psycopg2.connect(os.getenv("DATABASE_URL"))
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO users (id, email, hashed_password, full_name, role)
+            VALUES ('00000000-0000-0000-0000-000000000001', 'anonymous@glassai.local', 'no-auth', 'Anonymous User', 'engineer')
+            ON CONFLICT (id) DO NOTHING
+        """)
+        conn.commit()
+        cur.close()
+        conn.close()
+        logger.info("Anonymous user ensured")
+    except Exception as e:
+        logger.warning(f"Could not ensure anonymous user (DB may not be ready): {e}")
 
 
 if __name__ == "__main__":

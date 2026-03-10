@@ -26,6 +26,7 @@ class QueryRequest(BaseModel):
     mode: str = Field("simple", description="Query mode: 'simple', 'detailed', or 'research'.")
     top_k: int = Field(5, ge=1, le=20, description="Number of source chunks to retrieve.")
     source_type: Optional[str] = Field(None, description="Filter by source type (e.g. 'textbook', 'paper').")
+    session_id: Optional[str] = Field(None, description="Conversation session ID for multi-turn context.")
 
 class QueryResponse(BaseModel):
     """Response model for the /query endpoint."""
@@ -40,6 +41,7 @@ class QueryResponse(BaseModel):
     generation_time_ms: Optional[float] = Field(None, description="Time taken for answer generation in milliseconds.")
     language_detected: Optional[str] = Field(None, description="Detected language of the query.")
     total_chunks_searched: Optional[int] = Field(None, description="Total number of chunks retrieved.")
+    session_id: Optional[str] = Field(None, description="Conversation session ID.")
 
 # --- Health Endpoint --------------------------------------------------------
 
@@ -175,3 +177,43 @@ class FeedbackResponse(BaseModel):
     success: bool
     message: str
     feedback_id: int
+
+# --- Conversation Endpoints ---------------------------------------------------
+
+class ChatMessage(BaseModel):
+    """A single message in a conversation."""
+    id: str
+    role: str
+    content: str
+    sources: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
+    metadata: Optional[Dict[str, Any]] = Field(default_factory=dict)
+    created_at: str
+
+class ConversationSummary(BaseModel):
+    """Summary of a conversation for sidebar listing."""
+    session_id: str
+    title: str
+    created_at: str
+    updated_at: str
+    message_count: int = 0
+
+class ConversationDetail(BaseModel):
+    """Full conversation with messages."""
+    session_id: str
+    title: str
+    created_at: str
+    updated_at: str
+    messages: List[ChatMessage] = Field(default_factory=list)
+
+class CreateConversationRequest(BaseModel):
+    """Request model for creating a new conversation."""
+    title: Optional[str] = Field(None, description="Optional title. Auto-generated from first message if omitted.")
+
+class CreateConversationResponse(BaseModel):
+    """Response for conversation creation."""
+    session_id: str
+    title: str
+
+class RenameConversationRequest(BaseModel):
+    """Request model for renaming a conversation."""
+    title: str = Field(..., min_length=1, max_length=200)
