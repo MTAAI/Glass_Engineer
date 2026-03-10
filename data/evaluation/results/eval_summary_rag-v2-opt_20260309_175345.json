@@ -1,0 +1,30 @@
+{
+  "label": "rag-v2-opt",
+  "timestamp": "20260309_175345",
+  "n_questions": 20,
+  "errors": 0,
+  "mean_judge_score": 4.1,
+  "mean_kw_coverage": 0.3071,
+  "composite_score_pct": 66.61,
+  "score_distribution": {
+    "1": 0,
+    "2": 0,
+    "3": 1,
+    "4": 16,
+    "5": 3
+  },
+  "by_category": {
+    "Glass Composition": 4.0,
+    "Glass Defects": 4.0,
+    "Glass Strengthening": 4.0,
+    "Glass Structure": 4.0,
+    "Manufacturing": 4.33,
+    "Thermal Properties": 4.17
+  },
+  "avg_latency_ms": 45413.0,
+  "avg_retrieval_ms": 13.97,
+  "avg_similarity": 0.6784,
+  "models_used": {
+    "glass-expert": 20
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "label": "rag-v2-with-memory",
+  "timestamp": "20260310_055135",
+  "n_questions": 9,
+  "errors": 1,
+  "mean_judge_score": 4.1111,
+  "mean_kw_coverage": 0.377,
+  "composite_score_pct": 68.87,
+  "score_distribution": {
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 8,
+    "5": 1
+  },
+  "by_category": {
+    "Glass Composition": 4.0,
+    "Glass Structure": 4.33,
+    "Thermal Properties": 4.0
+  },
+  "avg_latency_ms": 18027.0,
+  "avg_retrieval_ms": 28.5,
+  "avg_similarity": 0.6814,
+  "models_used": {
+    "glass-expert": 9
+  }
+}
