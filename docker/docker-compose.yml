@@ -6,16 +6,16 @@ services:
     image: pgvector/pgvector:pg16
     container_name: glass_ai_postgres
     environment:
-      POSTGRES_USER: glassai
-      POSTGRES_PASSWORD: glassai_secret
-      POSTGRES_DB: glass_expert_ai
+      POSTGRES_USER: ${POSTGRES_USER:-glassai}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-glassai_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-glass_expert_ai}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U glassai -d glass_expert_ai"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-glassai} -d ${POSTGRES_DB:-glass_expert_ai}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -25,7 +25,7 @@ services:
     image: redis:7-alpine
     container_name: glass_ai_redis
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:6379"
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes --maxmemory 2gb --maxmemory-policy allkeys-lru
@@ -36,17 +36,39 @@ services:
       retries: 5
     restart: unless-stopped
 
+  api:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: glass_ai_api
+    env_file:
+      - ../.env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-glassai}:${POSTGRES_PASSWORD:-glassai_secret}@postgres:5432/${POSTGRES_DB:-glass_expert_ai}
+      REDIS_URL: redis://redis:6379
+      LLM_BASE_URL: ${LLM_BASE_URL:-http://host.docker.internal:8000/v1}
+    ports:
+      - "${API_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: glass_ai_pgadmin
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@glassai.com
-      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@glassai.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
     ports:
       - "5050:80"
     depends_on:
       - postgres
     restart: unless-stopped
+    profiles:
+      - dev
 
 volumes:
   postgres_data:
