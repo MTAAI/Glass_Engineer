@@ -23,9 +23,9 @@ from ingestion.embedder import embed_query
 load_dotenv()
 
 # ── Configuration ──────────────────────────────────────────────────────────────
-TOP_K                  = int(os.getenv("RETRIEVAL_TOP_K", 20))
-FINAL_TOP_K            = int(os.getenv("RETRIEVAL_FINAL_TOP_K", 5))
-_SIM_THRESHOLD_DEFAULT = 0.45
+TOP_K                  = int(os.getenv("RETRIEVAL_TOP_K", 30))
+FINAL_TOP_K            = int(os.getenv("RETRIEVAL_FINAL_TOP_K", 8))
+_SIM_THRESHOLD_DEFAULT = 0.35
 REDIS_URL              = os.getenv("REDIS_URL", "redis://localhost:6379")
 REDIS_TTL              = int(os.getenv("REDIS_TTL_SECONDS", 86400))
 
@@ -138,7 +138,7 @@ def retrieve(
         LIMIT %s
     """
 
-    params_final = [dense_vec.tolist()] + params + [dense_vec.tolist(), top_k * 4]
+    params_final = [dense_vec.tolist()] + params + [dense_vec.tolist(), top_k * 6]
 
     conn = _get_db_connection()
     cur = conn.cursor()
@@ -206,7 +206,7 @@ def retrieve_with_auto_language(
     results = retrieve(
         query,
         top_k=top_k,
-        language_filter=None,
+        language_filter=language,
         source_type_filter=source_type_filter,
     )
     return results, language
