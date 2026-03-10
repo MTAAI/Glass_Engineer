@@ -19,6 +19,12 @@ function langFlag(lang: string): string {
   return lang === 'fa' ? '🇮🇷' : '🇬🇧'
 }
 
+/** Check if text is predominantly RTL (Persian/Arabic). */
+function isRtlText(text: string): boolean {
+  const rtlChars = text.match(/[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/g)
+  return !!rtlChars && rtlChars.length > text.length * 0.3
+}
+
 function sourceIcon(type: string) {
   switch (type) {
     case 'textbook': return <BookOpen size={13} className="text-blue-400" />
@@ -191,25 +197,34 @@ function FeedbackBar({ question, answer }: FeedbackBarProps) {
 // ── Message Bubble ─────────────────────────────────────────────────────────────
 interface MessageBubbleProps {
   message: Message
+  prevQuestion?: string
 }
 
-function MessageBubble({ message }: MessageBubbleProps) {
+function MessageBubble({ message, prevQuestion }: MessageBubbleProps) {
   const isUser = message.role === 'user'
+  const rtl = isRtlText(message.content)
+  const isResponseRtl = !isUser && message.meta?.language_detected === 'fa'
+  const dirProps = (rtl || isResponseRtl) ? { dir: 'rtl' as const } : {}
 
   if (isUser) {
     return (
-      <div className="flex justify-end mb-4">
-        <div className="max-w-[80%] bg-[#1e3a5f] rounded-2xl rounded-tr-sm px-4 py-3 text-[#e8f4fd] text-sm">
+      <div className={`flex ${rtl ? 'justify-start' : 'justify-end'} mb-4`}>
+        <div
+          {...dirProps}
+          className={`max-w-[80%] bg-[#1e3a5f] rounded-2xl ${rtl ? 'rounded-tl-sm' : 'rounded-tr-sm'} px-4 py-3 text-[#e8f4fd] text-sm`}
+        >
           {message.content}
         </div>
       </div>
     )
   }
 
-  // Find the preceding user question for feedback context
   return (
-    <div className="flex justify-start mb-4">
-      <div className="max-w-[85%] bg-[#1a1f2e] border border-[#2d3748] rounded-2xl rounded-tl-sm px-4 py-3">
+    <div className={`flex ${isResponseRtl ? 'justify-end' : 'justify-start'} mb-4`}>
+      <div
+        {...dirProps}
+        className={`max-w-[85%] bg-[#1a1f2e] border border-[#2d3748] rounded-2xl ${isResponseRtl ? 'rounded-tr-sm' : 'rounded-tl-sm'} px-4 py-3`}
+      >
         <div className="flex items-center gap-2 mb-2">
           <Microscope size={14} className="text-blue-400" />
           <span className="text-xs text-slate-500">Glass Expert AI</span>
@@ -234,12 +249,12 @@ function MessageBubble({ message }: MessageBubbleProps) {
 
         {/* Citations panel */}
         {message.sources && message.sources.length > 0 && (
-          <CitationsPanel sources={message.sources} question={message.content} />
+          <CitationsPanel sources={message.sources} question={prevQuestion || message.content} />
         )}
 
         {/* Answer feedback */}
         {message.content && message.content !== 'No answer generated.' && (
-          <FeedbackBar question={message.content} answer={message.content} />
+          <FeedbackBar question={prevQuestion || ''} answer={message.content} />
         )}
       </div>
     </div>
@@ -344,8 +359,8 @@ export default function App() {
   const suggestions = [
     'What is the glass transition temperature of borosilicate glass?',
     'What causes devitrification in glass manufacturing?',
-    'How does silica content affect glass viscosity?',
-    'What are the corrective actions for bubbles in glass?',
+    'دمای انتقال شیشه‌ای بوروسیلیکات چقدر است؟',
+    'علل ایجاد حباب در تولید شیشه چیست؟',
   ]
 
   return (
@@ -416,25 +431,31 @@ export default function App() {
               <div className="text-center">
                 <Microscope size={48} className="text-blue-400 mx-auto mb-3" />
                 <h2 className="text-xl font-bold text-white mb-1">Glass Expert AI</h2>
-                <p className="text-slate-500 text-sm">Ask any question about glass science, manufacturing, or properties.</p>
+                <p className="text-slate-500 text-sm">Ask any question about glass science, manufacturing, or properties.<br /><span dir="rtl" className="text-slate-600 text-xs">هر سوالی در مورد علم شیشه، تولید یا خواص شیشه بپرسید</span></p>
               </div>
               <div className="grid grid-cols-2 gap-2 max-w-2xl w-full">
-                {suggestions.map((s, i) => (
-                  <button
-                    key={i}
-                    onClick={() => sendMessage(s)}
-                    className="text-left text-xs bg-[#1a1f2e] border border-[#2d3748] rounded-lg p-3 text-slate-400 hover:border-blue-500 hover:text-blue-300 transition-all"
-                  >
-                    {s}
-                  </button>
-                ))}
+                {suggestions.map((s, i) => {
+                  const rtlSuggestion = isRtlText(s)
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => sendMessage(s)}
+                      dir={rtlSuggestion ? 'rtl' : undefined}
+                      className={`${rtlSuggestion ? 'text-right' : 'text-left'} text-xs bg-[#1a1f2e] border border-[#2d3748] rounded-lg p-3 text-slate-400 hover:border-blue-500 hover:text-blue-300 transition-all`}
+                    >
+                      {s}
+                    </button>
+                  )
+                })}
               </div>
             </div>
           )}
 
-          {messages.map(msg => (
-            <MessageBubble key={msg.id} message={msg} />
-          ))}
+          {messages.map((msg, idx) => {
+            const prev = idx > 0 ? messages[idx - 1] : undefined
+            const prevQ = msg.role === 'assistant' && prev?.role === 'user' ? prev.content : undefined
+            return <MessageBubble key={msg.id} message={msg} prevQuestion={prevQ} />
+          })}
 
           {loading && (
             <div className="flex justify-start mb-4">
@@ -462,7 +483,8 @@ export default function App() {
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask a glass science question... (Enter to send, Shift+Enter for new line)"
+              dir={isRtlText(input) ? 'rtl' : 'ltr'}
+              placeholder="Ask a glass science question... / سوال خود را بپرسید..."
               rows={1}
               className="flex-1 bg-[#1a1f2e] border border-[#2d3748] rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-600 resize-none focus:outline-none focus:border-blue-500 transition-colors"
               style={{ minHeight: '44px', maxHeight: '120px' }}

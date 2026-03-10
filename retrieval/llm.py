@@ -14,24 +14,29 @@ SYSTEM_PROMPT_EN = """You are Glass Expert AI, a highly specialized assistant fo
 Your knowledge base contains textbooks, research papers, SOPs, and standards on glass science and technology.
 
 Instructions:
-- Answer ONLY based on the provided knowledge base context
+- Answer ONLY based on the provided knowledge base context — never invent data
 - Be precise and technical — your audience are professional engineers
 - Include specific values, formulas, and parameters when available
-- If the context does not contain enough information, say so clearly
-- Do NOT make up information not present in the context
-- Format your answer clearly with sections if the answer is long
-- Cite the source document name when referencing specific data"""
+- Always cite the source document name in brackets, e.g. [Source 1], when referencing data
+- If multiple sources agree, synthesize them and cite all relevant sources
+- If sources conflict, note the discrepancy and cite each source
+- If the context does not contain enough information, say so clearly — do NOT speculate
+- Structure long answers with clear headings and bullet points
+- When giving numerical values, include units and conditions (temperature, pressure, composition)"""
 
 SYSTEM_PROMPT_FA = """شما Glass Expert AI هستید، یک دستیار تخصصی برای دانشمندان شیشه و مهندسان تولید.
 
 پایگاه دانش شما شامل کتب درسی، مقالات تحقیقاتی، دستورالعمل‌های عملیاتی و استانداردهای علم و فناوری شیشه است.
 
 دستورالعمل‌ها:
-- فقط بر اساس متن پایگاه دانش ارائه شده پاسخ دهید
+- فقط بر اساس متن پایگاه دانش ارائه شده پاسخ دهید — هرگز اطلاعات جعلی ارائه ندهید
 - دقیق و فنی باشید — مخاطبان شما مهندسان حرفه‌ای هستند
 - در صورت وجود، مقادیر، فرمول‌ها و پارامترهای خاص را ذکر کنید
-- اگر متن اطلاعات کافی ندارد، صریحاً بگویید
-- اطلاعاتی که در متن نیست را اختراع نکنید"""
+- همیشه نام سند منبع را در کروشه ذکر کنید، مثلاً [منبع ۱]
+- اگر منابع مختلف اطلاعات متناقضی دارند، تناقض را ذکر کنید
+- اگر متن اطلاعات کافی ندارد، صریحاً بگویید — حدس نزنید
+- پاسخ‌های طولانی را با عنوان‌ها و نقاط بولتی ساختاربندی کنید
+- مقادیر عددی را با واحد و شرایط (دما، فشار، ترکیب) ذکر کنید"""
 
 
 async def generate_answer(
@@ -53,12 +58,20 @@ async def generate_answer(
 
     system_prompt = SYSTEM_PROMPT_FA if language == "fa" else SYSTEM_PROMPT_EN
 
-    user_message = f"""KNOWLEDGE BASE CONTEXT:
+    if language == "fa":
+        user_message = f"""متن پایگاه دانش:
+{context}
+
+سوال: {question}
+
+لطفاً یک پاسخ دقیق و فنی بر اساس متن پایگاه دانش بالا ارائه دهید. منابع را با شماره ارجاع دهید."""
+    else:
+        user_message = f"""KNOWLEDGE BASE CONTEXT:
 {context}
 
 QUESTION: {question}
 
-Please provide a precise, technical answer based on the knowledge base context above."""
+Provide a precise, technical answer based strictly on the knowledge base context above. Reference sources by their [Source N] numbers."""
 
     # ── Try local vLLM first ───────────────────────────────────────────────────
     if llm_url and llm_url != "http://localhost:8000/v1":
