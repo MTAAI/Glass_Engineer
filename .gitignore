@@ -50,3 +50,15 @@ Thumbs.db
 # Node modules (frontend)
 node_modules/
 frontend/dist/
+
+# Claude Code config
+.claude/
+
+# Binaries
+*.exe
+
+# Database backups
+docker/backup/
+
+# Nested repos
+glass-expert-ai/
