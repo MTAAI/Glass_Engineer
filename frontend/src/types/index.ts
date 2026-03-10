@@ -14,6 +14,7 @@ export interface QueryResponse {
   model_used: string
   retrieval_time_ms: number
   total_chunks_searched: number
+  session_id?: string
 }
 
 export interface HealthResponse {
@@ -56,4 +57,27 @@ export interface Message {
   }
   feedbackSent?: boolean
   timestamp: Date
+}
+
+export interface Conversation {
+  session_id: string
+  title: string
+  created_at: string
+  updated_at: string
+  message_count: number
+}
+
+export interface ConversationDetail {
+  session_id: string
+  title: string
+  created_at: string
+  updated_at: string
+  messages: {
+    id: string
+    role: string
+    content: string
+    sources?: Record<string, unknown>[]
+    metadata?: Record<string, unknown>
+    created_at: string
+  }[]
 }

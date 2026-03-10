@@ -4,10 +4,14 @@ import ReactMarkdown from 'react-markdown'
 import {
   Microscope, Send, Trash2, ChevronDown, ChevronUp,
   ThumbsUp, ThumbsDown, CheckCircle, AlertCircle,
-  BookOpen, FileText, FlaskConical, Layers, Star
+  BookOpen, FileText, FlaskConical, Layers, Star,
+  Plus, MessageSquare, X
 } from 'lucide-react'
-import { fetchHealth, queryKnowledgeBase, submitFeedback, submitSourceFeedback } from './api/client'
-import type { Message, SourceChunk, HealthResponse } from './types'
+import {
+  fetchHealth, queryKnowledgeBase, submitFeedback, submitSourceFeedback,
+  createConversation, listConversations, getConversation, deleteConversation
+} from './api/client'
+import type { Message, SourceChunk, HealthResponse, Conversation } from './types'
 
 // ── Utility ────────────────────────────────────────────────────────────────────
 function formatMs(ms: number): string {
@@ -19,6 +23,12 @@ function langFlag(lang: string): string {
   return lang === 'fa' ? '🇮🇷' : '🇬🇧'
 }
 
+/** Check if text is predominantly RTL (Persian/Arabic). */
+function isRtlText(text: string): boolean {
+  const rtlChars = text.match(/[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/g)
+  return !!rtlChars && rtlChars.length > text.length * 0.3
+}
+
 function sourceIcon(type: string) {
   switch (type) {
     case 'textbook': return <BookOpen size={13} className="text-blue-400" />
@@ -27,6 +37,17 @@ function sourceIcon(type: string) {
     case 'standard': return <Star size={13} className="text-orange-400" />
     default: return <FlaskConical size={13} className="text-cyan-400" />
   }
+}
+
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return 'just now'
+  if (mins < 60) return `${mins}m ago`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  return `${days}d ago`
 }
 
 // ── Source Card ────────────────────────────────────────────────────────────────
@@ -191,25 +212,34 @@ function FeedbackBar({ question, answer }: FeedbackBarProps) {
 // ── Message Bubble ─────────────────────────────────────────────────────────────
 interface MessageBubbleProps {
   message: Message
+  userQuestion?: string
 }
 
-function MessageBubble({ message }: MessageBubbleProps) {
+function MessageBubble({ message, userQuestion }: MessageBubbleProps) {
   const isUser = message.role === 'user'
+  const rtl = isRtlText(message.content)
+  const isResponseRtl = !isUser && message.meta?.language_detected === 'fa'
+  const dirProps = (rtl || isResponseRtl) ? { dir: 'rtl' as const } : {}
 
   if (isUser) {
     return (
-      <div className="flex justify-end mb-4">
-        <div className="max-w-[80%] bg-[#1e3a5f] rounded-2xl rounded-tr-sm px-4 py-3 text-[#e8f4fd] text-sm">
+      <div className={`flex ${rtl ? 'justify-start' : 'justify-end'} mb-4`}>
+        <div
+          {...dirProps}
+          className={`max-w-[80%] bg-[#1e3a5f] rounded-2xl ${rtl ? 'rounded-tl-sm' : 'rounded-tr-sm'} px-4 py-3 text-[#e8f4fd] text-sm`}
+        >
           {message.content}
         </div>
       </div>
     )
   }
 
-  // Find the preceding user question for feedback context
   return (
-    <div className="flex justify-start mb-4">
-      <div className="max-w-[85%] bg-[#1a1f2e] border border-[#2d3748] rounded-2xl rounded-tl-sm px-4 py-3">
+    <div className={`flex ${isResponseRtl ? 'justify-end' : 'justify-start'} mb-4`}>
+      <div
+        {...dirProps}
+        className={`max-w-[85%] bg-[#1a1f2e] border border-[#2d3748] rounded-2xl ${isResponseRtl ? 'rounded-tr-sm' : 'rounded-tl-sm'} px-4 py-3`}
+      >
         <div className="flex items-center gap-2 mb-2">
           <Microscope size={14} className="text-blue-400" />
           <span className="text-xs text-slate-500">Glass Expert AI</span>
@@ -234,12 +264,12 @@ function MessageBubble({ message }: MessageBubbleProps) {
 
         {/* Citations panel */}
         {message.sources && message.sources.length > 0 && (
-          <CitationsPanel sources={message.sources} question={message.content} />
+          <CitationsPanel sources={message.sources} question={userQuestion || message.content} />
         )}
 
         {/* Answer feedback */}
         {message.content && message.content !== 'No answer generated.' && (
-          <FeedbackBar question={message.content} answer={message.content} />
+          <FeedbackBar question={userQuestion || message.content} answer={message.content} />
         )}
       </div>
     </div>
@@ -274,6 +304,10 @@ export default function App() {
   const [sourceFilter, setSourceFilter] = useState('all')
   const bottomRef = useRef<HTMLDivElement>(null)
 
+  // Conversation state
+  const [conversations, setConversations] = useState<Conversation[]>([])
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
+
   // Poll health every 30s
   useEffect(() => {
     const poll = async () => {
@@ -287,15 +321,74 @@ export default function App() {
     return () => clearInterval(id)
   }, [])
 
+  // Load conversations on mount
+  useEffect(() => {
+    loadConversations()
+  }, [])
+
   // Scroll to bottom on new message
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, loading])
 
+  const loadConversations = async () => {
+    try {
+      const convs = await listConversations()
+      setConversations(convs)
+    } catch { /* API may not be ready */ }
+  }
+
+  const startNewChat = () => {
+    setMessages([])
+    setActiveSessionId(null)
+  }
+
+  const loadConversation = async (sessionId: string) => {
+    try {
+      const detail = await getConversation(sessionId)
+      setActiveSessionId(sessionId)
+      const msgs: Message[] = detail.messages.map(m => ({
+        id: m.id,
+        role: m.role as 'user' | 'assistant',
+        content: m.content,
+        sources: m.sources as SourceChunk[] | undefined,
+        meta: m.metadata as Message['meta'] | undefined,
+        timestamp: new Date(m.created_at),
+      }))
+      setMessages(msgs)
+    } catch {
+      // If conversation can't be loaded, start fresh
+      startNewChat()
+    }
+  }
+
+  const handleDeleteConversation = async (e: React.MouseEvent, sessionId: string) => {
+    e.stopPropagation()
+    try {
+      await deleteConversation(sessionId)
+      setConversations(prev => prev.filter(c => c.session_id !== sessionId))
+      if (activeSessionId === sessionId) {
+        startNewChat()
+      }
+    } catch { /* silent */ }
+  }
+
   const sendMessage = useCallback(async (text: string) => {
     if (!text.trim() || loading) return
     setInput('')
     setLoading(true)
+
+    // Create session on first message if none exists
+    let sessionId = activeSessionId
+    if (!sessionId) {
+      try {
+        const conv = await createConversation()
+        sessionId = conv.session_id
+        setActiveSessionId(sessionId)
+      } catch {
+        // Continue without session persistence
+      }
+    }
 
     const userMsg: Message = {
       id: uuidv4(),
@@ -306,7 +399,7 @@ export default function App() {
     setMessages(prev => [...prev, userMsg])
 
     try {
-      const res = await queryKnowledgeBase(text.trim(), topK, sourceFilter)
+      const res = await queryKnowledgeBase(text.trim(), topK, sourceFilter, undefined, sessionId || undefined)
       const assistantMsg: Message = {
         id: uuidv4(),
         role: 'assistant',
@@ -321,18 +414,21 @@ export default function App() {
         timestamp: new Date(),
       }
       setMessages(prev => [...prev, assistantMsg])
+
+      // Refresh conversation list (title may have been updated)
+      loadConversations()
     } catch (err: unknown) {
       const errorMsg: Message = {
         id: uuidv4(),
         role: 'assistant',
-        content: `❌ Error: ${err instanceof Error ? err.message : 'Request failed'}`,
+        content: `Error: ${err instanceof Error ? err.message : 'Request failed'}`,
         timestamp: new Date(),
       }
       setMessages(prev => [...prev, errorMsg])
     } finally {
       setLoading(false)
     }
-  }, [loading, topK, sourceFilter])
+  }, [loading, topK, sourceFilter, activeSessionId])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -344,9 +440,17 @@ export default function App() {
   const suggestions = [
     'What is the glass transition temperature of borosilicate glass?',
     'What causes devitrification in glass manufacturing?',
-    'How does silica content affect glass viscosity?',
-    'What are the corrective actions for bubbles in glass?',
+    'دمای انتقال شیشه‌ای بوروسیلیکات چقدر است؟',
+    'علل ایجاد حباب در تولید شیشه چیست؟',
   ]
+
+  // Find the user question preceding each assistant message
+  const getUserQuestion = (index: number): string => {
+    for (let i = index - 1; i >= 0; i--) {
+      if (messages[i].role === 'user') return messages[i].content
+    }
+    return ''
+  }
 
   return (
     <div className="flex h-screen bg-[#0f1117] text-slate-200 overflow-hidden">
@@ -359,6 +463,49 @@ export default function App() {
             <h1 className="text-base font-bold text-white">Glass Expert AI</h1>
           </div>
           <p className="text-xs text-slate-500">BAAI/bge-large-en-v1.5 + pgvector</p>
+        </div>
+
+        {/* New Chat button */}
+        <button
+          onClick={startNewChat}
+          className="flex items-center gap-2 w-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium rounded-lg px-3 py-2 transition-colors"
+        >
+          <Plus size={14} /> New Chat
+        </button>
+
+        {/* Conversation list */}
+        <div className="border-t border-[#2d3748] pt-3 flex-1 overflow-y-auto min-h-0">
+          <p className="text-xs font-semibold text-slate-400 mb-2">Conversations</p>
+          {conversations.length === 0 ? (
+            <p className="text-xs text-slate-600 italic">No conversations yet</p>
+          ) : (
+            <div className="space-y-1">
+              {conversations.map(conv => (
+                <div
+                  key={conv.session_id}
+                  onClick={() => loadConversation(conv.session_id)}
+                  className={`group flex items-center gap-2 rounded-lg px-2 py-2 cursor-pointer transition-colors ${
+                    activeSessionId === conv.session_id
+                      ? 'bg-[#1e3a5f] text-blue-300'
+                      : 'hover:bg-[#1a1f2e] text-slate-400'
+                  }`}
+                >
+                  <MessageSquare size={13} className="flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs truncate">{conv.title}</p>
+                    <p className="text-[10px] text-slate-600">{timeAgo(conv.updated_at)}</p>
+                  </div>
+                  <button
+                    onClick={(e) => handleDeleteConversation(e, conv.session_id)}
+                    className="opacity-0 group-hover:opacity-100 text-slate-600 hover:text-red-400 transition-all"
+                    title="Delete conversation"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="border-t border-[#2d3748] pt-3">
@@ -395,15 +542,6 @@ export default function App() {
             <option value="manual">Manual</option>
           </select>
         </div>
-
-        <div className="mt-auto border-t border-[#2d3748] pt-3">
-          <button
-            onClick={() => setMessages([])}
-            className="flex items-center gap-2 text-xs text-slate-500 hover:text-red-400 transition-colors"
-          >
-            <Trash2 size={13} /> Clear chat
-          </button>
-        </div>
       </aside>
 
       {/* ── Main Chat Area ───────────────────────────────────────────────────── */}
@@ -416,24 +554,32 @@ export default function App() {
               <div className="text-center">
                 <Microscope size={48} className="text-blue-400 mx-auto mb-3" />
                 <h2 className="text-xl font-bold text-white mb-1">Glass Expert AI</h2>
-                <p className="text-slate-500 text-sm">Ask any question about glass science, manufacturing, or properties.</p>
+                <p className="text-slate-500 text-sm">Ask any question about glass science, manufacturing, or properties.<br /><span dir="rtl" className="text-slate-600 text-xs">هر سوالی در مورد علم شیشه، تولید یا خواص شیشه بپرسید</span></p>
               </div>
               <div className="grid grid-cols-2 gap-2 max-w-2xl w-full">
-                {suggestions.map((s, i) => (
-                  <button
-                    key={i}
-                    onClick={() => sendMessage(s)}
-                    className="text-left text-xs bg-[#1a1f2e] border border-[#2d3748] rounded-lg p-3 text-slate-400 hover:border-blue-500 hover:text-blue-300 transition-all"
-                  >
-                    {s}
-                  </button>
-                ))}
+                {suggestions.map((s, i) => {
+                  const rtlSuggestion = isRtlText(s)
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => sendMessage(s)}
+                      dir={rtlSuggestion ? 'rtl' : undefined}
+                      className={`${rtlSuggestion ? 'text-right' : 'text-left'} text-xs bg-[#1a1f2e] border border-[#2d3748] rounded-lg p-3 text-slate-400 hover:border-blue-500 hover:text-blue-300 transition-all`}
+                    >
+                      {s}
+                    </button>
+                  )
+                })}
               </div>
             </div>
           )}
 
-          {messages.map(msg => (
-            <MessageBubble key={msg.id} message={msg} />
+          {messages.map((msg, idx) => (
+            <MessageBubble
+              key={msg.id}
+              message={msg}
+              userQuestion={msg.role === 'assistant' ? getUserQuestion(idx) : undefined}
+            />
           ))}
 
           {loading && (
@@ -462,7 +608,8 @@ export default function App() {
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask a glass science question... (Enter to send, Shift+Enter for new line)"
+              dir={isRtlText(input) ? 'rtl' : 'ltr'}
+              placeholder="Ask a glass science question... / سوال خود را بپرسید..."
               rows={1}
               className="flex-1 bg-[#1a1f2e] border border-[#2d3748] rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-600 resize-none focus:outline-none focus:border-blue-500 transition-colors"
               style={{ minHeight: '44px', maxHeight: '120px' }}
