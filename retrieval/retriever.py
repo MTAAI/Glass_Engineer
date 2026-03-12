@@ -23,9 +23,9 @@ from ingestion.embedder import embed_query
 load_dotenv()
 
 # ── Configuration ──────────────────────────────────────────────────────────────
-TOP_K                  = int(os.getenv("RETRIEVAL_TOP_K", 20))
-FINAL_TOP_K            = int(os.getenv("RETRIEVAL_FINAL_TOP_K", 5))
-_SIM_THRESHOLD_DEFAULT = 0.45
+TOP_K                  = int(os.getenv("RETRIEVAL_TOP_K", 30))
+FINAL_TOP_K            = int(os.getenv("RETRIEVAL_FINAL_TOP_K", 8))
+_SIM_THRESHOLD_DEFAULT = 0.35
 REDIS_URL              = os.getenv("REDIS_URL", "redis://localhost:6379")
 REDIS_TTL              = int(os.getenv("REDIS_TTL_SECONDS", 86400))
 
@@ -60,20 +60,50 @@ def detect_language(text: str) -> str:
 
 
 # ── Query translation (for non-English → English retrieval) ──────────────────
+_GLOSSARY_CACHE = None
+
+def _load_glossary() -> dict:
+    """Load Persian → English glass terminology glossary."""
+    global _GLOSSARY_CACHE
+    if _GLOSSARY_CACHE is not None:
+        return _GLOSSARY_CACHE
+    glossary_path = Path(__file__).parent / "glossary_fa_en.json"
+    if glossary_path.exists():
+        with open(glossary_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        _GLOSSARY_CACHE = data.get("terms", {})
+        logger.info(f"Loaded {len(_GLOSSARY_CACHE)} glossary terms")
+    else:
+        _GLOSSARY_CACHE = {}
+    return _GLOSSARY_CACHE
+
+
 def _translate_query_to_english(query: str) -> str:
     """Translate a non-English query to English for embedding/retrieval.
-    Uses OpenAI API. Returns original query if translation fails."""
+    Uses glossary for domain-specific terms + OpenAI for full translation.
+    Returns original query if translation fails."""
     try:
         from openai import OpenAI
         api_key = os.getenv("OPENAI_API_KEY", "")
         if not api_key:
             logger.warning("No OPENAI_API_KEY — skipping query translation")
             return query
+
+        # Build glossary hint from matching terms
+        glossary = _load_glossary()
+        hints = []
+        for fa_term, en_term in glossary.items():
+            if fa_term in query:
+                hints.append(f"{fa_term} = {en_term}")
+        glossary_block = ""
+        if hints:
+            glossary_block = "\n\nUse these domain-specific translations:\n" + "\n".join(hints)
+
         client = OpenAI(api_key=api_key)
         resp = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "Translate the following query to English. Return ONLY the English translation, nothing else."},
+                {"role": "system", "content": f"Translate the following glass science query to English. Return ONLY the English translation, nothing else.{glossary_block}"},
                 {"role": "user", "content": query},
             ],
             max_tokens=200,
