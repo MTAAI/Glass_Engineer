@@ -59,6 +59,64 @@ def detect_language(text: str) -> str:
         return "en"
 
 
+# ── Query translation (for non-English → English retrieval) ──────────────────
+_GLOSSARY_CACHE = None
+
+def _load_glossary() -> dict:
+    """Load Persian → English glass terminology glossary."""
+    global _GLOSSARY_CACHE
+    if _GLOSSARY_CACHE is not None:
+        return _GLOSSARY_CACHE
+    glossary_path = Path(__file__).parent / "glossary_fa_en.json"
+    if glossary_path.exists():
+        with open(glossary_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        _GLOSSARY_CACHE = data.get("terms", {})
+        logger.info(f"Loaded {len(_GLOSSARY_CACHE)} glossary terms")
+    else:
+        _GLOSSARY_CACHE = {}
+    return _GLOSSARY_CACHE
+
+
+def _translate_query_to_english(query: str) -> str:
+    """Translate a non-English query to English for embedding/retrieval.
+    Uses glossary for domain-specific terms + OpenAI for full translation.
+    Returns original query if translation fails."""
+    try:
+        from openai import OpenAI
+        api_key = os.getenv("OPENAI_API_KEY", "")
+        if not api_key:
+            logger.warning("No OPENAI_API_KEY — skipping query translation")
+            return query
+
+        # Build glossary hint from matching terms
+        glossary = _load_glossary()
+        hints = []
+        for fa_term, en_term in glossary.items():
+            if fa_term in query:
+                hints.append(f"{fa_term} = {en_term}")
+        glossary_block = ""
+        if hints:
+            glossary_block = "\n\nUse these domain-specific translations:\n" + "\n".join(hints)
+
+        client = OpenAI(api_key=api_key)
+        resp = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": f"Translate the following glass science query to English. Return ONLY the English translation, nothing else.{glossary_block}"},
+                {"role": "user", "content": query},
+            ],
+            max_tokens=200,
+            temperature=0,
+        )
+        translated = resp.choices[0].message.content.strip()
+        logger.info(f"Translated query: '{query[:40]}...' → '{translated[:80]}'")
+        return translated
+    except Exception as e:
+        logger.warning(f"Query translation failed: {e}")
+        return query
+
+
 # ── Cache helpers ──────────────────────────────────────────────────────────────
 def _cache_key(query: str, top_k: int, language_filter: str) -> str:
     raw = f"{query}|{top_k}|{language_filter}"
@@ -203,10 +261,16 @@ def retrieve_with_auto_language(
         language = detect_language(query)
     logger.info(f"Detected query language: {language.upper()}")
 
+    # For non-English queries, translate to English for better embedding/retrieval.
+    # The embedding model (bge-large-en-v1.5) only understands English.
+    retrieval_query = query
+    if language != "en":
+        retrieval_query = _translate_query_to_english(query)
+
     results = retrieve(
-        query,
+        retrieval_query,
         top_k=top_k,
-        language_filter=language,
+        language_filter=None,
         source_type_filter=source_type_filter,
     )
     return results, language

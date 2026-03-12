@@ -20,6 +20,11 @@ body {
   font-family: 'Vazirmatn', 'B Nazanin', 'Tahoma', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
+[dir="rtl"] .rtl-message {
+  text-align: right;
+  direction: rtl;
+}
+
 .rtl-text {
   direction: rtl;
   text-align: right;
