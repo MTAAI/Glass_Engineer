@@ -14,6 +14,20 @@ export interface QueryResponse {
   model_used: string
   retrieval_time_ms: number
   total_chunks_searched: number
+  session_id?: string
+}
+
+// ── Conversations ─────────────────────────────────────────────────────────────
+
+export interface ConversationSummary {
+  session_id: string
+  title: string
+  message_count: number
+  last_message_at: string
+}
+
+export interface ConversationListResponse {
+  conversations: ConversationSummary[]
 }
 
 export interface HealthResponse {
@@ -39,6 +53,26 @@ export interface SourceFeedbackPayload {
   source_title: string
   source_type: string
   relevant: boolean
+}
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+export interface AuthToken {
+  access_token: string
+  token_type: string
+  user_id: string
+  email: string
+  role: string
+  full_name?: string
+}
+
+export interface AuthUser {
+  id: string
+  email: string
+  full_name?: string
+  role: string
+  plant_location?: string
+  language_pref: string
+  is_active: boolean
 }
 
 export type MessageRole = 'user' | 'assistant'

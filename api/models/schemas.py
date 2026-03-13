@@ -26,6 +26,7 @@ class QueryRequest(BaseModel):
     mode: str = Field("simple", description="Query mode: 'simple', 'detailed', or 'research'.")
     top_k: int = Field(5, ge=1, le=20, description="Number of source chunks to retrieve.")
     source_type: Optional[str] = Field(None, description="Filter by source type (e.g. 'textbook', 'paper').")
+    session_id: Optional[str] = Field(None, description="Conversation session ID for chat history.")
 
 class QueryResponse(BaseModel):
     """Response model for the /query endpoint."""
@@ -35,6 +36,7 @@ class QueryResponse(BaseModel):
     answer: str = Field(..., description="The generated answer to the user's question.")
     sources: List[SourceChunk] = Field(..., description="List of source chunks used for the answer.")
     query_id: Optional[str] = Field(None, description="Unique identifier for this query.")
+    session_id: Optional[str] = Field(None, description="Conversation session ID for chat history.")
     model_used: str = Field(..., description="The language model used to generate the answer.")
     retrieval_time_ms: float = Field(..., description="Time taken for document retrieval in milliseconds.")
     generation_time_ms: Optional[float] = Field(None, description="Time taken for answer generation in milliseconds.")
@@ -175,3 +177,64 @@ class FeedbackResponse(BaseModel):
     success: bool
     message: str
     feedback_id: int
+
+
+# --- Conversation / Chat History Endpoints ----------------------------------
+
+class ConversationSummary(BaseModel):
+    """Lightweight summary of a conversation for the sidebar list."""
+    session_id: str
+    title: str
+    message_count: int
+    last_message_at: str
+    language: Optional[str] = None
+
+class ConversationListResponse(BaseModel):
+    """Response for GET /conversations."""
+    conversations: List[ConversationSummary]
+
+class ChatMessage(BaseModel):
+    """A single message in a conversation."""
+    id: str
+    role: str
+    content: str
+    sources: Optional[List[SourceChunk]] = None
+    metadata: Optional[Dict[str, Any]] = None
+    created_at: str
+
+class ConversationDetail(BaseModel):
+    """Full conversation with all messages."""
+    session_id: str
+    title: str
+    messages: List[ChatMessage]
+    created_at: str
+    last_message_at: str
+
+class ConversationCreateRequest(BaseModel):
+    """Request to start a new conversation."""
+    title: Optional[str] = Field(None, description="Optional title; auto-generated from first question if omitted.")
+
+class ConversationCreateResponse(BaseModel):
+    """Response after creating a conversation."""
+    session_id: str
+    title: str
+
+# --- User Memory Endpoints --------------------------------------------------
+
+class UserMemoryEntry(BaseModel):
+    """A single user memory entry."""
+    id: str
+    memory_type: str
+    key: str
+    value: str
+    updated_at: str
+
+class UserMemoryListResponse(BaseModel):
+    """Response for GET /user/memory."""
+    entries: List[UserMemoryEntry]
+
+class UserMemorySaveRequest(BaseModel):
+    """Request to save a user memory entry."""
+    memory_type: str = Field(..., description="Type: 'composition', 'furnace', 'topic', 'preference'")
+    key: str = Field(..., description="Memory key (e.g., 'default_glass_type')")
+    value: str = Field(..., description="Memory value")

@@ -17,7 +17,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 # Load environment variables from .env BEFORE importing routers
 load_dotenv(Path(__file__).parent.parent / ".env")
 
-from api.routers import query, health, ingest, analyze, design, troubleshoot, feedback
+from api.routers import query, health, ingest, analyze, design, troubleshoot, feedback, conversations
+from api.auth import router as auth_router
 
 app = FastAPI(
     title="Glass Expert AI",
@@ -37,6 +38,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ── Auth ───────────────────────────────────────────────────────────────────────
+app.include_router(auth_router,         prefix="/api/v1", tags=["Auth"])
+
 # ── Core endpoints ─────────────────────────────────────────────────────────────
 app.include_router(health.router,       prefix="/api/v1", tags=["Health"])
 app.include_router(query.router,        prefix="/api/v1", tags=["Query"])
@@ -47,6 +51,7 @@ app.include_router(analyze.router,      prefix="/api/v1", tags=["Analyze"])
 app.include_router(design.router,       prefix="/api/v1", tags=["Design"])
 app.include_router(troubleshoot.router, prefix="/api/v1", tags=["Troubleshoot"])
 app.include_router(feedback.router,     prefix="/api/v1", tags=["Feedback"])
+app.include_router(conversations.router, prefix="/api/v1", tags=["Conversations"])
 
 # ── Serve React frontend ───────────────────────────────────────────────────────
 _frontend_dist = Path(__file__).parent.parent / "frontend" / "dist"

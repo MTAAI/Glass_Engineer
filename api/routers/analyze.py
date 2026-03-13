@@ -4,8 +4,9 @@ POST /api/v1/analyze
 Analyzes a glass composition or sample description and returns predicted properties.
 """
 import time
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from loguru import logger
+from api.auth import get_current_user, UserInToken
 
 from api.models.schemas import (
     AnalyzeRequest, AnalyzeResponse, SourceChunk, PropertyPrediction
@@ -60,7 +61,7 @@ Be precise and cite specific values from the knowledge base where available."""
 
 
 @router.post("/analyze", response_model=AnalyzeResponse)
-async def analyze_glass(request: AnalyzeRequest):
+async def analyze_glass(request: AnalyzeRequest, user: UserInToken = Depends(get_current_user)):
     """
     Analyze a glass composition or sample.
 
