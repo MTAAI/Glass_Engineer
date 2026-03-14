@@ -1,6 +1,6 @@
 ﻿"""
-Glass Expert AI — QLoRA Fine-tuning v2
-Full training run — no early stopping, all 7191 steps
+Glass Expert AI — QLoRA Fine-tuning v3 (RAG-Aware)
+Trains on RAG-context examples so model learns to extract from provided passages.
 """
 import sys, json, logging, argparse, math
 from pathlib import Path
@@ -12,13 +12,13 @@ from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training, Ta
 from trl import SFTTrainer, SFTConfig
 
 BASE_MODEL  = "meta-llama/Meta-Llama-3.1-8B-Instruct"
-OUTPUT_DIR  = Path("models/glass-expert-v2")
-TRAIN_FILE  = Path("data/processed/llama_train.jsonl")
-VAL_FILE    = Path("data/processed/llama_val.jsonl")
+OUTPUT_DIR  = Path("models/glass-expert-v3")
+TRAIN_FILE  = Path("data/processed/llama_train_v3.jsonl")
+VAL_FILE    = Path("data/processed/llama_val_v3.jsonl")
 LOG_DIR     = Path("logs/finetune")
 LORA_R=64; LORA_ALPHA=128; LORA_DROPOUT=0.05
 LORA_TARGET_MODULES=["q_proj","k_proj","v_proj","o_proj","gate_proj","up_proj","down_proj"]
-NUM_EPOCHS=3; BATCH_SIZE=2; GRAD_ACCUM_STEPS=8; LEARNING_RATE=1e-4; MAX_LENGTH=2048
+NUM_EPOCHS=2; BATCH_SIZE=2; GRAD_ACCUM_STEPS=8; LEARNING_RATE=1e-4; MAX_LENGTH=4096
 WEIGHT_DECAY=0.001; SAVE_STEPS=200; EVAL_STEPS=200; LOGGING_STEPS=50; SAVE_TOTAL_LIMIT=5
 
 LOG_DIR.mkdir(parents=True, exist_ok=True)
