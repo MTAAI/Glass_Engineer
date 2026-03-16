@@ -16,6 +16,7 @@ class SourceChunk(BaseModel):
     language: str = Field(..., description="Language of the chunk content.")
     similarity: float = Field(..., description="Similarity score of the chunk to the query.")
     content_preview: str = Field(..., description="A short preview of the chunk's content.")
+    rerank_score: Optional[float] = Field(None, description="Cross-encoder reranking score (higher = more relevant).")
 
 # --- Query Endpoint ---------------------------------------------------------
 

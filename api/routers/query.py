@@ -162,6 +162,7 @@ async def query_knowledge_base(request: QueryRequest, user: UserInToken = Depend
             language=chunk.get("language", "en"),
             similarity=round(chunk.get("similarity", 0.0), 4),
             content_preview=chunk.get("content", "")[:300] + "...",
+            rerank_score=round(chunk["rerank_score"], 4) if "rerank_score" in chunk else None,
         )
         for chunk in chunks
     ]

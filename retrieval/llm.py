@@ -152,6 +152,49 @@ def _is_degenerate(text: str) -> bool:
     return False
 
 
+def _compress_history(messages: list) -> list:
+    """Compress conversation history to fit more turns in the token budget.
+
+    Strategy:
+      - Last 4 messages (2 turns): keep full content
+      - Older messages: truncate assistant responses to first 150 chars
+        (keeps the gist without burning tokens on full RAG answers)
+      - Strip any KNOWLEDGE BASE CONTEXT blocks from history
+        (they're from previous queries, not relevant now)
+    """
+    if len(messages) <= 4:
+        return messages
+
+    compressed = []
+    cutoff = len(messages) - 4  # keep last 4 full
+
+    for i, msg in enumerate(messages):
+        content = msg.get("content", "")
+
+        # Strip old context blocks from all history messages
+        if "KNOWLEDGE BASE CONTEXT:" in content:
+            # Extract just the question part
+            parts = content.split("QUESTION:")
+            if len(parts) > 1:
+                content = parts[-1].strip()
+            else:
+                # Try to find the question after the context block
+                lines = content.split("\n")
+                content = " ".join(
+                    l for l in lines
+                    if not l.startswith("=") and not l.startswith("-" * 10)
+                    and not l.startswith("[Source") and "KNOWLEDGE BASE" not in l
+                )[:300]
+
+        if i < cutoff and msg.get("role") == "assistant":
+            # Summarize older assistant responses
+            content = content[:150].rsplit(" ", 1)[0] + "..." if len(content) > 150 else content
+
+        compressed.append({"role": msg["role"], "content": content})
+
+    return compressed
+
+
 async def generate_answer(
     question: str,
     context: str,
@@ -187,7 +230,9 @@ async def generate_answer(
     if conversation_history:
         continuity = (
             "\n\nYou are in an ongoing conversation. Prior messages are provided for context. "
-            "Use them to understand follow-up questions and maintain continuity."
+            "Use them to understand follow-up questions (e.g., 'what about its thermal properties?' "
+            "refers to the glass type discussed earlier). Maintain continuity but always ground "
+            "answers in the KNOWLEDGE BASE CONTEXT — do not repeat previous answers verbatim."
         )
         cloud_system_prompt += continuity
 
@@ -209,8 +254,8 @@ QUESTION: {question}
 
 Provide a precise, technical answer based strictly on the knowledge base context above. Reference sources by their [Source N] numbers."""
 
-    # Cap history at 10 messages (5 turns)
-    history = (conversation_history or [])[-10:]
+    # Smart history compression: keep recent turns full, summarize older ones
+    history = _compress_history((conversation_history or [])[-10:])
 
     # ── Farsi: skip local model entirely ──────────────────────────────────────
     # The local 8B model was fine-tuned on English Q&A only. It cannot generate

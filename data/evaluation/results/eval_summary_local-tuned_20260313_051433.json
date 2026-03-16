@@ -1,0 +1,28 @@
+{
+  "label": "local-tuned",
+  "timestamp": "20260313_051433",
+  "n_questions": 10,
+  "errors": 0,
+  "mean_judge_score": 4.2,
+  "mean_kw_coverage": 0.3051,
+  "composite_score_pct": 67.95,
+  "score_distribution": {
+    "1": 0,
+    "2": 1,
+    "3": 0,
+    "4": 5,
+    "5": 4
+  },
+  "by_category": {
+    "Glass Composition": 2.0,
+    "Glass Structure": 5.0,
+    "Thermal Properties": 4.17
+  },
+  "avg_latency_ms": 21028.0,
+  "avg_retrieval_ms": 8.78,
+  "avg_similarity": 0.7166,
+  "models_used": {
+    "glass-expert": 1,
+    "gpt-4o-mini (fallback)": 9
+  }
+}
