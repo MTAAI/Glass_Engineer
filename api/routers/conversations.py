@@ -1,206 +1,269 @@
 """
 Glass Expert AI — Conversations Router
-POST   /api/v1/conversations              — Create new conversation
-GET    /api/v1/conversations              — List all conversations (sidebar)
-GET    /api/v1/conversations/{session_id} — Get full conversation with messages
-PATCH  /api/v1/conversations/{session_id} — Rename conversation
-DELETE /api/v1/conversations/{session_id} — Delete conversation + messages
+CRUD for chat sessions + user memory.
 """
 import os
-import json
+import uuid
 import psycopg2
-from psycopg2.extras import RealDictCursor
-from fastapi import APIRouter, HTTPException
+import psycopg2.extras
+from fastapi import APIRouter, Depends, HTTPException
 from loguru import logger
 
 from api.models.schemas import (
-    ConversationSummary,
-    ConversationDetail,
-    ChatMessage,
-    CreateConversationRequest,
-    CreateConversationResponse,
-    RenameConversationRequest,
+    ConversationListResponse, ConversationSummary,
+    ConversationDetail, ChatMessage,
+    ConversationCreateRequest, ConversationCreateResponse,
+    UserMemoryListResponse, UserMemoryEntry,
+    UserMemorySaveRequest,
 )
+from api.auth import require_auth, UserInToken
 
 router = APIRouter()
 
-ANON_USER_ID = "00000000-0000-0000-0000-000000000001"
+psycopg2.extras.register_uuid()
 
 
-def _get_db_conn():
+def _get_db():
     return psycopg2.connect(os.getenv("DATABASE_URL"))
 
 
-@router.post("/conversations", response_model=CreateConversationResponse)
-async def create_conversation(request: CreateConversationRequest = None):
-    """Create a new conversation session."""
-    title = (request.title if request and request.title else "New Conversation")
-    try:
-        conn = _get_db_conn()
-        cur = conn.cursor(cursor_factory=RealDictCursor)
-        cur.execute(
-            """
-            INSERT INTO conversations (user_id, title)
-            VALUES (%s, %s)
-            RETURNING session_id, title
-            """,
-            (ANON_USER_ID, title),
-        )
-        row = cur.fetchone()
-        conn.commit()
-        cur.close()
-        conn.close()
-        return CreateConversationResponse(
-            session_id=str(row["session_id"]),
-            title=row["title"],
-        )
-    except Exception as e:
-        logger.error(f"Error creating conversation: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+# ── Conversations ─────────────────────────────────────────────────────────────
 
-
-@router.get("/conversations", response_model=list[ConversationSummary])
-async def list_conversations():
-    """List all conversations ordered by most recent activity."""
+@router.get("/conversations", response_model=ConversationListResponse)
+async def list_conversations(user: UserInToken = Depends(require_auth)):
+    """List all conversations for the authenticated user, newest first."""
+    conn = _get_db()
+    cur = conn.cursor()
     try:
-        conn = _get_db_conn()
-        cur = conn.cursor(cursor_factory=RealDictCursor)
-        cur.execute(
-            """
+        cur.execute("""
             SELECT
-                c.session_id,
-                c.title,
-                c.created_at,
-                c.updated_at,
-                COUNT(ch.id) AS message_count
-            FROM conversations c
-            LEFT JOIN chat_history ch ON ch.session_id = c.session_id
-            WHERE c.user_id = %s
-            GROUP BY c.id
-            ORDER BY c.updated_at DESC
-            """,
-            (ANON_USER_ID,),
-        )
+                session_id::text,
+                MIN(content) FILTER (WHERE role = 'user') AS first_question,
+                COUNT(*) AS message_count,
+                MAX(created_at)::text AS last_message_at,
+                MIN(created_at)::text AS first_message_at
+            FROM chat_history
+            WHERE user_id = %s
+            GROUP BY session_id
+            ORDER BY MAX(created_at) DESC
+            LIMIT 50
+        """, [user.user_id])
         rows = cur.fetchall()
+    finally:
         cur.close()
         conn.close()
-        return [
-            ConversationSummary(
-                session_id=str(r["session_id"]),
-                title=r["title"],
-                created_at=r["created_at"].isoformat(),
-                updated_at=r["updated_at"].isoformat(),
-                message_count=r["message_count"],
-            )
-            for r in rows
-        ]
-    except Exception as e:
-        logger.error(f"Error listing conversations: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+
+    conversations = []
+    for row in rows:
+        title = (row[1] or "Untitled conversation")[:80]
+        conversations.append(ConversationSummary(
+            session_id=row[0],
+            title=title,
+            message_count=row[2],
+            last_message_at=row[3],
+        ))
+
+    return ConversationListResponse(conversations=conversations)
+
+
+@router.post("/conversations", response_model=ConversationCreateResponse)
+async def create_conversation(
+    request: ConversationCreateRequest = None,
+    user: UserInToken = Depends(require_auth),
+):
+    """Create a new conversation session. Returns the session_id."""
+    session_id = str(uuid.uuid4())
+    title = (request.title if request and request.title else "New conversation")
+    return ConversationCreateResponse(session_id=session_id, title=title)
 
 
 @router.get("/conversations/{session_id}", response_model=ConversationDetail)
-async def get_conversation(session_id: str):
-    """Get a conversation with all its messages."""
+async def get_conversation(session_id: str, user: UserInToken = Depends(require_auth)):
+    """Get all messages in a conversation."""
+    conn = _get_db()
+    cur = conn.cursor()
     try:
-        conn = _get_db_conn()
-        cur = conn.cursor(cursor_factory=RealDictCursor)
-
-        # Get conversation metadata
-        cur.execute(
-            "SELECT session_id, title, created_at, updated_at FROM conversations WHERE session_id = %s",
-            (session_id,),
-        )
-        conv = cur.fetchone()
-        if not conv:
-            cur.close()
-            conn.close()
-            raise HTTPException(status_code=404, detail="Conversation not found")
-
-        # Get messages
-        cur.execute(
-            """
-            SELECT id, role, content, sources, metadata, created_at
+        cur.execute("""
+            SELECT
+                id::text, role, content, sources, metadata, created_at::text
             FROM chat_history
-            WHERE session_id = %s
+            WHERE user_id = %s AND session_id = %s
             ORDER BY created_at ASC
-            """,
-            (session_id,),
-        )
-        msg_rows = cur.fetchall()
+        """, [user.user_id, session_id])
+        rows = cur.fetchall()
+    finally:
         cur.close()
         conn.close()
 
-        messages = [
-            ChatMessage(
-                id=str(m["id"]),
-                role=m["role"],
-                content=m["content"],
-                sources=m["sources"] if isinstance(m["sources"], list) else json.loads(m["sources"] or "[]"),
-                metadata=m["metadata"] if isinstance(m["metadata"], dict) else json.loads(m["metadata"] or "{}"),
-                created_at=m["created_at"].isoformat(),
-            )
-            for m in msg_rows
-        ]
+    if not rows:
+        raise HTTPException(status_code=404, detail="Conversation not found")
 
-        return ConversationDetail(
-            session_id=str(conv["session_id"]),
-            title=conv["title"],
-            created_at=conv["created_at"].isoformat(),
-            updated_at=conv["updated_at"].isoformat(),
-            messages=messages,
-        )
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error fetching conversation {session_id}: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    messages = []
+    for row in rows:
+        messages.append(ChatMessage(
+            id=row[0],
+            role=row[1],
+            content=row[2],
+            sources=row[3] if row[3] else None,
+            metadata=row[4] if row[4] else None,
+            created_at=row[5],
+        ))
 
+    title = next((m.content[:80] for m in messages if m.role == "user"), "Untitled")
 
-@router.patch("/conversations/{session_id}")
-async def rename_conversation(session_id: str, request: RenameConversationRequest):
-    """Rename a conversation."""
-    try:
-        conn = _get_db_conn()
-        cur = conn.cursor()
-        cur.execute(
-            "UPDATE conversations SET title = %s WHERE session_id = %s",
-            (request.title, session_id),
-        )
-        if cur.rowcount == 0:
-            cur.close()
-            conn.close()
-            raise HTTPException(status_code=404, detail="Conversation not found")
-        conn.commit()
-        cur.close()
-        conn.close()
-        return {"success": True, "title": request.title}
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error renaming conversation {session_id}: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    return ConversationDetail(
+        session_id=session_id,
+        title=title,
+        messages=messages,
+        created_at=messages[0].created_at,
+        last_message_at=messages[-1].created_at,
+    )
 
 
 @router.delete("/conversations/{session_id}")
-async def delete_conversation(session_id: str):
+async def delete_conversation(session_id: str, user: UserInToken = Depends(require_auth)):
     """Delete a conversation and all its messages."""
+    conn = _get_db()
+    cur = conn.cursor()
     try:
-        conn = _get_db_conn()
-        cur = conn.cursor()
-        # Delete messages first (FK), then conversation
-        cur.execute("DELETE FROM chat_history WHERE session_id = %s", (session_id,))
-        cur.execute("DELETE FROM conversations WHERE session_id = %s", (session_id,))
-        if cur.rowcount == 0:
-            cur.close()
-            conn.close()
-            raise HTTPException(status_code=404, detail="Conversation not found")
+        cur.execute(
+            "DELETE FROM chat_history WHERE user_id = %s AND session_id = %s",
+            [user.user_id, session_id],
+        )
+        deleted = cur.rowcount
         conn.commit()
+    finally:
         cur.close()
         conn.close()
-        return {"success": True, "message": "Conversation deleted"}
-    except HTTPException:
-        raise
+
+    if deleted == 0:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    return {"success": True, "deleted_messages": deleted}
+
+
+# ── Helper: save message to chat_history ──────────────────────────────────────
+
+def save_message(
+    user_id: str,
+    session_id: str,
+    role: str,
+    content: str,
+    sources: list = None,
+    metadata: dict = None,
+) -> str | None:
+    """Save a single message to chat_history. Returns the chat_history UUID."""
+    import json
+    conn = _get_db()
+    cur = conn.cursor()
+    chat_id = None
+    try:
+        cur.execute("""
+            INSERT INTO chat_history (user_id, session_id, role, content, sources, metadata)
+            VALUES (%s, %s, %s, %s, %s::jsonb, %s::jsonb)
+            RETURNING id
+        """, [
+            user_id,
+            session_id,
+            role,
+            content,
+            json.dumps(sources or []),
+            json.dumps(metadata or {}),
+        ])
+        row = cur.fetchone()
+        chat_id = str(row[0]) if row else None
+        conn.commit()
     except Exception as e:
-        logger.error(f"Error deleting conversation {session_id}: {e}")
+        logger.error(f"Failed to save chat message: {e}")
+        conn.rollback()
+    finally:
+        cur.close()
+        conn.close()
+    return chat_id
+
+
+# ── User Memory ───────────────────────────────────────────────────────────────
+
+@router.get("/user/memory", response_model=UserMemoryListResponse)
+async def get_user_memory(user: UserInToken = Depends(require_auth)):
+    """Get all memory entries for the authenticated user."""
+    conn = _get_db()
+    cur = conn.cursor()
+    try:
+        cur.execute("""
+            SELECT id::text, memory_type, key, value, updated_at::text
+            FROM user_memory
+            WHERE user_id = %s
+            ORDER BY updated_at DESC
+        """, [user.user_id])
+        rows = cur.fetchall()
+    finally:
+        cur.close()
+        conn.close()
+
+    entries = [
+        UserMemoryEntry(id=r[0], memory_type=r[1], key=r[2], value=r[3], updated_at=r[4])
+        for r in rows
+    ]
+    return UserMemoryListResponse(entries=entries)
+
+
+@router.post("/user/memory")
+async def save_user_memory(
+    request: UserMemorySaveRequest,
+    user: UserInToken = Depends(require_auth),
+):
+    """Save or update a user memory entry (upsert by user_id + key)."""
+    conn = _get_db()
+    cur = conn.cursor()
+    try:
+        # Upsert: update if key exists, insert otherwise
+        cur.execute("""
+            SELECT id FROM user_memory WHERE user_id = %s AND key = %s
+        """, [user.user_id, request.key])
+        existing = cur.fetchone()
+
+        if existing:
+            cur.execute("""
+                UPDATE user_memory
+                SET value = %s, memory_type = %s, updated_at = NOW()
+                WHERE user_id = %s AND key = %s
+            """, [request.value, request.memory_type, user.user_id, request.key])
+        else:
+            cur.execute("""
+                INSERT INTO user_memory (user_id, memory_type, key, value)
+                VALUES (%s, %s, %s, %s)
+            """, [user.user_id, request.memory_type, request.key, request.value])
+
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        logger.error(f"Failed to save user memory: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cur.close()
+        conn.close()
+
+    return {"success": True, "key": request.key}
+
+
+@router.delete("/user/memory/{key}")
+async def delete_user_memory(key: str, user: UserInToken = Depends(require_auth)):
+    """Delete a specific user memory entry by key."""
+    conn = _get_db()
+    cur = conn.cursor()
+    try:
+        cur.execute(
+            "DELETE FROM user_memory WHERE user_id = %s AND key = %s",
+            [user.user_id, key],
+        )
+        deleted = cur.rowcount
+        conn.commit()
+    finally:
+        cur.close()
+        conn.close()
+
+    if deleted == 0:
+        raise HTTPException(status_code=404, detail="Memory entry not found")
+
+    return {"success": True, "deleted": key}

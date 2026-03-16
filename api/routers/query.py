@@ -1,121 +1,101 @@
 """
 Glass Expert AI — Query Router
 Full RAG pipeline: retrieve → format context → generate answer with LLM.
-Supports conversation persistence via session_id.
+Auto-saves Q&A to chat_history when session_id is provided.
 """
 import os
-import json
 import time
+import uuid
 from typing import Optional
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from loguru import logger
-import psycopg2
-from psycopg2.extras import RealDictCursor
 from api.models.schemas import QueryRequest, QueryResponse, SourceChunk
+from api.auth import get_current_user, UserInToken
 
 router = APIRouter()
 
-ANON_USER_ID = "00000000-0000-0000-0000-000000000001"
+
+def _validate_citations(answer: str, num_sources: int) -> str:
+    """
+    Validate [Source N] citations in the LLM answer.
+    Remove citations that reference non-existent sources.
+    Also handle Farsi citations [منبع N].
+    """
+    import re
+
+    def _replace_invalid(match):
+        num = int(match.group(1))
+        if 1 <= num <= num_sources:
+            return match.group(0)  # valid — keep it
+        return ""  # invalid — remove
+
+    # English: [Source 1], [Source 2], etc.
+    answer = re.sub(r'\[Source\s+(\d+)\]', _replace_invalid, answer)
+    # Farsi: [منبع ۱], [منبع ۲], etc. (convert Persian digits)
+    def _replace_invalid_fa(match):
+        fa_num = match.group(1)
+        # Convert Persian/Arabic digits to int
+        digit_map = {'۰': '0', '۱': '1', '۲': '2', '۳': '3', '۴': '4',
+                     '۵': '5', '۶': '6', '۷': '7', '۸': '8', '۹': '9'}
+        en_num = ''.join(digit_map.get(c, c) for c in fa_num)
+        try:
+            num = int(en_num)
+            if 1 <= num <= num_sources:
+                return match.group(0)
+        except ValueError:
+            pass
+        return ""
+
+    answer = re.sub(r'\[منبع\s+([۰-۹0-9]+)\]', _replace_invalid_fa, answer)
+
+    return answer.strip()
 
 
-def _get_db_conn():
-    return psycopg2.connect(os.getenv("DATABASE_URL"))
-
-
-def _load_conversation_history(session_id: str) -> list[dict]:
-    """Load last 10 messages from chat_history for a session."""
+def _load_conversation_history(user_id: str, session_id: str, limit: int = 10) -> list:
+    """Load recent messages from chat_history for conversation continuity."""
     try:
-        conn = _get_db_conn()
-        cur = conn.cursor(cursor_factory=RealDictCursor)
-        cur.execute(
-            """
+        import psycopg2
+        conn = psycopg2.connect(os.getenv("DATABASE_URL"))
+        cur = conn.cursor()
+        cur.execute("""
             SELECT role, content FROM chat_history
-            WHERE session_id = %s
+            WHERE user_id = %s AND session_id = %s
             ORDER BY created_at DESC
-            LIMIT 10
-            """,
-            (session_id,),
-        )
+            LIMIT %s
+        """, [user_id, session_id, limit])
         rows = cur.fetchall()
         cur.close()
         conn.close()
         # Reverse to chronological order
-        return [{"role": r["role"], "content": r["content"]} for r in reversed(rows)]
+        return [{"role": r[0], "content": r[1]} for r in reversed(rows)]
     except Exception as e:
         logger.warning(f"Could not load conversation history: {e}")
         return []
 
 
-def _save_message(session_id: str, role: str, content: str, sources: list = None, metadata: dict = None):
-    """Save a message to chat_history."""
-    try:
-        conn = _get_db_conn()
-        cur = conn.cursor()
-        cur.execute(
-            """
-            INSERT INTO chat_history (user_id, session_id, role, content, sources, metadata)
-            VALUES (%s, %s, %s, %s, %s, %s)
-            """,
-            (
-                ANON_USER_ID,
-                session_id,
-                role,
-                content,
-                json.dumps(sources or []),
-                json.dumps(metadata or {}),
-            ),
-        )
-        conn.commit()
-        cur.close()
-        conn.close()
-    except Exception as e:
-        logger.warning(f"Could not save message: {e}")
-
-
-def _auto_title_conversation(session_id: str, first_message: str):
-    """Set conversation title from first user message (truncated to 80 chars)."""
-    title = first_message[:80].strip()
-    if len(first_message) > 80:
-        title += "..."
-    try:
-        conn = _get_db_conn()
-        cur = conn.cursor()
-        cur.execute(
-            """
-            UPDATE conversations SET title = %s
-            WHERE session_id = %s AND title = 'New Conversation'
-            """,
-            (title, session_id),
-        )
-        conn.commit()
-        cur.close()
-        conn.close()
-    except Exception as e:
-        logger.warning(f"Could not auto-title conversation: {e}")
-
-
 @router.post("/query", response_model=QueryResponse)
-async def query_knowledge_base(request: QueryRequest):
+async def query_knowledge_base(request: QueryRequest, user: UserInToken = Depends(get_current_user)):
     """
     Ask a glass science question. The system will:
     1. Detect the language (English or Farsi)
     2. Retrieve the most relevant knowledge base chunks
     3. Generate a precise expert answer using the LLM
-    4. Return the answer with cited sources
-
-    If session_id is provided, loads conversation history for multi-turn context
-    and saves both user + assistant messages to chat_history.
+    4. Auto-save Q&A to chat_history (if session_id provided)
+    5. Return the answer with cited sources
     """
     from retrieval.retriever import retrieve_with_auto_language, format_context
     from retrieval.llm import generate_answer
 
     start_time = time.time()
-    session_id = request.session_id
 
-    # ── Load conversation history if session_id provided ──────────────────────
+    # Auto-create session_id if not provided
+    session_id = request.session_id or str(uuid.uuid4())
+
+    # Load conversation history for continuity (if authenticated + has session)
     conversation_history = []
-    if session_id:
-        conversation_history = _load_conversation_history(session_id)
+    is_authenticated = user.user_id != "anonymous"
+    if is_authenticated and request.session_id:
+        conversation_history = _load_conversation_history(user.user_id, session_id)
 
     # ── Step 1: Retrieve relevant chunks ──────────────────────────────────────
     try:
@@ -133,7 +113,7 @@ async def query_knowledge_base(request: QueryRequest):
 
     # ── Step 2: Format context for LLM ────────────────────────────────────────
     if not chunks:
-        no_result_answer = (
+        answer = (
             "I could not find relevant information in the knowledge base to answer "
             "this question. Please try rephrasing, or this topic may not yet be "
             "covered in the ingested documents."
@@ -142,14 +122,9 @@ async def query_knowledge_base(request: QueryRequest):
             "اطلاعات مرتبطی در پایگاه دانش برای پاسخ به این سوال یافت نشد. "
             "لطفاً سوال را به شکل دیگری مطرح کنید."
         )
-        # Save messages even for no-result queries
-        if session_id:
-            _save_message(session_id, "user", request.question)
-            _save_message(session_id, "assistant", no_result_answer)
-            _auto_title_conversation(session_id, request.question)
         return QueryResponse(
             question=request.question,
-            answer=no_result_answer,
+            answer=answer,
             sources=[],
             language_detected=detected_language,
             retrieval_time_ms=retrieval_time_ms,
@@ -176,21 +151,10 @@ async def query_knowledge_base(request: QueryRequest):
         )
         model_used = "retrieval-only"
 
-    # ── Step 4: Save messages to chat_history ─────────────────────────────────
-    if session_id:
-        _save_message(session_id, "user", request.question)
-        source_data = [
-            {"title": c.get("title"), "source_type": c.get("source_type"), "similarity": c.get("similarity")}
-            for c in chunks
-        ]
-        _save_message(
-            session_id, "assistant", answer,
-            sources=source_data,
-            metadata={"model_used": model_used, "retrieval_time_ms": round(retrieval_time_ms, 2)},
-        )
-        _auto_title_conversation(session_id, request.question)
+    # ── Step 3.5: Validate citations ─────────────────────────────────────────
+    answer = _validate_citations(answer, len(chunks))
 
-    # ── Step 5: Build response ─────────────────────────────────────────────────
+    # ── Step 4: Build response ─────────────────────────────────────────────────
     sources = [
         SourceChunk(
             title=chunk.get("title", "Unknown"),
@@ -202,6 +166,35 @@ async def query_knowledge_base(request: QueryRequest):
         for chunk in chunks
     ]
 
+    # ── Step 5: Auto-save to chat_history ─────────────────────────────────────
+    chat_id = None
+    if is_authenticated:
+        try:
+            from api.routers.conversations import save_message
+            source_data = [s.model_dump() for s in sources]
+            # Save user question
+            save_message(
+                user_id=user.user_id,
+                session_id=session_id,
+                role="user",
+                content=request.question,
+            )
+            # Save assistant answer — capture chat_id for feedback
+            chat_id = save_message(
+                user_id=user.user_id,
+                session_id=session_id,
+                role="assistant",
+                content=answer,
+                sources=source_data,
+                metadata={
+                    "model_used": model_used,
+                    "language": detected_language,
+                    "retrieval_time_ms": round(retrieval_time_ms, 2),
+                },
+            )
+        except Exception as e:
+            logger.warning(f"Failed to save chat history: {e}")
+
     return QueryResponse(
         question=request.question,
         answer=answer,
@@ -211,6 +204,7 @@ async def query_knowledge_base(request: QueryRequest):
         total_chunks_searched=len(chunks),
         model_used=model_used,
         session_id=session_id,
+        chat_id=chat_id,
     )
 
 

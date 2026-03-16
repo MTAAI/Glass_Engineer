@@ -3,15 +3,16 @@ Glass Expert AI — Ingestion Router
 Trigger document ingestion via API.
 """
 from pathlib import Path
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from loguru import logger
 from api.models.schemas import IngestRequest, IngestResponse
+from api.auth import require_admin, UserInToken
 
 router = APIRouter()
 
 
 @router.post("/ingest", response_model=IngestResponse)
-async def ingest_document(request: IngestRequest):
+async def ingest_document(request: IngestRequest, user: UserInToken = Depends(require_admin)):
     """
     Ingest a single document into the knowledge base.
     Supports: PDF, CSV, NPZ, TXT, DOCX, JSON

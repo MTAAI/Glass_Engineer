@@ -4,8 +4,9 @@ POST /api/v1/design
 Suggests glass compositions to meet target property requirements.
 """
 import time
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from loguru import logger
+from api.auth import get_current_user, UserInToken
 
 from api.models.schemas import DesignRequest, DesignResponse, SourceChunk
 
@@ -56,7 +57,7 @@ Be specific with weight percentages and cite knowledge base sources where possib
 
 
 @router.post("/design", response_model=DesignResponse)
-async def design_glass(request: DesignRequest):
+async def design_glass(request: DesignRequest, user: UserInToken = Depends(get_current_user)):
     """
     Design a glass composition to meet target properties.
 

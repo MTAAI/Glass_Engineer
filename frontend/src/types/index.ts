@@ -15,6 +15,20 @@ export interface QueryResponse {
   retrieval_time_ms: number
   total_chunks_searched: number
   session_id?: string
+  chat_id?: string  // UUID of assistant message in chat_history (for feedback)
+}
+
+// ── Conversations ─────────────────────────────────────────────────────────────
+
+export interface ConversationSummary {
+  session_id: string
+  title: string
+  message_count: number
+  last_message_at: string
+}
+
+export interface ConversationListResponse {
+  conversations: ConversationSummary[]
 }
 
 export interface HealthResponse {
@@ -28,18 +42,36 @@ export interface HealthResponse {
 }
 
 export interface FeedbackPayload {
-  question: string
-  answer: string
-  helpful: boolean
-  rating: number
+  chat_id: string   // UUID of the assistant message in chat_history
+  rating: 1 | -1    // thumbs up (+1) or thumbs down (-1)
+  corrected_text?: string
   comment?: string
 }
 
 export interface SourceFeedbackPayload {
-  question: string
-  source_title: string
-  source_type: string
-  relevant: boolean
+  feedback_id: string   // UUID of the parent feedback entry
+  document_id: string   // UUID of the document being rated
+  is_relevant: boolean
+}
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+export interface AuthToken {
+  access_token: string
+  token_type: string
+  user_id: string
+  email: string
+  role: string
+  full_name?: string
+}
+
+export interface AuthUser {
+  id: string
+  email: string
+  full_name?: string
+  role: string
+  plant_location?: string
+  language_pref: string
+  is_active: boolean
 }
 
 export type MessageRole = 'user' | 'assistant'
@@ -55,29 +87,7 @@ export interface Message {
     model_used: string
     total_chunks_searched: number
   }
+  chatId?: string  // UUID from chat_history (for feedback)
   feedbackSent?: boolean
   timestamp: Date
-}
-
-export interface Conversation {
-  session_id: string
-  title: string
-  created_at: string
-  updated_at: string
-  message_count: number
-}
-
-export interface ConversationDetail {
-  session_id: string
-  title: string
-  created_at: string
-  updated_at: string
-  messages: {
-    id: string
-    role: string
-    content: string
-    sources?: Record<string, unknown>[]
-    metadata?: Record<string, unknown>
-    created_at: string
-  }[]
 }

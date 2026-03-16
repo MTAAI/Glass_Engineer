@@ -281,7 +281,9 @@ def extract_json(file_path: str) -> dict:
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
 def _clean_page_text(text: str, page_num: int) -> str:
-    """Remove common PDF artifacts like page numbers and headers/footers."""
+    """Remove common PDF artifacts like page numbers, headers/footers, and NUL bytes."""
+    # Strip NUL bytes that cause PostgreSQL INSERT failures
+    text = text.replace("\x00", "")
     lines = text.split("\n")
     cleaned_lines = []
     for line in lines:

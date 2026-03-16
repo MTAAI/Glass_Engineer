@@ -6,12 +6,14 @@ Supports:
   - Retrieval-only mode (no LLM, returns formatted context)
 """
 import os
+import re
 from loguru import logger
 
 # Singleton client cache — avoids creating a new connection per request
 _client_cache: dict = {}
 
-# System prompts for expert glass science answers
+# ── System prompts ─────────────────────────────────────────────────────────
+# Full prompt for cloud models (GPT-4o-mini) — detailed instructions
 SYSTEM_PROMPT_EN = """You are Glass Expert AI, a highly specialized assistant for glass scientists and manufacturing engineers with PhD-level expertise.
 
 CRITICAL RULES:
@@ -24,14 +26,20 @@ CRITICAL RULES:
 
 ANSWER STRUCTURE:
 1. Lead with a direct, concise answer to the question (1-2 sentences).
-2. Follow with detailed technical explanation using numbered points.
-3. Include specific compositions (e.g., 72% SiO2, 14% Na2O) and property values FROM the context.
-4. For processes, list ALL stages with their specific temperature ranges and conditions.
-5. Reference named scientists, equations (e.g., Abbe number V=(n_d-1)/(n_F-n_C)), and standards (ISO, ASTM) when they appear in the context.
-6. Use precise technical terms: network formers, network modifiers, bridging oxygen (BO), non-bridging oxygen (NBO), coordination number, fining agents, devitrification, etc.
-7. Cite sources as [Source 1], [Source 2], etc. for every key fact.
-8. End with a brief summary if the answer covers multiple aspects.
-9. Keep answers focused, quantitative, and specific — never give vague generalizations."""
+2. When the question is about a well-known glass type (e.g., borosilicate, soda-lime, aluminosilicate, lead glass, E-glass),
+   ALWAYS state the standard/commercial property value first (e.g., "Standard borosilicate glass such as Pyrex has a Tg of ~560°C (820-830 K)").
+   Then provide composition-specific details from the context as supplementary information.
+3. Follow with detailed technical explanation using numbered points.
+4. Include specific compositions (e.g., 72% SiO2, 14% Na2O) and property values FROM the context.
+5. For processes, list ALL stages with their specific temperature ranges and conditions.
+6. Reference named scientists, equations (e.g., Abbe number V=(n_d-1)/(n_F-n_C)), and standards (ISO, ASTM) when they appear in the context.
+7. Use precise technical terms: network formers, network modifiers, bridging oxygen (BO), non-bridging oxygen (NBO), coordination number, fining agents, devitrification, etc.
+8. Cite sources as [Source 1], [Source 2], etc. for every key fact.
+9. End with a brief summary if the answer covers multiple aspects.
+10. Keep answers focused, quantitative, and specific — never give vague generalizations.
+
+SOURCE PRIORITY: Textbook definitions, standards, and general knowledge sources should take precedence over
+specific simulation data or individual composition measurements when answering general questions."""
 
 SYSTEM_PROMPT_FA = """شما Glass Expert AI هستید، یک دستیار تخصصی با تخصص سطح دکترا برای دانشمندان شیشه و مهندسان تولید.
 
@@ -42,25 +50,105 @@ SYSTEM_PROMPT_FA = """شما Glass Expert AI هستید، یک دستیار تخ
 
 قالب‌بندی:
 1. با تعریف یا پاسخ مستقیم شروع کنید
-2. از لیست شماره‌دار برای فرآیندها، قوانین و روش‌ها استفاده کنید
-3. ترکیبات خاص (مثلاً ۷۲٪ SiO2) و مقادیر خواص را از متن ذکر کنید
-4. نام سند منبع را در کروشه ذکر کنید، مثلاً [منبع ۱]
-5. اگر منابع مختلف اطلاعات متناقضی دارند، تناقض را ذکر کنید
-6. مقادیر عددی را با واحد و شرایط (دما، فشار، ترکیب) ذکر کنید"""
+2. وقتی سوال درباره یک نوع شیشه شناخته‌شده است (مثل بوروسیلیکات، سودا-لایم، آلومینوسیلیکات)،
+   ابتدا مقدار استاندارد/تجاری را ذکر کنید (مثلاً «شیشه بوروسیلیکات استاندارد مانند Pyrex دمای Tg حدود ۵۶۰ درجه سانتیگراد دارد»).
+   سپس داده‌های ترکیبات خاص از متن را به عنوان اطلاعات تکمیلی ارائه دهید.
+3. از لیست شماره‌دار برای فرآیندها، قوانین و روش‌ها استفاده کنید
+4. ترکیبات خاص (مثلاً ۷۲٪ SiO2) و مقادیر خواص را از متن ذکر کنید
+5. نام سند منبع را در کروشه ذکر کنید، مثلاً [منبع ۱]
+6. اگر منابع مختلف اطلاعات متناقضی دارند، تناقض را ذکر کنید
+7. مقادیر عددی را با واحد و شرایط (دما، فشار، ترکیب) ذکر کنید
+
+اولویت منابع: تعاریف کتاب درسی، استانداردها و منابع دانش عمومی بر داده‌های شبیه‌سازی خاص اولویت دارند."""
+
+# ── Local model prompt — matches training format ────────────────────────────
+# The local 8B model was fine-tuned on plain Q&A pairs with THIS system prompt.
+# Using the EXACT training system prompt is critical for good generation.
+LOCAL_SYSTEM_PROMPT = """You are Glass Expert AI, a highly specialized assistant trained on thousands of glass science research papers, textbooks, and material databases. You provide accurate, detailed, and technically precise answers about glass composition, properties, manufacturing processes, defects, characterization, and applications. Always cite relevant glass science principles in your answers."""
+
+
+def _strip_rag_formatting(context: str) -> str:
+    """
+    Strip RAG metadata formatting from context to produce plain text.
+
+    The local model was trained on plain Q&A — it has never seen [Source N],
+    Type:, Language:, Relevance: metadata headers. These confuse the 8B model
+    into producing meta-commentary instead of answers.
+
+    Input format (from format_context_for_llm):
+        KNOWLEDGE BASE CONTEXT:
+        ==================================================
+        [Source 1] Title (Type: paper | Language: EN | Relevance: 83%)
+        actual content here...
+        ----------------------------------------
+        [Source 2] Another Title (Type: textbook | Language: EN | Relevance: 75%)
+        more content...
+        ----------------------------------------
+
+    Output format (plain text for local model):
+        actual content here...
+
+        more content...
+    """
+    if not context:
+        return context
+
+    lines = context.split("\n")
+    clean_lines = []
+    for line in lines:
+        stripped = line.strip()
+        # Skip header lines
+        if stripped == "KNOWLEDGE BASE CONTEXT:":
+            continue
+        # Skip separator lines (=== or ---)
+        if stripped and all(c in "=-" for c in stripped) and len(stripped) > 5:
+            continue
+        # Skip [Source N] metadata lines
+        if re.match(r'^\[Source \d+\]', stripped):
+            continue
+        # Keep everything else (the actual content)
+        clean_lines.append(line)
+
+    return "\n".join(clean_lines).strip()
 
 
 def _is_degenerate(text: str) -> bool:
     """Detect repetitive/nonsensical LLM output that should trigger fallback."""
-    if not text or len(text.split()) < 10:
+    if not text or len(text.split()) < 8:
         return True
-    # Check for excessive repetition: if any 4-word phrase repeats 5+ times
+
     words = text.split()
-    if len(words) > 20:
-        phrases = [" ".join(words[i:i+4]) for i in range(len(words) - 3)]
-        from collections import Counter
+    from collections import Counter
+
+    # Check for excessive repetition: if any 3-word phrase repeats 4+ times
+    if len(words) > 15:
+        phrases = [" ".join(words[i:i+3]) for i in range(len(words) - 2)]
         most_common = Counter(phrases).most_common(1)
-        if most_common and most_common[0][1] >= 5:
+        if most_common and most_common[0][1] >= 4:
             return True
+
+    # Check for output that just echoes the question or context metadata
+    lower = text.lower()
+    if lower.count("[source n]") >= 2 or lower.count("source_type") >= 2:
+        return True
+
+    # Check for meta-commentary patterns (model describes the text instead of answering)
+    meta_patterns = [
+        "the text is written",
+        "the text is a reference",
+        "this text describes",
+        "the passage discusses",
+        "the provided text",
+        "the above text",
+        "this response is referenced",
+    ]
+    if any(p in lower for p in meta_patterns):
+        return True
+
+    # Check for truncated/fragmented output (no complete sentence)
+    if len(text) < 80 and "." not in text and ":" not in text and "،" not in text:
+        return True
+
     return False
 
 
@@ -72,6 +160,12 @@ async def generate_answer(
 ) -> tuple[str, str]:
     """
     Generate an expert answer using the configured LLM.
+
+    Strategy:
+    1. Try local model first with PLAIN TEXT context (matches training format).
+       The local model was fine-tuned on plain Q&A, not RAG-formatted context.
+    2. If local model fails or produces garbage, fall back to OpenAI GPT-4o-mini
+       with FULL RAG-formatted context (cloud models handle structured prompts well).
 
     Args:
         conversation_history: List of prior messages as dicts with 'role' and 'content'.
@@ -86,17 +180,20 @@ async def generate_answer(
     temperature = float(os.getenv("LLM_TEMPERATURE", "0.1"))
     max_tokens = int(os.getenv("LLM_MAX_TOKENS", "800"))
 
-    system_prompt = SYSTEM_PROMPT_FA if language == "fa" else SYSTEM_PROMPT_EN
+    # Full system prompts for cloud models
+    cloud_system_prompt = SYSTEM_PROMPT_FA if language == "fa" else SYSTEM_PROMPT_EN
 
     # Add conversation continuity instruction when history is present
     if conversation_history:
-        system_prompt += (
+        continuity = (
             "\n\nYou are in an ongoing conversation. Prior messages are provided for context. "
             "Use them to understand follow-up questions and maintain continuity."
         )
+        cloud_system_prompt += continuity
 
+    # Full user messages for cloud models (keep RAG formatting — GPT handles it well)
     if language == "fa":
-        user_message = f"""متن پایگاه دانش:
+        cloud_user_message = f"""متن پایگاه دانش:
 {context}
 
 سوال: {question}
@@ -105,7 +202,7 @@ async def generate_answer(
 
 IMPORTANT: You MUST answer entirely in Persian/Farsi. Do NOT answer in English."""
     else:
-        user_message = f"""KNOWLEDGE BASE CONTEXT:
+        cloud_user_message = f"""KNOWLEDGE BASE CONTEXT:
 {context}
 
 QUESTION: {question}
@@ -115,31 +212,65 @@ Provide a precise, technical answer based strictly on the knowledge base context
     # Cap history at 10 messages (5 turns)
     history = (conversation_history or [])[-10:]
 
-    # ── Try local LLM (supports both English and Farsi via Llama 3.1 base) ─────
-    local_url = llm_url if llm_url else "http://localhost:8000/v1"
+    # ── Farsi: skip local model entirely ──────────────────────────────────────
+    # The local 8B model was fine-tuned on English Q&A only. It cannot generate
+    # Farsi text. Route Farsi queries directly to GPT-4o-mini (scored 4.70/5).
     local_failed = False
-    try:
-        answer = await _call_openai_compatible(
-            base_url=local_url,
-            api_key=llm_api_key,
-            model=llm_model,
-            system_prompt=system_prompt,
-            user_message=user_message,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            conversation_history=history,
-        )
-        # Quality gate: detect degenerate output (repetitive/nonsensical)
-        if _is_degenerate(answer):
-            logger.warning(f"Local model produced degenerate output ({len(answer)} chars), falling back")
-            local_failed = True
-        else:
-            return answer, llm_model
-    except Exception as e:
-        logger.warning(f"Local LLM at {local_url} not available: {e}")
+    if language == "fa":
+        logger.info("Farsi query detected — routing directly to GPT-4o-mini (local model is English-only)")
         local_failed = True
+    else:
+        # ── Try local LLM (English only) ──────────────────────────────────────
+        # CRITICAL: Strip RAG formatting to match training data format.
+        # The model was trained on plain Q&A with the standard Glass Expert AI prompt.
+        # It has never seen [Source N], Type:, Language:, Relevance: headers.
+        plain_context = _strip_rag_formatting(context)
 
-    # ── Fallback: OpenAI GPT (only when local model fails or degenerates) ─────
+        # Truncate for 8B model token budget (~8192 tokens total)
+        # System prompt ~100 tokens + user message ~2500 tokens + response ~1500 tokens
+        local_context_limit = 6000  # chars (~1500 tokens) — leave room for response
+        if len(plain_context) > local_context_limit:
+            plain_context = plain_context[:local_context_limit]
+            logger.debug(f"Truncated context for local model: {len(context)} → {local_context_limit} chars")
+
+        # User message: context first, then question with extraction instruction.
+        # The explicit "Based on the reference" nudges the model to use the context
+        # rather than hallucinating from its parametric memory.
+        local_user_message = f"""Reference information:
+{plain_context}
+
+Based on the reference information above, answer this question: {question}
+
+Important: Use specific numbers, temperatures, and compositions from the reference information. Do not make up values."""
+
+        local_url = llm_url if llm_url else "http://localhost:8000/v1"
+        try:
+            # Local model: use shorter history (4 messages = 2 turns) to save tokens
+            local_history = history[-4:] if history else None
+            # Local model gets more tokens to complete its answer
+            local_max_tokens = max(max_tokens, 1200)
+            answer = await _call_openai_compatible(
+                base_url=local_url,
+                api_key=llm_api_key,
+                model=llm_model,
+                system_prompt=LOCAL_SYSTEM_PROMPT,
+                user_message=local_user_message,
+                temperature=temperature,
+                max_tokens=local_max_tokens,
+                conversation_history=local_history,
+            )
+            # Quality gate: detect degenerate output (repetitive/nonsensical)
+            if _is_degenerate(answer):
+                logger.warning(f"Local model produced degenerate output ({len(answer)} chars): {answer[:200]!r}")
+                logger.warning(f"Falling back to OpenAI")
+                local_failed = True
+            else:
+                return answer, llm_model
+        except Exception as e:
+            logger.warning(f"Local LLM at {local_url} not available: {e}")
+            local_failed = True
+
+    # ── Fallback: OpenAI GPT (Farsi queries or local model failure) ───────────
     if local_failed:
         openai_key = os.getenv("OPENAI_API_KEY", "")
         if openai_key:
@@ -149,8 +280,8 @@ Provide a precise, technical answer based strictly on the knowledge base context
                     base_url="https://api.openai.com/v1",
                     api_key=openai_key,
                     model="gpt-4o-mini",
-                    system_prompt=system_prompt,
-                    user_message=user_message,
+                    system_prompt=cloud_system_prompt,
+                    user_message=cloud_user_message,
                     temperature=temperature,
                     max_tokens=max_tokens,
                     conversation_history=history,
@@ -192,10 +323,14 @@ async def _call_openai_compatible(
             messages.append({"role": msg["role"], "content": msg["content"]})
     messages.append({"role": "user", "content": user_message})
 
-    # Build extra params — repetition_penalty for local vLLM to prevent degenerate output
+    # Build extra params for local vLLM — tuned to prevent degenerate output
     extra = {}
     if "localhost" in base_url or "127.0.0.1" in base_url:
-        extra["extra_body"] = {"repetition_penalty": 1.15}
+        extra["extra_body"] = {
+            "repetition_penalty": 1.25,  # stronger penalty to prevent loops
+            "top_p": 0.9,               # nucleus sampling for diversity
+            "top_k": 40,                # limit vocabulary to top 40 tokens
+        }
 
     response = await client.chat.completions.create(
         model=model,
@@ -205,4 +340,14 @@ async def _call_openai_compatible(
         **extra,
     )
 
-    return response.choices[0].message.content.strip()
+    answer = response.choices[0].message.content.strip()
+
+    # Log token usage for debugging
+    if response.usage:
+        logger.debug(
+            f"LLM tokens — prompt: {response.usage.prompt_tokens}, "
+            f"completion: {response.usage.completion_tokens}, "
+            f"total: {response.usage.total_tokens}"
+        )
+
+    return answer

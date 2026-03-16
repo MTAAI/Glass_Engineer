@@ -26,7 +26,7 @@ class QueryRequest(BaseModel):
     mode: str = Field("simple", description="Query mode: 'simple', 'detailed', or 'research'.")
     top_k: int = Field(5, ge=1, le=20, description="Number of source chunks to retrieve.")
     source_type: Optional[str] = Field(None, description="Filter by source type (e.g. 'textbook', 'paper').")
-    session_id: Optional[str] = Field(None, description="Conversation session ID for multi-turn context.")
+    session_id: Optional[str] = Field(None, description="Conversation session ID for chat history.")
 
 class QueryResponse(BaseModel):
     """Response model for the /query endpoint."""
@@ -36,12 +36,13 @@ class QueryResponse(BaseModel):
     answer: str = Field(..., description="The generated answer to the user's question.")
     sources: List[SourceChunk] = Field(..., description="List of source chunks used for the answer.")
     query_id: Optional[str] = Field(None, description="Unique identifier for this query.")
+    session_id: Optional[str] = Field(None, description="Conversation session ID for chat history.")
     model_used: str = Field(..., description="The language model used to generate the answer.")
     retrieval_time_ms: float = Field(..., description="Time taken for document retrieval in milliseconds.")
     generation_time_ms: Optional[float] = Field(None, description="Time taken for answer generation in milliseconds.")
     language_detected: Optional[str] = Field(None, description="Detected language of the query.")
     total_chunks_searched: Optional[int] = Field(None, description="Total number of chunks retrieved.")
-    session_id: Optional[str] = Field(None, description="Conversation session ID.")
+    chat_id: Optional[str] = Field(None, description="UUID of the saved assistant message in chat_history (for feedback).")
 
 # --- Health Endpoint --------------------------------------------------------
 
@@ -154,66 +155,68 @@ class TroubleshootResponse(BaseModel):
     retrieval_time_ms: float = Field(..., description="Retrieval time in milliseconds.")
 
 # --- Feedback Endpoints -----------------------------------------------------
+# NOTE: Feedback schemas are defined in api/routers/feedback.py (aligned with init.sql).
+# Old schemas (FeedbackRequest with question/answer/helpful, SourceFeedbackRequest with
+# source_title) were removed — they conflicted with the DB schema (UUID PKs, chat_id FK,
+# thumbs up/down rating, document_id FK).
 
-class FeedbackRequest(BaseModel):
-    """Request model for submitting overall answer feedback."""
-    question: str
-    answer: str
-    rating: int = Field(..., ge=1, le=5)
-    helpful: bool
-    comment: Optional[str] = None
-    query_id: Optional[str] = None
 
-class SourceFeedbackRequest(BaseModel):
-    """Request model for submitting feedback on a specific source."""
-    question: str
-    source_title: str
-    source_type: str
-    relevant: bool
-    comment: Optional[str] = None
+# --- Conversation / Chat History Endpoints ----------------------------------
 
-class FeedbackResponse(BaseModel):
-    """Generic response for feedback submission."""
-    success: bool
-    message: str
-    feedback_id: int
+class ConversationSummary(BaseModel):
+    """Lightweight summary of a conversation for the sidebar list."""
+    session_id: str
+    title: str
+    message_count: int
+    last_message_at: str
+    language: Optional[str] = None
 
-# --- Conversation Endpoints ---------------------------------------------------
+class ConversationListResponse(BaseModel):
+    """Response for GET /conversations."""
+    conversations: List[ConversationSummary]
 
 class ChatMessage(BaseModel):
     """A single message in a conversation."""
     id: str
     role: str
     content: str
-    sources: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
-    metadata: Optional[Dict[str, Any]] = Field(default_factory=dict)
+    sources: Optional[List[SourceChunk]] = None
+    metadata: Optional[Dict[str, Any]] = None
     created_at: str
-
-class ConversationSummary(BaseModel):
-    """Summary of a conversation for sidebar listing."""
-    session_id: str
-    title: str
-    created_at: str
-    updated_at: str
-    message_count: int = 0
 
 class ConversationDetail(BaseModel):
-    """Full conversation with messages."""
+    """Full conversation with all messages."""
     session_id: str
     title: str
+    messages: List[ChatMessage]
     created_at: str
-    updated_at: str
-    messages: List[ChatMessage] = Field(default_factory=list)
+    last_message_at: str
 
-class CreateConversationRequest(BaseModel):
-    """Request model for creating a new conversation."""
-    title: Optional[str] = Field(None, description="Optional title. Auto-generated from first message if omitted.")
+class ConversationCreateRequest(BaseModel):
+    """Request to start a new conversation."""
+    title: Optional[str] = Field(None, description="Optional title; auto-generated from first question if omitted.")
 
-class CreateConversationResponse(BaseModel):
-    """Response for conversation creation."""
+class ConversationCreateResponse(BaseModel):
+    """Response after creating a conversation."""
     session_id: str
     title: str
 
-class RenameConversationRequest(BaseModel):
-    """Request model for renaming a conversation."""
-    title: str = Field(..., min_length=1, max_length=200)
+# --- User Memory Endpoints --------------------------------------------------
+
+class UserMemoryEntry(BaseModel):
+    """A single user memory entry."""
+    id: str
+    memory_type: str
+    key: str
+    value: str
+    updated_at: str
+
+class UserMemoryListResponse(BaseModel):
+    """Response for GET /user/memory."""
+    entries: List[UserMemoryEntry]
+
+class UserMemorySaveRequest(BaseModel):
+    """Request to save a user memory entry."""
+    memory_type: str = Field(..., description="Type: 'composition', 'furnace', 'topic', 'preference'")
+    key: str = Field(..., description="Memory key (e.g., 'default_glass_type')")
+    value: str = Field(..., description="Memory value")

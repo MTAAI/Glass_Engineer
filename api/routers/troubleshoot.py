@@ -4,8 +4,9 @@ POST /api/v1/troubleshoot
 Given a defect description, returns root causes and corrective actions.
 """
 import time
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from loguru import logger
+from api.auth import get_current_user, UserInToken
 
 from api.models.schemas import (
     TroubleshootRequest, TroubleshootResponse,
@@ -93,7 +94,7 @@ Be specific with process parameters (temperatures, times, concentrations) where 
 
 
 @router.post("/troubleshoot", response_model=TroubleshootResponse)
-async def troubleshoot_defect(request: TroubleshootRequest):
+async def troubleshoot_defect(request: TroubleshootRequest, user: UserInToken = Depends(get_current_user)):
     """
     Troubleshoot a glass manufacturing defect.
 
