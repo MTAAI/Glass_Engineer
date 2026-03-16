@@ -15,6 +15,7 @@ export interface QueryResponse {
   retrieval_time_ms: number
   total_chunks_searched: number
   session_id?: string
+  chat_id?: string  // UUID of assistant message in chat_history (for feedback)
 }
 
 // ── Conversations ─────────────────────────────────────────────────────────────
@@ -41,18 +42,16 @@ export interface HealthResponse {
 }
 
 export interface FeedbackPayload {
-  question: string
-  answer: string
-  helpful: boolean
-  rating: number
+  chat_id: string   // UUID of the assistant message in chat_history
+  rating: 1 | -1    // thumbs up (+1) or thumbs down (-1)
+  corrected_text?: string
   comment?: string
 }
 
 export interface SourceFeedbackPayload {
-  question: string
-  source_title: string
-  source_type: string
-  relevant: boolean
+  feedback_id: string   // UUID of the parent feedback entry
+  document_id: string   // UUID of the document being rated
+  is_relevant: boolean
 }
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
@@ -88,6 +87,7 @@ export interface Message {
     model_used: string
     total_chunks_searched: number
   }
+  chatId?: string  // UUID from chat_history (for feedback)
   feedbackSent?: boolean
   timestamp: Date
 }

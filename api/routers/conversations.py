@@ -151,15 +151,17 @@ def save_message(
     content: str,
     sources: list = None,
     metadata: dict = None,
-):
-    """Save a single message to chat_history. Called from query router."""
+) -> str | None:
+    """Save a single message to chat_history. Returns the chat_history UUID."""
     import json
     conn = _get_db()
     cur = conn.cursor()
+    chat_id = None
     try:
         cur.execute("""
             INSERT INTO chat_history (user_id, session_id, role, content, sources, metadata)
             VALUES (%s, %s, %s, %s, %s::jsonb, %s::jsonb)
+            RETURNING id
         """, [
             user_id,
             session_id,
@@ -168,6 +170,8 @@ def save_message(
             json.dumps(sources or []),
             json.dumps(metadata or {}),
         ])
+        row = cur.fetchone()
+        chat_id = str(row[0]) if row else None
         conn.commit()
     except Exception as e:
         logger.error(f"Failed to save chat message: {e}")
@@ -175,6 +179,7 @@ def save_message(
     finally:
         cur.close()
         conn.close()
+    return chat_id
 
 
 # ── User Memory ───────────────────────────────────────────────────────────────

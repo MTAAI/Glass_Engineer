@@ -167,6 +167,7 @@ async def query_knowledge_base(request: QueryRequest, user: UserInToken = Depend
     ]
 
     # ── Step 5: Auto-save to chat_history ─────────────────────────────────────
+    chat_id = None
     if is_authenticated:
         try:
             from api.routers.conversations import save_message
@@ -178,8 +179,8 @@ async def query_knowledge_base(request: QueryRequest, user: UserInToken = Depend
                 role="user",
                 content=request.question,
             )
-            # Save assistant answer
-            save_message(
+            # Save assistant answer — capture chat_id for feedback
+            chat_id = save_message(
                 user_id=user.user_id,
                 session_id=session_id,
                 role="assistant",
@@ -203,6 +204,7 @@ async def query_knowledge_base(request: QueryRequest, user: UserInToken = Depend
         total_chunks_searched=len(chunks),
         model_used=model_used,
         session_id=session_id,
+        chat_id=chat_id,
     )
 
 

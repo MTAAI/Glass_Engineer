@@ -217,19 +217,17 @@ function CitationsPanel({ sources, question }: CitationsPanelProps) {
 
 // ── Feedback Bar ────────────────────────────────────────────────────────────
 interface FeedbackBarProps {
-  question: string
-  answer: string
+  chatId?: string  // UUID from chat_history — required for feedback
 }
-function FeedbackBar({ question, answer }: FeedbackBarProps) {
+function FeedbackBar({ chatId }: FeedbackBarProps) {
   const [sent, setSent] = useState<'helpful' | 'not_helpful' | null>(null)
   const handleFeedback = async (helpful: boolean) => {
+    if (!chatId) return  // can't submit feedback without a chat_id
     setSent(helpful ? 'helpful' : 'not_helpful')
     try {
       await submitFeedback({
-        question,
-        answer,
-        helpful,
-        rating: helpful ? 4 : 2,
+        chat_id: chatId,
+        rating: helpful ? 1 : -1,
       })
     } catch { /* silent */ }
   }
@@ -324,7 +322,7 @@ function MessageBubble({ message, prevQuestion }: MessageBubbleProps) {
           <CitationsPanel sources={message.sources} question={prevQuestion || message.content} />
         )}
         {message.content && message.content !== 'No answer generated.' && (
-          <FeedbackBar question={prevQuestion || ''} answer={message.content} />
+          <FeedbackBar chatId={message.chatId} />
         )}
       </div>
     </div>
@@ -614,6 +612,7 @@ export default function App() {
           model_used: res.model_used,
           total_chunks_searched: res.total_chunks_searched,
         },
+        chatId: res.chat_id,  // DB UUID for feedback
         timestamp: new Date(),
       }
       setMessages(prev => [...prev, assistantMsg])

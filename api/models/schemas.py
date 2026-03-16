@@ -42,6 +42,7 @@ class QueryResponse(BaseModel):
     generation_time_ms: Optional[float] = Field(None, description="Time taken for answer generation in milliseconds.")
     language_detected: Optional[str] = Field(None, description="Detected language of the query.")
     total_chunks_searched: Optional[int] = Field(None, description="Total number of chunks retrieved.")
+    chat_id: Optional[str] = Field(None, description="UUID of the saved assistant message in chat_history (for feedback).")
 
 # --- Health Endpoint --------------------------------------------------------
 
@@ -154,29 +155,10 @@ class TroubleshootResponse(BaseModel):
     retrieval_time_ms: float = Field(..., description="Retrieval time in milliseconds.")
 
 # --- Feedback Endpoints -----------------------------------------------------
-
-class FeedbackRequest(BaseModel):
-    """Request model for submitting overall answer feedback."""
-    question: str
-    answer: str
-    rating: int = Field(..., ge=1, le=5)
-    helpful: bool
-    comment: Optional[str] = None
-    query_id: Optional[str] = None
-
-class SourceFeedbackRequest(BaseModel):
-    """Request model for submitting feedback on a specific source."""
-    question: str
-    source_title: str
-    source_type: str
-    relevant: bool
-    comment: Optional[str] = None
-
-class FeedbackResponse(BaseModel):
-    """Generic response for feedback submission."""
-    success: bool
-    message: str
-    feedback_id: int
+# NOTE: Feedback schemas are defined in api/routers/feedback.py (aligned with init.sql).
+# Old schemas (FeedbackRequest with question/answer/helpful, SourceFeedbackRequest with
+# source_title) were removed — they conflicted with the DB schema (UUID PKs, chat_id FK,
+# thumbs up/down rating, document_id FK).
 
 
 # --- Conversation / Chat History Endpoints ----------------------------------

@@ -378,9 +378,21 @@ def retrieve_with_auto_language(
     results = retrieve(
         retrieval_query,
         top_k=top_k,
-        language_filter=None,
+        language_filter=language,
         source_type_filter=source_type_filter,
     )
+
+    # Fallback: if language-filtered search returns too few results, retry without filter
+    # (some topics may only have documents in one language)
+    if len(results) < 2 and language != "en":
+        logger.info(f"Only {len(results)} results for language={language}, retrying without filter")
+        results = retrieve(
+            retrieval_query,
+            top_k=top_k,
+            language_filter=None,
+            source_type_filter=source_type_filter,
+        )
+
     return results, language
 
 
