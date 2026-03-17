@@ -17,7 +17,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 # Load environment variables from .env BEFORE importing routers
 load_dotenv(Path(__file__).parent.parent / ".env")
 
-from api.routers import query, health, ingest, analyze, design, troubleshoot, feedback, auth
+from api.routers import conversations
+app.include_router(conversations.router, prefix="/api/v1", tags=["Conversations"])
 
 app = FastAPI(
     title="Glass Expert AI",
