@@ -27,9 +27,11 @@ async def health_check():
     overall = "healthy" if db_status == "healthy" else "degraded"
 
     return HealthResponse(
-        status=overall,
-        database=db_status,
-        redis="healthy",
-        total_documents=total_docs,
-        total_chunks=total_chunks,
-    )
+    status=overall,
+    database=db_status,
+    redis="healthy",
+    embedding_model=os.getenv("EMBEDDING_MODEL", "BAAI/bge-m3"),
+    total_documents=total_docs,
+    total_chunks=total_chunks,
+    version="3.0.0",
+)
