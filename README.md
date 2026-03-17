@@ -1,203 +1,195 @@
-# Glass Expert AI — Phase 2: RAG API
+# Glass Expert AI — Phase 3: Production RAG API
 
-This is the Phase 2 upgrade of the Glass Expert AI system. It adds a **FastAPI backend** that exposes the full RAG pipeline (retrieve + generate) as a REST API, ready to connect to any frontend or chat interface.
+Bilingual (English + Farsi) RAG-powered glass science assistant for engineers and scientists.
+Built with FastAPI, pgvector, bge-m3, bge-reranker-v2-m3, and a fine-tuned LLM.
 
 ---
 
-## What's New in Phase 2
+## Architecture
+```
+React UI (:8080)
+  → FastAPI API
+  → JWT Auth (register/login/me)
+  → RAG Pipeline:
+      1. bge-m3 query embedding (sentence-transformers + instruction prefix)
+      2. Dense ANN search (pgvector HNSW)       → top_k × 4 candidates
+      3. Sparse BM25 search (bge-m3 tokens)     → top_k × 2 candidates
+      4. Reciprocal Rank Fusion (RRF, k=60)     → merged ranked list
+      5. bge-reranker-v2-m3 cross-encoder       → precise top_k results
+  → Redis cache (:6379)
+  → Fine-tuned LLM (:8000) / OpenAI fallback
+  → PostgreSQL + pgvector (:5432)
+```
 
-| Component | Phase 1 | Phase 2 |
-|---|---|---|
-| Ingestion | PDF only | PDF, CSV, NPZ, TXT, DOCX, JSON |
-| Retrieval | Script only | REST API endpoint |
-| Answer generation | None | LLM-powered (vLLM / OpenAI) |
-| API docs | None | Swagger UI at `/docs` |
-| Health monitoring | None | `/api/v1/health` endpoint |
+---
+
+## Knowledge Base
+
+| Source Type | Chunks |
+|-------------|--------|
+| manual      | 143,140 |
+| paper       | 60,749 |
+| qa_pair     | 32,793 |
+| textbook    | 10,309 |
+| sop         | 10 |
+| **Total**   | **247,001** |
+
+Languages: English + Farsi  
+Embedding model: BAAI/bge-m3 (1024-dim, multilingual)  
+Vector index: HNSW (m=16, ef_construction=64)
 
 ---
 
 ## Quick Start
 
-### Step 1 — Make sure Docker is running
-
+### Step 1 — Start Docker services
 ```powershell
-cd docker
-docker compose up -d
-cd ..
+docker-compose -f docker/docker-compose.yml up -d
 ```
 
 ### Step 2 — Activate virtual environment
-
 ```powershell
 .\venv\Scripts\activate
 ```
 
-### Step 3 — Install new Phase 2 dependencies
-
+### Step 3 — Install dependencies
 ```powershell
+# Install PyTorch with CUDA first
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
+
+# Install all dependencies
 pip install -r requirements.txt
+pip install FlagEmbedding==1.3.3
 ```
 
-### Step 4 — Start the API server
-
+### Step 4 — Configure environment
 ```powershell
-.\start_api.ps1
+copy .env.example .env
+# Edit .env and set: JWT_SECRET_KEY, LLM_BASE_URL, OPENAI_API_KEY
 ```
 
-Or manually:
-
+### Step 5 — Start the API server
 ```powershell
 python -m uvicorn api.main:app --host 0.0.0.0 --port 8080 --reload
 ```
 
-### Step 5 — Open the interactive API docs
-
-Navigate to: **http://localhost:8080/docs**
-
-You will see the full Swagger UI where you can test every endpoint directly in the browser.
+### Step 6 — Open the app
+- Chat UI: http://localhost:8080/
+- API Docs: http://localhost:8080/docs
+- Health: http://localhost:8080/api/v1/health
 
 ---
 
 ## API Endpoints
 
-### `GET /api/v1/health`
-Check the status of all system components (database, Redis, embedding model).
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | /api/v1/health | Public | System health check |
+| POST | /api/v1/auth/register | Public | Create account |
+| POST | /api/v1/auth/login | Public | Login (returns JWT) |
+| GET | /api/v1/auth/me | Required | Current user profile |
+| POST | /api/v1/query | Required | RAG Q&A (main endpoint) |
+| POST | /api/v1/analyze | Required | Glass composition analysis |
+| POST | /api/v1/design | Required | Glass composition design |
+| POST | /api/v1/troubleshoot | Required | Defect diagnosis |
+| GET | /api/v1/conversations | Required | List conversations |
+| GET | /api/v1/conversations/{id} | Required | Get conversation messages |
+| POST | /api/v1/conversations | Required | Create conversation |
+| PATCH | /api/v1/conversations/{id} | Required | Rename conversation |
+| DELETE | /api/v1/conversations/{id} | Required | Delete conversation |
+| POST | /api/v1/feedback | Required | Submit answer feedback |
+| POST | /api/v1/feedback/source | Required | Source relevance feedback |
+| POST | /api/v1/ingest | Admin | Document ingestion |
 
-**Example response:**
-```json
-{
-  "status": "healthy",
-  "database": "healthy",
-  "redis": "healthy",
-  "embedding_model": "ready (BAAI/bge-m3)",
-  "total_documents": 3,
-  "total_chunks": 12,
-  "version": "2.0.0"
-}
-```
-
----
-
-### `POST /api/v1/query`
-Ask a glass science question. Returns an LLM-generated answer with cited sources.
-
-**Request body:**
-```json
-{
-  "question": "What is the glass transition temperature of borosilicate glass?",
-  "top_k": 5,
-  "source_type": "textbook"
-}
-```
-
-**Response:**
-```json
-{
-  "question": "What is the glass transition temperature of borosilicate glass?",
-  "answer": "Borosilicate glass has a glass transition temperature (Tg) of approximately 525°C...",
-  "sources": [
-    {
-      "title": "01_glass_transition_thermal_properties",
-      "source_type": "textbook",
-      "language": "en",
-      "similarity": 0.6788,
-      "content_preview": "..."
-    }
-  ],
-  "language_detected": "en",
-  "retrieval_time_ms": 62.5,
-  "total_chunks_searched": 1,
-  "model_used": "meta-llama/Meta-Llama-3-8B-Instruct"
-}
-```
-
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|---|---|---|---|
-| `question` | string | required | Your glass science question |
-| `top_k` | int | 5 | Number of chunks to retrieve (1–20) |
-| `source_type` | string | null | Filter by: `textbook`, `paper`, `sop`, `standard`, `manual` |
-| `language` | string | null | Force language: `en` or `fa`. Auto-detected if not set. |
+Full Swagger docs: http://localhost:8080/docs
 
 ---
 
-### `POST /api/v1/ingest`
-Ingest a new document into the knowledge base via API.
+## Query Example
+```powershell
+# Login
+$login = Invoke-RestMethod -Method POST -Uri "http://localhost:8080/api/v1/auth/login" `
+  -ContentType "application/x-www-form-urlencoded" `
+  -Body "username=your@email.com&password=yourpassword"
+$token = $login.access_token
+$headers = @{Authorization = "Bearer $token"}
 
-**Request body:**
-```json
-{
-  "file_path": "C:/path/to/your/document.pdf",
-  "source_type": "textbook"
-}
+# Query
+Invoke-RestMethod -Method POST -Uri "http://localhost:8080/api/v1/query" `
+  -ContentType "application/json" -Headers $headers `
+  -Body '{"question": "What is the glass transition temperature of borosilicate glass?", "top_k": 5}'
 ```
 
 ---
 
 ## LLM Configuration
 
-The system supports three LLM modes, tried in order:
-
-1. **Local vLLM** (fastest, private): Set `LLM_BASE_URL` in `.env` to your vLLM server URL
-2. **OpenAI GPT** (cloud fallback): Set `OPENAI_API_KEY` in `.env`
-3. **Retrieval-only** (no LLM): If neither is available, returns the raw retrieved context
-
-To set up local vLLM with Llama-3-8B:
-```powershell
-pip install vllm
-python -m vllm.entrypoints.openai.api_server --model meta-llama/Meta-Llama-3-8B-Instruct --port 8000
-```
+Tried in order:
+1. **Local vLLM** (fastest, private): Set `LLM_BASE_URL` in `.env`
+2. **OpenAI GPT-4o-mini** (cloud fallback): Set `OPENAI_API_KEY` in `.env`
+3. **Retrieval-only**: Returns raw retrieved context if no LLM available
 
 ---
 
-## Ingesting Your 15GB Dataset
+## Services
 
-Once your real data arrives, organize it and run:
-
-```powershell
-# Clear sample data first
-docker exec glass_ai_postgres psql -U glassai -d glass_expert_ai -c "TRUNCATE TABLE documents, ingestion_log RESTART IDENTITY CASCADE;"
-
-# Ingest by folder (runs overnight)
-python ingestion/ingest.py data/real_data/textbooks/ --type textbook
-python ingestion/ingest.py data/real_data/papers/ --type paper
-python ingestion/ingest.py data/real_data/sops/ --type sop
-python ingestion/ingest.py data/real_data/standards/ --type standard
-```
-
-Supported file types: **PDF, CSV, NPZ, TXT, DOCX, JSON**
+| Service | Port | Credentials |
+|---------|------|-------------|
+| API Server | 8080 | JWT auth |
+| LLM Server | 8000 | token-glass-ai |
+| PostgreSQL | 5432 | glassai / glassai_secret |
+| Redis | 6379 | — |
+| pgAdmin | 5050 | admin@glassai.com / admin |
 
 ---
 
 ## Project Structure
-
 ```
 glass-expert-ai/
 ├── api/
-│   ├── main.py              ← FastAPI app entry point
-│   ├── routers/
-│   │   ├── query.py         ← POST /api/v1/query (RAG pipeline)
-│   │   ├── health.py        ← GET  /api/v1/health
-│   │   └── ingest.py        ← POST /api/v1/ingest
-│   └── models/
-│       └── schemas.py       ← Pydantic request/response models
+│   ├── core/
+│   │   ├── config.py          ← Centralised settings (pydantic-settings)
+│   │   ├── database.py        ← ThreadedConnectionPool (psycopg2)
+│   │   └── security.py        ← Auth re-exports
+│   ├── auth.py                ← JWT auth (register/login/me)
+│   ├── database.py            ← DB shim for backwards compatibility
+│   ├── main.py                ← FastAPI app entry point
+│   ├── models/
+│   │   └── schemas.py         ← Pydantic request/response models
+│   └── routers/
+│       ├── auth.py            ← /auth endpoints
+│       ├── query.py           ← POST /query — full RAG pipeline
+│       ├── analyze.py         ← POST /analyze
+│       ├── design.py          ← POST /design
+│       ├── troubleshoot.py    ← POST /troubleshoot
+│       ├── feedback.py        ← POST /feedback
+│       ├── conversations.py   ← Conversation CRUD + user memory
+│       ├── health.py          ← GET /health
+│       └── ingest.py          ← POST /ingest (admin only)
 ├── ingestion/
-│   ├── extractor.py         ← Multi-format text extraction
-│   ├── chunker.py           ← Text chunking
-│   ├── embedder.py          ← BAAI/bge-m3 GPU embeddings
-│   └── ingest.py            ← Main ingestion pipeline
+│   ├── embedder.py            ← bge-m3 embeddings (ST + instruction prefix)
+│   ├── extractor.py           ← PDF, CSV, JSON, DOCX, TXT, NPZ extraction
+│   ├── chunker.py             ← Text chunking
+│   └── ingest.py              ← Main ingestion pipeline
 ├── retrieval/
-│   ├── retriever.py         ← pgvector similarity search + Redis cache
-│   └── llm.py               ← LLM integration (vLLM / OpenAI)
-├── tests/
-│   ├── test_retrieval.py    ← Phase 1 retrieval tests
-│   └── test_api.py          ← Phase 2 API tests
+│   ├── retriever.py           ← Hybrid search: dense + sparse + RRF
+│   ├── reranker.py            ← bge-reranker-v2-m3 cross-encoder
+│   └── llm.py                 ← LLM integration + fallback governance
 ├── docker/
-│   ├── docker-compose.yml
-│   └── init.sql
-├── .env                     ← Configuration (DB, Redis, LLM settings)
+│   ├── docker-compose.yml     ← PostgreSQL + Redis + pgAdmin
+│   └── init.sql               ← Database schema (HNSW index)
+├── .env                       ← Configuration (never commit)
+├── .env.example               ← Environment template
 ├── requirements.txt
-├── start_api.ps1            ← One-click API start script
 └── README.md
 ```
+
+---
+
+## Branches
+
+| Branch | Owner | Description |
+|--------|-------|-------------|
+| `main` | MTAAI | Default branch |
+| `Arjun` | Arjun | Application + RAG pipeline (this branch) |
+| `glass-expert-ai` | Engineer Z | LLM fine-tuning + evaluation |
