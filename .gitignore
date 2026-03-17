@@ -29,6 +29,7 @@ data/
 !data/evaluation/*.jsonl
 *.csv
 *.jsonl
+!data/evaluation/*.jsonl
 *.npz
 *.gz
 *.xz
@@ -43,3 +44,20 @@ data/
 Thumbs.db
 .vscode/
 .idea/
+
+git add .gitignore
+git commit -m "chore: ignore test_retrieval.py"
+git push origin Arjun
+```
+
+---
+
+Regarding your question — **yes, all files are in your local project folder** at:
+```
+C:\Users\Documents\Projects\glass-expert-ai-phase1\glass-expert-ai\
+├── data\evaluation\golden_eval_set.jsonl      ← 50 glass science questions
+├── data\evaluation\persian_eval_set.jsonl     ← Farsi eval questions  
+├── scripts\evaluation\run_golden_eval.py      ← evaluation runner
+├── api\routers\feedback.py                    ← aligned with Engineer Z
+├── api\routers\health.py                      ← aligned with Engineer Z
+└── api\routers\ingest.py                      ← aligned with Engineer Z
