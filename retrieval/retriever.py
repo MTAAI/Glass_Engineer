@@ -39,11 +39,23 @@ REDIS_TTL              = int(os.getenv("REDIS_TTL_SECONDS", 86400))
 
 
 # ── Database connection ────────────────────────────────────────────────────────
+_pgvector_registered = set()
+
 def _get_db_connection():
+    """Get a pooled DB connection with pgvector extension registered."""
     from pgvector.psycopg2 import register_vector
-    conn = psycopg2.connect(os.getenv("DATABASE_URL"))
-    register_vector(conn)
+    from api.database import get_db_conn
+    conn = get_db_conn()
+    conn_id = id(conn)
+    if conn_id not in _pgvector_registered:
+        register_vector(conn)
+        _pgvector_registered.add(conn_id)
     return conn
+
+
+def _return_db_connection(conn):
+    from api.database import return_db_conn
+    return_db_conn(conn)
 
 
 # ── Redis cache connection ─────────────────────────────────────────────────────
@@ -404,7 +416,7 @@ def retrieve(
         return results
 
     finally:
-        conn.close()
+        _return_db_connection(conn)
 
 
 def retrieve_with_auto_language(
@@ -429,31 +441,15 @@ def retrieve_with_auto_language(
     if language != "en":
         retrieval_query = _translate_query_to_english(query)
 
-    # First try with language filter for Farsi queries
-    if language == "fa":
-        results = retrieve(
-            retrieval_query,
-            top_k=top_k,
-            language_filter="fa",
-            source_type_filter=source_type_filter,
-        )
-        # Fallback: if too few Farsi results, search all languages
-        if len(results) < 2:
-            logger.info(f"Only {len(results)} Farsi results, retrying without language filter")
-            results = retrieve(
-                retrieval_query,
-                top_k=top_k,
-                language_filter=None,
-                source_type_filter=source_type_filter,
-            )
-    else:
-        # English query: search all languages (English chunks are majority anyway)
-        results = retrieve(
-            retrieval_query,
-            top_k=top_k,
-            language_filter=None,
-            source_type_filter=source_type_filter,
-        )
+    # Since non-English queries are translated to English for embedding,
+    # always search ALL languages to leverage the full English knowledge base.
+    # The LLM will respond in the detected language regardless of source language.
+    results = retrieve(
+        retrieval_query,
+        top_k=top_k,
+        language_filter=None,  # search all languages — English corpus has the best coverage
+        source_type_filter=source_type_filter,
+    )
 
     return results, language
 

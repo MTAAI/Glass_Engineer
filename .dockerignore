@@ -33,3 +33,18 @@ cloudflared.exe
 
 # Claude config
 .claude/
+
+# Training artifacts (large)
+*.safetensors
+*.bin
+*.pt
+*.npz
+unsloth_compiled_cache/
+scripts/training/
+
+# Env files
+.env
+.env.*
+
+# Test/eval results
+*.jsonl

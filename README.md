@@ -1,68 +1,96 @@
-# Glass Expert AI — RAG + Fine-tuned LLM + OpenAI Fallback
+# Glass Expert AI
 
-A RAG-powered glass science assistant for engineers. Built with FastAPI, pgvector, and a React chat interface. Powered by a fine-tuned Llama 3.1 8B glass-expert model.
+Bilingual (English + Farsi) RAG-powered glass science assistant for engineers. Built with FastAPI, pgvector, React, and a fine-tuned LLM with OpenAI fallback.
 
 ---
 
 ## Architecture
 
 ```
-User → React UI (8080) → FastAPI API → RAG retrieval (pgvector)
-                                      → Fine-tuned LLM (8000)
-                                      → OpenAI fallback
+React UI (:8080) → FastAPI API → JWT Auth
+                                → RAG Retrieval (pgvector + bge-large-en-v1.5)
+                                → Reranker (cross-encoder)
+                                → Redis Cache (:6379)
+                                → Fine-tuned LLM (:8000) / OpenAI fallback
+                                → PostgreSQL (:5432)
 ```
+
+## Features
+
+- **RAG Q&A** — retrieval-augmented generation over 54K+ glass science chunks
+- **Bilingual** — English and Farsi support with auto-language detection
+- **JWT Authentication** — user registration, login, role-based access (admin/engineer)
+- **Chat Memory** — conversation history with session management
+- **Citations** — source attribution with per-source relevance feedback
+- **Specialized Endpoints** — composition analysis, glass design, defect troubleshooting
+- **Feedback System** — thumbs up/down with corrected text and source-level ratings
+- **Admin Ingestion** — PDF/CSV/DOCX/TXT/JSON/NPZ document pipeline (admin-only)
+
+---
 
 ## Quick Start
 
-### Step 1 — Install dependencies
+### 1. Install dependencies
 
-```powershell
+```bash
 pip install -r requirements.txt
+cd frontend && npm install && npm run build && cd ..
 ```
 
-### Step 2 — Configure environment
+### 2. Configure environment
 
-```powershell
+```bash
 cp .env.example .env
-# Edit .env with your values
+# Set: DATABASE_URL, REDIS_URL, JWT_SECRET_KEY, OPENAI_API_KEY
 ```
 
-### Step 3 — Start PostgreSQL and Redis
+### 3. Start PostgreSQL and Redis
 
-```powershell
+```bash
 cd docker && docker compose up -d && cd ..
 ```
 
-### Step 4 — Start the LLM model server
+### 4. Start the LLM model server (optional)
 
-```powershell
+```bash
 python model_service/serve.py
-# Runs on port 8000
+# Runs on port 8000 — falls back to OpenAI if unavailable
 ```
 
-### Step 5 — Start the API server
+### 5. Start the API server
 
-```powershell
+```bash
 python -m uvicorn api.main:app --host 0.0.0.0 --port 8080 --reload
 ```
 
-### Step 6 — Open the Chat UI
+### 6. Open the app
 
-Navigate to: **http://localhost:8080/**
+Navigate to **http://localhost:8080/** — register an account and start querying.
 
 ---
 
 ## API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/health` | System health check |
-| POST | `/api/v1/query` | RAG Q&A (main endpoint) |
-| POST | `/api/v1/analyze` | Composition analysis |
-| POST | `/api/v1/design` | Composition design |
-| POST | `/api/v1/troubleshoot` | Defect diagnosis |
-| POST | `/api/v1/feedback` | User feedback |
-| POST | `/api/v1/ingest` | Document ingestion |
+All endpoints (except health) require JWT authentication via `Authorization: Bearer <token>`.
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/api/v1/health` | Public | System health check |
+| POST | `/api/v1/auth/register` | Public | Create account |
+| POST | `/api/v1/auth/login` | Public | Login (returns JWT) |
+| GET | `/api/v1/auth/me` | Required | Current user profile |
+| POST | `/api/v1/query` | Required | RAG Q&A (main endpoint) |
+| POST | `/api/v1/analyze` | Required | Composition analysis |
+| POST | `/api/v1/design` | Required | Glass composition design |
+| POST | `/api/v1/troubleshoot` | Required | Defect diagnosis |
+| GET | `/api/v1/conversations` | Required | List conversations |
+| GET | `/api/v1/conversations/{id}` | Required | Get conversation messages |
+| POST | `/api/v1/conversations` | Required | Create conversation |
+| PATCH | `/api/v1/conversations/{id}` | Required | Rename conversation |
+| DELETE | `/api/v1/conversations/{id}` | Required | Delete conversation |
+| POST | `/api/v1/feedback` | Required | Submit feedback |
+| POST | `/api/v1/feedback/source` | Required | Source relevance feedback |
+| POST | `/api/v1/ingest` | Admin | Document ingestion |
 
 Swagger docs: **http://localhost:8080/docs**
 
@@ -72,24 +100,39 @@ Swagger docs: **http://localhost:8080/docs**
 
 ```
 glass-expert-ai/
-├── model_service/
-│   └── serve.py              ← Fine-tuned LLM server (port 8000)
 ├── api/
-│   ├── main.py               ← FastAPI app + React UI (port 8080)
-│   └── routers/              ← API endpoints
-├── frontend/                 ← React + TypeScript + TailwindCSS
-├── ingestion/                ← Document → pgvector pipeline
-├── retrieval/                ← RAG search + LLM integration
+│   ├── main.py               ← FastAPI app + static UI serving
+│   ├── auth.py                ← JWT auth (register/login/me)
+│   ├── database.py            ← Connection pool management
+│   └── routers/
+│       ├── query.py           ← RAG Q&A + chat history
+│       ├── analyze.py         ← Composition analysis
+│       ├── design.py          ← Glass design
+│       ├── troubleshoot.py    ← Defect troubleshooting
+│       ├── conversations.py   ← Chat session management
+│       ├── feedback.py        ← User feedback + source ratings
+│       ├── health.py          ← Health check
+│       └── ingest.py          ← Document ingestion (admin)
+├── frontend/                  ← React + TypeScript + TailwindCSS
+│   └── src/
+│       ├── App.tsx            ← Main app (auth, chat, sidebar)
+│       ├── api/client.ts      ← API client with JWT interceptor
+│       └── types/index.ts     ← TypeScript interfaces
+├── model_service/
+│   └── serve.py               ← Fine-tuned LLM server (port 8000)
+├── ingestion/                 ← Document → pgvector pipeline
+├── retrieval/
+│   ├── retriever.py           ← Dense search + reranker
+│   └── llm.py                 ← LLM integration + fallback
 ├── scripts/
-│   ├── qa_generation/        ← Q&A dataset generation
-│   ├── training/             ← Fine-tuning scripts
-│   └── evaluation/           ← Model evaluation
+│   ├── training/              ← QLoRA fine-tuning pipeline
+│   ├── evaluation/            ← RAG + model evaluation
+│   └── cleanup_garbage_chunks.sql
 ├── data/
-│   ├── evaluation/           ← Golden eval set + results
-│   └── sample_docs/          ← Sample documents
+│   └── evaluation/            ← Golden eval set + results
 ├── docker/
-│   ├── docker-compose.yml    ← PostgreSQL + Redis
-│   └── init.sql              ← Database schema
+│   ├── docker-compose.yml     ← PostgreSQL + Redis + pgAdmin
+│   └── init.sql               ← Database schema
 └── requirements.txt
 ```
 
@@ -97,10 +140,41 @@ glass-expert-ai/
 
 ## Services
 
-| Service | Host | Port | Credentials |
-|---------|------|------|-------------|
-| LLM Server | localhost | 8000 | — |
-| API Server | localhost | 8080 | — |
-| PostgreSQL | localhost | 5432 | glassai / glassai_secret |
-| Redis | localhost | 6379 | — |
-| pgAdmin | localhost | 5050 | admin@glassai.com / admin |
+| Service | Port | Credentials |
+|---------|------|-------------|
+| API Server | 8080 | JWT auth |
+| LLM Server | 8000 | — |
+| PostgreSQL | 5432 | glassai / glassai_secret |
+| Redis | 6379 | — |
+| pgAdmin | 5050 | admin@glassai.com / admin |
+
+---
+
+## Evaluation Results
+
+| Metric | English | Farsi |
+|--------|---------|-------|
+| GOOD answers | 78% | 0%* |
+| RAG retrieval (top-5 hit rate) | ~85% | ~15%* |
+
+*Farsi limited by corpus size (42 Farsi chunks). BGE-M3 multilingual re-embedding in progress to enable cross-lingual retrieval.
+
+---
+
+## Training
+
+QLoRA fine-tuning pipeline for Qwen2.5-14B-Instruct:
+- 141K training examples in chat format (system/user/assistant)
+- r=64, alpha=128, 4-bit NF4 quantization
+- Bilingual (English + Farsi) glass science domain
+
+---
+
+## Tech Stack
+
+- **Backend**: FastAPI, PostgreSQL + pgvector, Redis
+- **Frontend**: React, TypeScript, TailwindCSS
+- **Embeddings**: bge-large-en-v1.5 (upgrading to bge-m3)
+- **Reranker**: cross-encoder/ms-marco-MiniLM-L-6-v2
+- **LLM**: Qwen2.5-14B-Instruct (fine-tuned) + OpenAI gpt-4o-mini fallback
+- **Auth**: JWT (python-jose + passlib/bcrypt)

@@ -20,13 +20,14 @@ async def health_check():
     total_docs = 0
     total_chunks = 0
     try:
-        conn = psycopg2.connect(os.getenv("DATABASE_URL"))
-        cur = conn.cursor()
-        cur.execute("SELECT COUNT(DISTINCT title) FROM documents;")
-        total_docs = cur.fetchone()[0]
-        cur.execute("SELECT COUNT(*) FROM documents;")
-        total_chunks = cur.fetchone()[0]
-        conn.close()
+        from api.database import get_db
+        with get_db() as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT COUNT(DISTINCT title) FROM documents;")
+            total_docs = cur.fetchone()[0]
+            cur.execute("SELECT COUNT(*) FROM documents;")
+            total_chunks = cur.fetchone()[0]
+            cur.close()
         db_status = "healthy"
     except Exception as e:
         logger.warning(f"Database health check failed: {e}")

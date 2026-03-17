@@ -1,0 +1,1796 @@
+{
+  "en": {
+    "label": "en",
+    "timestamp": "2026-03-16T13:52:00.327445",
+    "n_questions": 50,
+    "errors": 0,
+    "empty_retrievals": 0,
+    "mean_top_similarity": 0.7744,
+    "mean_avg_similarity": 0.7142,
+    "mean_keyword_overlap": 0.5446,
+    "mean_domain_kw_hit_pct": 55.16,
+    "mean_latency_ms": 15392.0,
+    "quality_distribution": {
+      "GOOD": 39,
+      "OK": 11
+    },
+    "by_category": {
+      "Chemical Durability": 0.7255,
+      "Glass Applications": 0.7891,
+      "Glass Ceramics": 0.7762,
+      "Glass Composition": 0.7751,
+      "Glass Defects": 0.7099,
+      "Glass Defects & Quality": 0.8845,
+      "Glass Forming": 0.7575,
+      "Glass Manufacturing": 0.6807,
+      "Glass Melting": 0.7983,
+      "Glass Properties": 0.7621,
+      "Glass Science Fundamentals": 0.8023,
+      "Glass Strengthening": 0.7219,
+      "Glass Structure": 0.8229,
+      "Manufacturing": 0.7881,
+      "Mechanical Properties": 0.8372,
+      "Optical Properties": 0.7782,
+      "Specialty Glass": 0.7386,
+      "Thermal Properties": 0.7882
+    },
+    "results": [
+      {
+        "id": 1,
+        "category": "Thermal Properties",
+        "difficulty": "intermediate",
+        "question": "What is the glass transition temperature (Tg) of soda-lime-silica glass?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.7044,
+        "top_similarity": 0.8672,
+        "avg_rerank_score": 0.9858,
+        "top_rerank_score": 0.9988,
+        "keyword_overlap": 0.6889,
+        "domain_kw_hits": {
+          "total": 4,
+          "found": 3,
+          "pct": 75.0
+        },
+        "latency_ms": 230.0,
+        "source_types": {
+          "textbook": 3,
+          "qa_pair": 2
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 2,
+        "category": "Thermal Properties",
+        "difficulty": "intermediate",
+        "question": "What is the glass transition temperature of borosilicate glass (e.g., Pyrex)?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.5277,
+        "top_similarity": 0.6385,
+        "avg_rerank_score": 0.6062,
+        "top_rerank_score": 0.9899,
+        "keyword_overlap": 0.5294,
+        "domain_kw_hits": {
+          "total": 5,
+          "found": 4,
+          "pct": 80.0
+        },
+        "latency_ms": 37711.0,
+        "source_types": {
+          "textbook": 3,
+          "qa_pair": 2
+        },
+        "quality": "OK"
+      },
+      {
+        "id": 3,
+        "category": "Thermal Properties",
+        "difficulty": "advanced",
+        "question": "What is the glass transition temperature of fused silica (pure SiO2 glass)?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.7201,
+        "top_similarity": 0.784,
+        "avg_rerank_score": 0.9859,
+        "top_rerank_score": 0.9944,
+        "keyword_overlap": 0.6038,
+        "domain_kw_hits": {
+          "total": 5,
+          "found": 4,
+          "pct": 80.0
+        },
+        "latency_ms": 15357.0,
+        "source_types": {
+          "qa_pair": 3,
+          "textbook": 2
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 4,
+        "category": "Thermal Properties",
+        "difficulty": "intermediate",
+        "question": "What is the coefficient of thermal expansion (CTE) of borosilicate glass, and why is it important?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.7922,
+        "top_similarity": 0.8481,
+        "avg_rerank_score": 0.9759,
+        "top_rerank_score": 0.9954,
+        "keyword_overlap": 0.5273,
+        "domain_kw_hits": {
+          "total": 5,
+          "found": 3,
+          "pct": 60.0
+        },
+        "latency_ms": 15486.0,
+        "source_types": {
+          "qa_pair": 5
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 5,
+        "category": "Thermal Properties",
+        "difficulty": "intermediate",
+        "question": "Explain the Vogel-Fulcher-Tammann (VFT) equation and its significance in glass science.",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.7184,
+        "top_similarity": 0.8556,
+        "avg_rerank_score": 0.9263,
+        "top_rerank_score": 0.9967,
+        "keyword_overlap": 0.6531,
+        "domain_kw_hits": {
+          "total": 5,
+          "found": 5,
+          "pct": 100.0
+        },
+        "latency_ms": 17214.0,
+        "source_types": {
+          "qa_pair": 4,
+          "textbook": 1
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 6,
+        "category": "Thermal Properties",
+        "difficulty": "intermediate",
+        "question": "What are the key viscosity reference points used in glass manufacturing and what do they represent?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.5864,
+        "top_similarity": 0.736,
+        "avg_rerank_score": 0.5014,
+        "top_rerank_score": 0.8999,
+        "keyword_overlap": 0.44,
+        "domain_kw_hits": {
+          "total": 6,
+          "found": 6,
+          "pct": 100.0
+        },
+        "latency_ms": 15746.0,
+        "source_types": {
+          "textbook": 3,
+          "qa_pair": 2
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 7,
+        "category": "Glass Structure",
+        "difficulty": "intermediate",
+        "question": "What are Zachariasen's rules for glass formation, and what is their significance?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.6657,
+        "top_similarity": 0.7887,
+        "avg_rerank_score": 0.3619,
+        "top_rerank_score": 0.9952,
+        "keyword_overlap": 0.7838,
+        "domain_kw_hits": {
+          "total": 5,
+          "found": 3,
+          "pct": 60.0
+        },
+        "latency_ms": 15372.0,
+        "source_types": {
+          "qa_pair": 2,
+          "textbook": 3
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 8,
+        "category": "Glass Structure",
+        "difficulty": "beginner",
+        "question": "What is the difference between glass network formers, network modifiers, and intermediates? Give examples of each.",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.7398,
+        "top_similarity": 0.7677,
+        "avg_rerank_score": 0.724,
+        "top_rerank_score": 0.9832,
+        "keyword_overlap": 0.6765,
+        "domain_kw_hits": {
+          "total": 5,
+          "found": 4,
+          "pct": 80.0
+        },
+        "latency_ms": 15424.0,
+        "source_types": {
+          "qa_pair": 3,
+          "textbook": 1,
+          "paper": 1
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 9,
+        "category": "Glass Structure",
+        "difficulty": "advanced",
+        "question": "What is a non-bridging oxygen (NBO) and how does it affect glass properties?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.8886,
+        "top_similarity": 0.9124,
+        "avg_rerank_score": 0.9995,
+        "top_rerank_score": 0.9999,
+        "keyword_overlap": 0.7183,
+        "domain_kw_hits": {
+          "total": 5,
+          "found": 4,
+          "pct": 80.0
+        },
+        "latency_ms": 15484.0,
+        "source_types": {
+          "qa_pair": 5
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 10,
+        "category": "Glass Composition",
+        "difficulty": "beginner",
+        "question": "What is the typical composition of commercial soda-lime-silica glass used for windows and bottles?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.5417,
+        "top_similarity": 0.7084,
+        "avg_rerank_score": 0.5073,
+        "top_rerank_score": 0.734,
+        "keyword_overlap": 0.5254,
+        "domain_kw_hits": {
+          "total": 6,
+          "found": 6,
+          "pct": 100.0
+        },
+        "latency_ms": 15407.0,
+        "source_types": {
+          "textbook": 4,
+          "qa_pair": 1
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 11,
+        "category": "Glass Composition",
+        "difficulty": "intermediate",
+        "question": "What is the typical composition of borosilicate glass and what role does B2O3 play?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.6357,
+        "top_similarity": 0.7823,
+        "avg_rerank_score": 0.6229,
+        "top_rerank_score": 0.9743,
+        "keyword_overlap": 0.5652,
+        "domain_kw_hits": {
+          "total": 5,
+          "found": 4,
+          "pct": 80.0
+        },
+        "latency_ms": 15259.0,
+        "source_types": {
+          "textbook": 3,
+          "qa_pair": 1,
+          "standard": 1
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 12,
+        "category": "Glass Defects",
+        "difficulty": "intermediate",
+        "question": "What is devitrification in glass and what are its main causes?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.592,
+        "top_similarity": 0.6622,
+        "avg_rerank_score": 0.0127,
+        "top_rerank_score": 0.0238,
+        "keyword_overlap": 0.4507,
+        "domain_kw_hits": {
+          "total": 5,
+          "found": 1,
+          "pct": 20.0
+        },
+        "latency_ms": 15413.0,
+        "source_types": {
+          "qa_pair": 2,
+          "textbook": 3
+        },
+        "quality": "OK"
+      },
+      {
+        "id": 13,
+        "category": "Glass Defects",
+        "difficulty": "intermediate",
+        "question": "What are seeds and blisters in glass, and how are they caused?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.6595,
+        "top_similarity": 0.6739,
+        "avg_rerank_score": 0.0828,
+        "top_rerank_score": 0.1577,
+        "keyword_overlap": 0.4805,
+        "domain_kw_hits": {
+          "total": 6,
+          "found": 1,
+          "pct": 16.7
+        },
+        "latency_ms": 15613.0,
+        "source_types": {
+          "qa_pair": 3,
+          "paper": 2
+        },
+        "quality": "OK"
+      },
+      {
+        "id": 14,
+        "category": "Glass Defects",
+        "difficulty": "intermediate",
+        "question": "What are stones in glass and what are their typical sources?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.6474,
+        "top_similarity": 0.7283,
+        "avg_rerank_score": 0.3756,
+        "top_rerank_score": 0.9363,
+        "keyword_overlap": 0.6835,
+        "domain_kw_hits": {
+          "total": 6,
+          "found": 5,
+          "pct": 83.3
+        },
+        "latency_ms": 15394.0,
+        "source_types": {
+          "sop": 3,
+          "textbook": 2
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 15,
+        "category": "Glass Defects",
+        "difficulty": "beginner",
+        "question": "What is annealing in glass manufacturing and why is it necessary?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.8268,
+        "top_similarity": 0.8527,
+        "avg_rerank_score": 0.9927,
+        "top_rerank_score": 0.9981,
+        "keyword_overlap": 0.5571,
+        "domain_kw_hits": {
+          "total": 6,
+          "found": 2,
+          "pct": 33.3
+        },
+        "latency_ms": 10975.0,
+        "source_types": {
+          "qa_pair": 5
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 16,
+        "category": "Glass Strengthening",
+        "difficulty": "intermediate",
+        "question": "How does thermal tempering strengthen glass and what are its limitations?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.7225,
+        "top_similarity": 0.7645,
+        "avg_rerank_score": 0.5833,
+        "top_rerank_score": 0.8974,
+        "keyword_overlap": 0.6125,
+        "domain_kw_hits": {
+          "total": 5,
+          "found": 3,
+          "pct": 60.0
+        },
+        "latency_ms": 15377.0,
+        "source_types": {
+          "qa_pair": 3,
+          "textbook": 2
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 17,
+        "category": "Glass Strengthening",
+        "difficulty": "advanced",
+        "question": "What is chemical strengthening of glass (ion exchange) and how does it differ from thermal tempering?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.6297,
+        "top_similarity": 0.6793,
+        "avg_rerank_score": 0.1675,
+        "top_rerank_score": 0.5497,
+        "keyword_overlap": 0.5286,
+        "domain_kw_hits": {
+          "total": 6,
+          "found": 3,
+          "pct": 50.0
+        },
+        "latency_ms": 15289.0,
+        "source_types": {
+          "qa_pair": 1,
+          "paper": 3,
+          "textbook": 1
+        },
+        "quality": "OK"
+      },
+      {
+        "id": 18,
+        "category": "Manufacturing",
+        "difficulty": "intermediate",
+        "question": "Describe the float glass process and explain why it produces flat glass with parallel surfaces.",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.8224,
+        "top_similarity": 0.8381,
+        "avg_rerank_score": 0.9953,
+        "top_rerank_score": 0.9974,
+        "keyword_overlap": 0.6438,
+        "domain_kw_hits": {
+          "total": 6,
+          "found": 6,
+          "pct": 100.0
+        },
+        "latency_ms": 15272.0,
+        "source_types": {
+          "qa_pair": 5
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 19,
+        "category": "Manufacturing",
+        "difficulty": "intermediate",
+        "question": "What is the role of fining agents in glass melting and what are common examples?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.7312,
+        "top_similarity": 0.7752,
+        "avg_rerank_score": 0.7714,
+        "top_rerank_score": 0.9185,
+        "keyword_overlap": 0.5769,
+        "domain_kw_hits": {
+          "total": 6,
+          "found": 5,
+          "pct": 83.3
+        },
+        "latency_ms": 15237.0,
+        "source_types": {
+          "qa_pair": 3,
+          "paper": 1,
+          "textbook": 1
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 20,
+        "category": "Manufacturing",
+        "difficulty": "intermediate",
+        "question": "What is the batch calculation in glass manufacturing and what are the key raw materials for soda-lime glass?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.7168,
+        "top_similarity": 0.7511,
+        "avg_rerank_score": 0.8321,
+        "top_rerank_score": 0.9448,
+        "keyword_overlap": 0.7302,
+        "domain_kw_hits": {
+          "total": 7,
+          "found": 5,
+          "pct": 71.4
+        },
+        "latency_ms": 15501.0,
+        "source_types": {
+          "qa_pair": 2,
+          "textbook": 3
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 21,
+        "category": "Optical Properties",
+        "difficulty": "intermediate",
+        "question": "What is the refractive index of common glass types and what factors affect it?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.7604,
+        "top_similarity": 0.7841,
+        "avg_rerank_score": 0.9483,
+        "top_rerank_score": 0.9849,
+        "keyword_overlap": 0.4762,
+        "domain_kw_hits": {
+          "total": 6,
+          "found": 3,
+          "pct": 50.0
+        },
+        "latency_ms": 11663.0,
+        "source_types": {
+          "qa_pair": 5
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 22,
+        "category": "Optical Properties",
+        "difficulty": "intermediate",
+        "question": "What causes glass to be colored and how are different colors achieved in commercial glass?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.761,
+        "top_similarity": 0.7859,
+        "avg_rerank_score": 0.7519,
+        "top_rerank_score": 0.9435,
+        "keyword_overlap": 0.7123,
+        "domain_kw_hits": {
+          "total": 6,
+          "found": 3,
+          "pct": 50.0
+        },
+        "latency_ms": 15316.0,
+        "source_types": {
+          "textbook": 1,
+          "qa_pair": 3,
+          "paper": 1
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 23,
+        "category": "Optical Properties",
+        "difficulty": "advanced",
+        "question": "What is the Abbe number (V-number) and how is it used in optical glass design?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.7061,
+        "top_similarity": 0.7646,
+        "avg_rerank_score": 0.608,
+        "top_rerank_score": 0.9816,
+        "keyword_overlap": 0.5088,
+        "domain_kw_hits": {
+          "total": 6,
+          "found": 3,
+          "pct": 50.0
+        },
+        "latency_ms": 15360.0,
+        "source_types": {
+          "qa_pair": 3,
+          "textbook": 1,
+          "standard": 1
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 24,
+        "category": "Mechanical Properties",
+        "difficulty": "intermediate",
+        "question": "What is the typical modulus of elasticity (Young's modulus) of glass and how does composition affect it?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.804,
+        "top_similarity": 0.8733,
+        "avg_rerank_score": 0.9865,
+        "top_rerank_score": 0.9955,
+        "keyword_overlap": 0.5441,
+        "domain_kw_hits": {
+          "total": 5,
+          "found": 3,
+          "pct": 60.0
+        },
+        "latency_ms": 15378.0,
+        "source_types": {
+          "qa_pair": 5
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 25,
+        "category": "Mechanical Properties",
+        "difficulty": "advanced",
+        "question": "Explain the Griffith theory of glass fracture and why glass is much weaker in practice than in theory.",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.7451,
+        "top_similarity": 0.801,
+        "avg_rerank_score": 0.2776,
+        "top_rerank_score": 0.5973,
+        "keyword_overlap": 0.5625,
+        "domain_kw_hits": {
+          "total": 6,
+          "found": 2,
+          "pct": 33.3
+        },
+        "latency_ms": 15360.0,
+        "source_types": {
+          "textbook": 2,
+          "paper": 3
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 26,
+        "category": "Glass Ceramics",
+        "difficulty": "intermediate",
+        "question": "What is a glass-ceramic and how is it different from glass and from polycrystalline ceramics?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.7251,
+        "top_similarity": 0.7781,
+        "avg_rerank_score": 0.6038,
+        "top_rerank_score": 0.7161,
+        "keyword_overlap": 0.4778,
+        "domain_kw_hits": {
+          "total": 6,
+          "found": 3,
+          "pct": 50.0
+        },
+        "latency_ms": 15371.0,
+        "source_types": {
+          "qa_pair": 4,
+          "paper": 1
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 27,
+        "category": "Glass Ceramics",
+        "difficulty": "advanced",
+        "question": "What is Zerodur glass-ceramic and why is it used for telescope mirrors?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.692,
+        "top_similarity": 0.7742,
+        "avg_rerank_score": 0.4203,
+        "top_rerank_score": 0.9729,
+        "keyword_overlap": 0.557,
+        "domain_kw_hits": {
+          "total": 6,
+          "found": 3,
+          "pct": 50.0
+        },
+        "latency_ms": 15217.0,
+        "source_types": {
+          "qa_pair": 3,
+          "paper": 2
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 28,
+        "category": "Specialty Glass",
+        "difficulty": "intermediate",
+        "question": "What is Gorilla Glass and what makes it suitable for smartphone screens?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.5962,
+        "top_similarity": 0.6847,
+        "avg_rerank_score": 0.0715,
+        "top_rerank_score": 0.3496,
+        "keyword_overlap": 0.4615,
+        "domain_kw_hits": {
+          "total": 6,
+          "found": 5,
+          "pct": 83.3
+        },
+        "latency_ms": 15484.0,
+        "source_types": {
+          "qa_pair": 4,
+          "textbook": 1
+        },
+        "quality": "OK"
+      },
+      {
+        "id": 29,
+        "category": "Specialty Glass",
+        "difficulty": "intermediate",
+        "question": "What is borosilicate glass type 3.3 and what are its key applications?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.7186,
+        "top_similarity": 0.7924,
+        "avg_rerank_score": 0.4812,
+        "top_rerank_score": 0.9386,
+        "keyword_overlap": 0.3797,
+        "domain_kw_hits": {
+          "total": 6,
+          "found": 1,
+          "pct": 16.7
+        },
+        "latency_ms": 15231.0,
+        "source_types": {
+          "qa_pair": 4,
+          "paper": 1
+        },
+        "quality": "OK"
+      },
+      {
+        "id": 30,
+        "category": "Chemical Durability",
+        "difficulty": "intermediate",
+        "question": "What is hydrolytic resistance of glass and how is it classified?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.7006,
+        "top_similarity": 0.7255,
+        "avg_rerank_score": 0.1695,
+        "top_rerank_score": 0.4144,
+        "keyword_overlap": 0.4638,
+        "domain_kw_hits": {
+          "total": 6,
+          "found": 2,
+          "pct": 33.3
+        },
+        "latency_ms": 15527.0,
+        "source_types": {
+          "qa_pair": 4,
+          "textbook": 1
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 31,
+        "category": "Glass Melting",
+        "difficulty": "intermediate",
+        "question": "What temperature is required to melt soda-lime glass and what are the stages of the melting process?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.6859,
+        "top_similarity": 0.7455,
+        "avg_rerank_score": 0.9414,
+        "top_rerank_score": 0.9729,
+        "keyword_overlap": 0.4384,
+        "domain_kw_hits": {
+          "total": 6,
+          "found": 3,
+          "pct": 50.0
+        },
+        "latency_ms": 15373.0,
+        "source_types": {
+          "qa_pair": 4,
+          "textbook": 1
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 32,
+        "category": "Glass Melting",
+        "difficulty": "advanced",
+        "question": "What is a regenerative furnace and why is it used in glass manufacturing?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.7992,
+        "top_similarity": 0.851,
+        "avg_rerank_score": 0.868,
+        "top_rerank_score": 0.9957,
+        "keyword_overlap": 0.7195,
+        "domain_kw_hits": {
+          "total": 6,
+          "found": 4,
+          "pct": 66.7
+        },
+        "latency_ms": 15519.0,
+        "source_types": {
+          "textbook": 2,
+          "qa_pair": 3
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 33,
+        "category": "Glass Forming",
+        "difficulty": "beginner",
+        "question": "What are the main glass forming methods used in industry?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.7294,
+        "top_similarity": 0.7459,
+        "avg_rerank_score": 0.7543,
+        "top_rerank_score": 0.8698,
+        "keyword_overlap": 0.2319,
+        "domain_kw_hits": {
+          "total": 6,
+          "found": 1,
+          "pct": 16.7
+        },
+        "latency_ms": 15405.0,
+        "source_types": {
+          "qa_pair": 5
+        },
+        "quality": "OK"
+      },
+      {
+        "id": 34,
+        "category": "Glass Forming",
+        "difficulty": "intermediate",
+        "question": "How are optical fibers manufactured and what glass composition is used?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.7196,
+        "top_similarity": 0.7692,
+        "avg_rerank_score": 0.4415,
+        "top_rerank_score": 0.6065,
+        "keyword_overlap": 0.4118,
+        "domain_kw_hits": {
+          "total": 7,
+          "found": 0,
+          "pct": 0.0
+        },
+        "latency_ms": 15595.0,
+        "source_types": {
+          "qa_pair": 4,
+          "textbook": 1
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 35,
+        "category": "Glass Properties",
+        "difficulty": "intermediate",
+        "question": "What is the fictive temperature of glass and why is it important?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.6815,
+        "top_similarity": 0.7813,
+        "avg_rerank_score": 0.7703,
+        "top_rerank_score": 0.9492,
+        "keyword_overlap": 0.6212,
+        "domain_kw_hits": {
+          "total": 6,
+          "found": 5,
+          "pct": 83.3
+        },
+        "latency_ms": 15466.0,
+        "source_types": {
+          "qa_pair": 3,
+          "textbook": 2
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 36,
+        "category": "Glass Properties",
+        "difficulty": "intermediate",
+        "question": "What is the density of common glass types and what factors affect it?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.7496,
+        "top_similarity": 0.7767,
+        "avg_rerank_score": 0.5046,
+        "top_rerank_score": 0.7598,
+        "keyword_overlap": 0.3913,
+        "domain_kw_hits": {
+          "total": 6,
+          "found": 1,
+          "pct": 16.7
+        },
+        "latency_ms": 15498.0,
+        "source_types": {
+          "qa_pair": 5
+        },
+        "quality": "OK"
+      },
+      {
+        "id": 37,
+        "category": "Glass Composition",
+        "difficulty": "advanced",
+        "question": "What is the role of alumina (Al2O3) in glass composition and properties?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.8236,
+        "top_similarity": 0.852,
+        "avg_rerank_score": 0.9992,
+        "top_rerank_score": 0.9996,
+        "keyword_overlap": 0.5211,
+        "domain_kw_hits": {
+          "total": 6,
+          "found": 2,
+          "pct": 33.3
+        },
+        "latency_ms": 15400.0,
+        "source_types": {
+          "qa_pair": 5
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 38,
+        "category": "Glass Composition",
+        "difficulty": "intermediate",
+        "question": "What is E-glass fiber and what is its composition and use?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.7155,
+        "top_similarity": 0.7419,
+        "avg_rerank_score": 0.7887,
+        "top_rerank_score": 0.9473,
+        "keyword_overlap": 0.4578,
+        "domain_kw_hits": {
+          "total": 6,
+          "found": 3,
+          "pct": 50.0
+        },
+        "latency_ms": 15323.0,
+        "source_types": {
+          "qa_pair": 4,
+          "paper": 1
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 39,
+        "category": "Glass Defects",
+        "difficulty": "intermediate",
+        "question": "What are striae (cords) in glass and how are they formed?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.6283,
+        "top_similarity": 0.6325,
+        "avg_rerank_score": 0.0124,
+        "top_rerank_score": 0.024,
+        "keyword_overlap": 0.2561,
+        "domain_kw_hits": {
+          "total": 6,
+          "found": 0,
+          "pct": 0.0
+        },
+        "latency_ms": 15350.0,
+        "source_types": {
+          "manual": 5
+        },
+        "quality": "OK"
+      },
+      {
+        "id": 40,
+        "category": "Glass Properties",
+        "difficulty": "intermediate",
+        "question": "What is the Knoop hardness of glass and how does it compare to other materials?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.6926,
+        "top_similarity": 0.7283,
+        "avg_rerank_score": 0.0785,
+        "top_rerank_score": 0.182,
+        "keyword_overlap": 0.3913,
+        "domain_kw_hits": {
+          "total": 5,
+          "found": 2,
+          "pct": 40.0
+        },
+        "latency_ms": 15374.0,
+        "source_types": {
+          "paper": 2,
+          "qa_pair": 3
+        },
+        "quality": "OK"
+      },
+      {
+        "id": 41,
+        "category": "Glass Science Fundamentals",
+        "difficulty": "beginner",
+        "question": "What is the definition of glass and what distinguishes it from a crystalline solid?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.6895,
+        "top_similarity": 0.7189,
+        "avg_rerank_score": 0.2253,
+        "top_rerank_score": 0.4525,
+        "keyword_overlap": 0.5854,
+        "domain_kw_hits": {
+          "total": 6,
+          "found": 1,
+          "pct": 16.7
+        },
+        "latency_ms": 15163.0,
+        "source_types": {
+          "qa_pair": 4,
+          "paper": 1
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 42,
+        "category": "Glass Science Fundamentals",
+        "difficulty": "intermediate",
+        "question": "What is the glass transition and how does it differ from melting?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.7235,
+        "top_similarity": 0.8009,
+        "avg_rerank_score": 0.9728,
+        "top_rerank_score": 0.9858,
+        "keyword_overlap": 0.64,
+        "domain_kw_hits": {
+          "total": 7,
+          "found": 4,
+          "pct": 57.1
+        },
+        "latency_ms": 15464.0,
+        "source_types": {
+          "qa_pair": 4,
+          "textbook": 1
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 43,
+        "category": "Glass Composition",
+        "difficulty": "advanced",
+        "question": "What is the boron anomaly (boron oxide anomaly) in glass science?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.7472,
+        "top_similarity": 0.8071,
+        "avg_rerank_score": 0.458,
+        "top_rerank_score": 0.9333,
+        "keyword_overlap": 0.72,
+        "domain_kw_hits": {
+          "total": 7,
+          "found": 1,
+          "pct": 14.3
+        },
+        "latency_ms": 15197.0,
+        "source_types": {
+          "textbook": 2,
+          "qa_pair": 3
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 44,
+        "category": "Glass Applications",
+        "difficulty": "beginner",
+        "question": "What is laminated safety glass and how does it work?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.7598,
+        "top_similarity": 0.8142,
+        "avg_rerank_score": 0.9799,
+        "top_rerank_score": 0.9992,
+        "keyword_overlap": 0.5067,
+        "domain_kw_hits": {
+          "total": 6,
+          "found": 5,
+          "pct": 83.3
+        },
+        "latency_ms": 15298.0,
+        "source_types": {
+          "qa_pair": 5
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 45,
+        "category": "Glass Applications",
+        "difficulty": "intermediate",
+        "question": "What is low-emissivity (low-e) glass coating and how does it work?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.6978,
+        "top_similarity": 0.764,
+        "avg_rerank_score": 0.2141,
+        "top_rerank_score": 0.9932,
+        "keyword_overlap": 0.6024,
+        "domain_kw_hits": {
+          "total": 6,
+          "found": 3,
+          "pct": 50.0
+        },
+        "latency_ms": 15262.0,
+        "source_types": {
+          "qa_pair": 2,
+          "textbook": 2,
+          "paper": 1
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 46,
+        "category": "Glass Science Fundamentals",
+        "difficulty": "advanced",
+        "question": "What is the fragility of a glass-forming liquid and how is it classified?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.7753,
+        "top_similarity": 0.8046,
+        "avg_rerank_score": 0.9947,
+        "top_rerank_score": 0.9998,
+        "keyword_overlap": 0.5205,
+        "domain_kw_hits": {
+          "total": 7,
+          "found": 7,
+          "pct": 100.0
+        },
+        "latency_ms": 15234.0,
+        "source_types": {
+          "qa_pair": 5
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 47,
+        "category": "Glass Composition",
+        "difficulty": "intermediate",
+        "question": "What is the role of iron oxide in glass and how is it controlled?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.7359,
+        "top_similarity": 0.759,
+        "avg_rerank_score": 0.7725,
+        "top_rerank_score": 0.9689,
+        "keyword_overlap": 0.4286,
+        "domain_kw_hits": {
+          "total": 7,
+          "found": 4,
+          "pct": 57.1
+        },
+        "latency_ms": 15386.0,
+        "source_types": {
+          "qa_pair": 5
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 48,
+        "category": "Glass Manufacturing",
+        "difficulty": "intermediate",
+        "question": "What is cullet and what are its benefits in glass manufacturing?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.6396,
+        "top_similarity": 0.6807,
+        "avg_rerank_score": 0.215,
+        "top_rerank_score": 0.3999,
+        "keyword_overlap": 0.6386,
+        "domain_kw_hits": {
+          "total": 6,
+          "found": 1,
+          "pct": 16.7
+        },
+        "latency_ms": 15348.0,
+        "source_types": {
+          "textbook": 2,
+          "sop": 2,
+          "paper": 1
+        },
+        "quality": "OK"
+      },
+      {
+        "id": 49,
+        "category": "Glass Science Fundamentals",
+        "difficulty": "advanced",
+        "question": "What is the Adam-Gibbs theory of glass transition and how does it relate to configurational entropy?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.8721,
+        "top_similarity": 0.8849,
+        "avg_rerank_score": 0.999,
+        "top_rerank_score": 0.9998,
+        "keyword_overlap": 0.5616,
+        "domain_kw_hits": {
+          "total": 6,
+          "found": 2,
+          "pct": 33.3
+        },
+        "latency_ms": 15200.0,
+        "source_types": {
+          "qa_pair": 5
+        },
+        "quality": "GOOD"
+      },
+      {
+        "id": 50,
+        "category": "Glass Defects & Quality",
+        "difficulty": "intermediate",
+        "question": "What is nickel sulfide (NiS) inclusion in tempered glass and why is it dangerous?",
+        "language": "en",
+        "detected_language": "en",
+        "n_chunks": 5,
+        "avg_similarity": 0.7678,
+        "top_similarity": 0.8845,
+        "avg_rerank_score": 0.6549,
+        "top_rerank_score": 0.9998,
+        "keyword_overlap": 0.4681,
+        "domain_kw_hits": {
+          "total": 6,
+          "found": 5,
+          "pct": 83.3
+        },
+        "latency_ms": 15084.0,
+        "source_types": {
+          "qa_pair": 5
+        },
+        "quality": "GOOD"
+      }
+    ]
+  },
+  "fa": {
+    "label": "fa",
+    "timestamp": "2026-03-16T13:56:18.346761",
+    "n_questions": 20,
+    "errors": 0,
+    "empty_retrievals": 0,
+    "mean_top_similarity": 0.559,
+    "mean_avg_similarity": 0.5101,
+    "mean_keyword_overlap": 0.3301,
+    "mean_domain_kw_hit_pct": 2.25,
+    "mean_latency_ms": 12901.0,
+    "quality_distribution": {
+      "OK": 17,
+      "WEAK": 3
+    },
+    "by_category": {
+      "Applications": 0.5408,
+      "Durability": 0.5506,
+      "Glass Ceramics": 0.6112,
+      "Glass Composition": 0.6079,
+      "Glass Defects": 0.587,
+      "Glass Structure": 0.5335,
+      "Manufacturing": 0.5409,
+      "Mechanical Properties": 0.5878,
+      "Optical Properties": 0.5343,
+      "Science Fundamentals": 0.571,
+      "Strengthening": 0.5665,
+      "Thermal Properties": 0.5513,
+      "Viscosity": 0.5662
+    },
+    "results": [
+      {
+        "id": 1,
+        "category": "Thermal Properties",
+        "difficulty": "intermediate",
+        "question": "دمای انتقال شیشه‌ای (Tg) شیشه سودا-آهکی چقدر است؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.5061,
+        "top_similarity": 0.5334,
+        "avg_rerank_score": 0.0022,
+        "top_rerank_score": 0.0054,
+        "keyword_overlap": 0.4211,
+        "domain_kw_hits": {
+          "total": 3,
+          "found": 0,
+          "pct": 0.0
+        },
+        "latency_ms": 14809.0,
+        "source_types": {
+          "textbook": 5
+        },
+        "quality": "OK"
+      },
+      {
+        "id": 2,
+        "category": "Thermal Properties",
+        "difficulty": "intermediate",
+        "question": "ضریب انبساط حرارتی شیشه بوروسیلیکات چقدر است و چرا اهمیت دارد؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.5075,
+        "top_similarity": 0.5452,
+        "avg_rerank_score": 0.0103,
+        "top_rerank_score": 0.0201,
+        "keyword_overlap": 0.4118,
+        "domain_kw_hits": {
+          "total": 4,
+          "found": 0,
+          "pct": 0.0
+        },
+        "latency_ms": 14919.0,
+        "source_types": {
+          "textbook": 5
+        },
+        "quality": "OK"
+      },
+      {
+        "id": 3,
+        "category": "Thermal Properties",
+        "difficulty": "advanced",
+        "question": "معادله VFT چیست و چه اهمیتی در علم شیشه دارد؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.5372,
+        "top_similarity": 0.5754,
+        "avg_rerank_score": 0.0011,
+        "top_rerank_score": 0.0018,
+        "keyword_overlap": 0.2353,
+        "domain_kw_hits": {
+          "total": 4,
+          "found": 0,
+          "pct": 0.0
+        },
+        "latency_ms": 13216.0,
+        "source_types": {
+          "textbook": 5
+        },
+        "quality": "OK"
+      },
+      {
+        "id": 4,
+        "category": "Glass Structure",
+        "difficulty": "intermediate",
+        "question": "قواعد زاخاریاسن برای تشکیل شیشه چیست؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.4943,
+        "top_similarity": 0.5058,
+        "avg_rerank_score": 0.0001,
+        "top_rerank_score": 0.0003,
+        "keyword_overlap": 0.1852,
+        "domain_kw_hits": {
+          "total": 4,
+          "found": 0,
+          "pct": 0.0
+        },
+        "latency_ms": 12377.0,
+        "source_types": {
+          "textbook": 5
+        },
+        "quality": "WEAK"
+      },
+      {
+        "id": 5,
+        "category": "Glass Structure",
+        "difficulty": "beginner",
+        "question": "تفاوت بین شبکه‌سازها، اصلاح‌کننده‌های شبکه و واسطه‌ها در شیشه چیست؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.4932,
+        "top_similarity": 0.5551,
+        "avg_rerank_score": 0.0009,
+        "top_rerank_score": 0.0013,
+        "keyword_overlap": 0.3333,
+        "domain_kw_hits": {
+          "total": 4,
+          "found": 0,
+          "pct": 0.0
+        },
+        "latency_ms": 12613.0,
+        "source_types": {
+          "textbook": 5
+        },
+        "quality": "OK"
+      },
+      {
+        "id": 6,
+        "category": "Glass Structure",
+        "difficulty": "advanced",
+        "question": "اکسیژن غیرپل‌دار (NBO) چیست و چه تأثیری بر خواص شیشه دارد؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.5087,
+        "top_similarity": 0.5395,
+        "avg_rerank_score": 0.0014,
+        "top_rerank_score": 0.0022,
+        "keyword_overlap": 0.4118,
+        "domain_kw_hits": {
+          "total": 4,
+          "found": 0,
+          "pct": 0.0
+        },
+        "latency_ms": 12191.0,
+        "source_types": {
+          "textbook": 5
+        },
+        "quality": "OK"
+      },
+      {
+        "id": 7,
+        "category": "Glass Composition",
+        "difficulty": "beginner",
+        "question": "ترکیب معمول شیشه سودا-آهک-سیلیکا تجاری چیست؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.5211,
+        "top_similarity": 0.6079,
+        "avg_rerank_score": 0.0004,
+        "top_rerank_score": 0.0008,
+        "keyword_overlap": 0.3478,
+        "domain_kw_hits": {
+          "total": 5,
+          "found": 0,
+          "pct": 0.0
+        },
+        "latency_ms": 13716.0,
+        "source_types": {
+          "textbook": 5
+        },
+        "quality": "OK"
+      },
+      {
+        "id": 8,
+        "category": "Glass Defects",
+        "difficulty": "intermediate",
+        "question": "انواع اصلی عیوب شیشه کدامند و چگونه شناسایی می‌شوند؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.5372,
+        "top_similarity": 0.6127,
+        "avg_rerank_score": 0.0032,
+        "top_rerank_score": 0.0068,
+        "keyword_overlap": 0.1154,
+        "domain_kw_hits": {
+          "total": 6,
+          "found": 0,
+          "pct": 0.0
+        },
+        "latency_ms": 12647.0,
+        "source_types": {
+          "textbook": 5
+        },
+        "quality": "WEAK"
+      },
+      {
+        "id": 9,
+        "category": "Glass Defects",
+        "difficulty": "advanced",
+        "question": "آخال نیکل سولفید چیست و چرا باعث شکست خودبه‌خودی شیشه سکوریت می‌شود؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.5159,
+        "top_similarity": 0.5613,
+        "avg_rerank_score": 0.0201,
+        "top_rerank_score": 0.0668,
+        "keyword_overlap": 0.4828,
+        "domain_kw_hits": {
+          "total": 5,
+          "found": 1,
+          "pct": 20.0
+        },
+        "latency_ms": 13042.0,
+        "source_types": {
+          "textbook": 5
+        },
+        "quality": "OK"
+      },
+      {
+        "id": 10,
+        "category": "Strengthening",
+        "difficulty": "intermediate",
+        "question": "تفاوت بین شیشه سکوریت (حرارتی) و تقویت شیمیایی چیست؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.4913,
+        "top_similarity": 0.5665,
+        "avg_rerank_score": 0.0434,
+        "top_rerank_score": 0.188,
+        "keyword_overlap": 0.2917,
+        "domain_kw_hits": {
+          "total": 4,
+          "found": 1,
+          "pct": 25.0
+        },
+        "latency_ms": 11846.0,
+        "source_types": {
+          "textbook": 5
+        },
+        "quality": "OK"
+      },
+      {
+        "id": 11,
+        "category": "Manufacturing",
+        "difficulty": "intermediate",
+        "question": "فرآیند فلوت برای تولید شیشه تخت چگونه کار می‌کند؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.4934,
+        "top_similarity": 0.5396,
+        "avg_rerank_score": 0.0454,
+        "top_rerank_score": 0.1286,
+        "keyword_overlap": 0.2,
+        "domain_kw_hits": {
+          "total": 4,
+          "found": 0,
+          "pct": 0.0
+        },
+        "latency_ms": 11381.0,
+        "source_types": {
+          "textbook": 5
+        },
+        "quality": "OK"
+      },
+      {
+        "id": 12,
+        "category": "Manufacturing",
+        "difficulty": "intermediate",
+        "question": "پالایش (فاینینگ) در ذوب شیشه چیست و چرا ضروری است؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.4935,
+        "top_similarity": 0.5422,
+        "avg_rerank_score": 0.0014,
+        "top_rerank_score": 0.0019,
+        "keyword_overlap": 0.65,
+        "domain_kw_hits": {
+          "total": 4,
+          "found": 0,
+          "pct": 0.0
+        },
+        "latency_ms": 13087.0,
+        "source_types": {
+          "textbook": 5
+        },
+        "quality": "OK"
+      },
+      {
+        "id": 13,
+        "category": "Optical Properties",
+        "difficulty": "intermediate",
+        "question": "ضریب شکست شیشه چیست و چه عواملی بر آن تأثیر می‌گذارند؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.5336,
+        "top_similarity": 0.5666,
+        "avg_rerank_score": 0.0034,
+        "top_rerank_score": 0.0057,
+        "keyword_overlap": 0.4706,
+        "domain_kw_hits": {
+          "total": 4,
+          "found": 0,
+          "pct": 0.0
+        },
+        "latency_ms": 12438.0,
+        "source_types": {
+          "textbook": 5
+        },
+        "quality": "OK"
+      },
+      {
+        "id": 14,
+        "category": "Optical Properties",
+        "difficulty": "advanced",
+        "question": "عدد آبه چیست و چگونه در طراحی نوری استفاده می‌شود؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.4829,
+        "top_similarity": 0.5021,
+        "avg_rerank_score": 0.0001,
+        "top_rerank_score": 0.0002,
+        "keyword_overlap": 0.3,
+        "domain_kw_hits": {
+          "total": 5,
+          "found": 0,
+          "pct": 0.0
+        },
+        "latency_ms": 13455.0,
+        "source_types": {
+          "textbook": 5
+        },
+        "quality": "OK"
+      },
+      {
+        "id": 15,
+        "category": "Mechanical Properties",
+        "difficulty": "intermediate",
+        "question": "نظریه گریفیث درباره شکست شیشه چه می‌گوید؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.5289,
+        "top_similarity": 0.5878,
+        "avg_rerank_score": 0.0001,
+        "top_rerank_score": 0.0001,
+        "keyword_overlap": 0.2381,
+        "domain_kw_hits": {
+          "total": 4,
+          "found": 0,
+          "pct": 0.0
+        },
+        "latency_ms": 13080.0,
+        "source_types": {
+          "textbook": 5
+        },
+        "quality": "OK"
+      },
+      {
+        "id": 16,
+        "category": "Durability",
+        "difficulty": "intermediate",
+        "question": "پایداری شیمیایی شیشه به چه عواملی بستگی دارد؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.5033,
+        "top_similarity": 0.5506,
+        "avg_rerank_score": 0.0053,
+        "top_rerank_score": 0.0086,
+        "keyword_overlap": 0.5455,
+        "domain_kw_hits": {
+          "total": 4,
+          "found": 0,
+          "pct": 0.0
+        },
+        "latency_ms": 12482.0,
+        "source_types": {
+          "textbook": 5
+        },
+        "quality": "OK"
+      },
+      {
+        "id": 17,
+        "category": "Glass Ceramics",
+        "difficulty": "intermediate",
+        "question": "شیشه-سرامیک چیست و چگونه تولید می‌شود؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.5204,
+        "top_similarity": 0.6112,
+        "avg_rerank_score": 0.002,
+        "top_rerank_score": 0.0058,
+        "keyword_overlap": 0.3333,
+        "domain_kw_hits": {
+          "total": 5,
+          "found": 0,
+          "pct": 0.0
+        },
+        "latency_ms": 12467.0,
+        "source_types": {
+          "textbook": 5
+        },
+        "quality": "OK"
+      },
+      {
+        "id": 18,
+        "category": "Viscosity",
+        "difficulty": "intermediate",
+        "question": "نقاط مرجع ویسکوزیته در تولید شیشه کدامند؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.5146,
+        "top_similarity": 0.5662,
+        "avg_rerank_score": 0.0023,
+        "top_rerank_score": 0.0055,
+        "keyword_overlap": 0.2105,
+        "domain_kw_hits": {
+          "total": 5,
+          "found": 0,
+          "pct": 0.0
+        },
+        "latency_ms": 12516.0,
+        "source_types": {
+          "textbook": 5
+        },
+        "quality": "OK"
+      },
+      {
+        "id": 19,
+        "category": "Applications",
+        "difficulty": "intermediate",
+        "question": "فیبر نوری چگونه کار می‌کند و از چه نوع شیشه‌ای ساخته می‌شود؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.4904,
+        "top_similarity": 0.5408,
+        "avg_rerank_score": 0.0021,
+        "top_rerank_score": 0.0042,
+        "keyword_overlap": 0.2273,
+        "domain_kw_hits": {
+          "total": 5,
+          "found": 0,
+          "pct": 0.0
+        },
+        "latency_ms": 12599.0,
+        "source_types": {
+          "textbook": 5
+        },
+        "quality": "OK"
+      },
+      {
+        "id": 20,
+        "category": "Science Fundamentals",
+        "difficulty": "advanced",
+        "question": "تفاوت بین شیشه قوی و شیشه شکننده از نظر نمودار آنجل چیست؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.5284,
+        "top_similarity": 0.571,
+        "avg_rerank_score": 0.0006,
+        "top_rerank_score": 0.0011,
+        "keyword_overlap": 0.1905,
+        "domain_kw_hits": {
+          "total": 5,
+          "found": 0,
+          "pct": 0.0
+        },
+        "latency_ms": 13133.0,
+        "source_types": {
+          "textbook": 5
+        },
+        "quality": "WEAK"
+      }
+    ]
+  }
+}

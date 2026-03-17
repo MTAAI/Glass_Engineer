@@ -31,6 +31,31 @@ export interface ConversationListResponse {
   conversations: ConversationSummary[]
 }
 
+/** Alias used in App.tsx sidebar. */
+export type Conversation = ConversationSummary
+
+export interface ConversationDetail {
+  session_id: string
+  title: string
+  messages: ChatMessage[]
+  created_at: string
+  last_message_at: string
+}
+
+export interface ChatMessage {
+  id: string
+  role: string
+  content: string
+  sources?: SourceChunk[]
+  metadata?: Record<string, unknown>
+  created_at: string
+}
+
+export interface ConversationCreateResponse {
+  session_id: string
+  title: string
+}
+
 export interface HealthResponse {
   status: string
   database: string

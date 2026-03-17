@@ -6,7 +6,7 @@ Suggests glass compositions to meet target property requirements.
 import time
 from fastapi import APIRouter, Depends, HTTPException
 from loguru import logger
-from api.auth import get_current_user, UserInToken
+from api.auth import require_auth, UserInToken
 
 from api.models.schemas import DesignRequest, DesignResponse, SourceChunk
 
@@ -57,7 +57,7 @@ Be specific with weight percentages and cite knowledge base sources where possib
 
 
 @router.post("/design", response_model=DesignResponse)
-async def design_glass(request: DesignRequest, user: UserInToken = Depends(get_current_user)):
+async def design_glass(request: DesignRequest, user: UserInToken = Depends(require_auth)):
     """
     Design a glass composition to meet target properties.
 

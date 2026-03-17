@@ -17,7 +17,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from loguru import logger
 from pydantic import BaseModel, Field
 
-from api.auth import UserInToken, get_current_user
+from api.auth import UserInToken, require_auth
 
 router = APIRouter()
 
@@ -48,10 +48,13 @@ class FeedbackResponse(BaseModel):
 # ── DB helper ────────────────────────────────────────────────────────────────
 
 def _get_db_conn():
-    return psycopg2.connect(os.getenv(
-        "DATABASE_URL",
-        "postgresql://glassai:glassai_secret@localhost:5432/glass_expert_ai",
-    ))
+    from api.database import get_db_conn
+    return get_db_conn()
+
+
+def _return_db(conn):
+    from api.database import return_db_conn
+    return_db_conn(conn)
 
 
 # ── Endpoints ────────────────────────────────────────────────────────────────
@@ -59,7 +62,7 @@ def _get_db_conn():
 @router.post("/feedback", response_model=FeedbackResponse)
 async def submit_feedback(
     request: FeedbackRequest,
-    user: UserInToken = Depends(get_current_user),
+    user: UserInToken = Depends(require_auth),
 ):
     """
     Submit feedback on an assistant message.
@@ -92,7 +95,7 @@ async def submit_feedback(
         feedback_id = str(cur.fetchone()[0])
         conn.commit()
         cur.close()
-        conn.close()
+        _return_db(conn)
 
         logger.info(f"Feedback recorded: id={feedback_id}, chat_id={request.chat_id}, rating={request.rating}")
         return FeedbackResponse(
@@ -110,7 +113,7 @@ async def submit_feedback(
 @router.post("/feedback/source", response_model=FeedbackResponse)
 async def submit_source_feedback(
     request: SourceFeedbackRequest,
-    user: UserInToken = Depends(get_current_user),
+    user: UserInToken = Depends(require_auth),
 ):
     """
     Submit feedback on whether a specific source document was relevant.
@@ -141,7 +144,7 @@ async def submit_source_feedback(
         sf_id = str(cur.fetchone()[0])
         conn.commit()
         cur.close()
-        conn.close()
+        _return_db(conn)
 
         logger.info(f"Source feedback recorded: id={sf_id}, doc={request.document_id}, relevant={request.is_relevant}")
         return FeedbackResponse(
@@ -202,7 +205,7 @@ async def get_feedback_stats():
         ]
 
         cur.close()
-        conn.close()
+        _return_db(conn)
 
         approval_pct = round(thumbs_up / total * 100, 1) if total and total > 0 else 0
 

@@ -6,7 +6,7 @@ Analyzes a glass composition or sample description and returns predicted propert
 import time
 from fastapi import APIRouter, Depends, HTTPException
 from loguru import logger
-from api.auth import get_current_user, UserInToken
+from api.auth import require_auth, UserInToken
 
 from api.models.schemas import (
     AnalyzeRequest, AnalyzeResponse, SourceChunk, PropertyPrediction
@@ -61,7 +61,7 @@ Be precise and cite specific values from the knowledge base where available."""
 
 
 @router.post("/analyze", response_model=AnalyzeResponse)
-async def analyze_glass(request: AnalyzeRequest, user: UserInToken = Depends(get_current_user)):
+async def analyze_glass(request: AnalyzeRequest, user: UserInToken = Depends(require_auth)):
     """
     Analyze a glass composition or sample.
 

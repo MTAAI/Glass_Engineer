@@ -1,18 +1,62 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, Component, type ReactNode, type ErrorInfo } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import ReactMarkdown from 'react-markdown'
+import rehypeSanitize from 'rehype-sanitize'
 import {
   Microscope, Send, Trash2, ChevronDown, ChevronUp,
   ThumbsUp, ThumbsDown, CheckCircle, AlertCircle,
   BookOpen, FileText, FlaskConical, Layers, Star,
   MessageSquarePlus, MessageSquare, Pencil, X, Check,
-  RotateCcw, Cpu, Globe,
+  RotateCcw, Cpu, Globe, LogOut,
 } from 'lucide-react'
 import {
   fetchHealth, queryKnowledgeBase, submitFeedback, submitSourceFeedback,
   createConversation, listConversations, getConversation, renameConversation, deleteConversation,
+  login, register, logout, getStoredToken,
 } from './api/client'
-import type { Message, SourceChunk, HealthResponse, Conversation } from './types'
+import type { Message, SourceChunk, HealthResponse, Conversation, AuthToken } from './types'
+
+// ── Error Boundary ────────────────────────────────────────────────────────────
+interface ErrorBoundaryProps { children: ReactNode }
+interface ErrorBoundaryState { hasError: boolean; error: Error | null }
+
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props)
+    this.state = { hasError: false, error: null }
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error }
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error('Glass Expert AI crashed:', error, info.componentStack)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex items-center justify-center h-screen bg-[#0f1117] text-slate-200">
+          <div className="text-center max-w-md p-6">
+            <AlertCircle size={48} className="text-red-400 mx-auto mb-4" />
+            <h2 className="text-xl font-bold mb-2">Something went wrong</h2>
+            <p className="text-slate-400 text-sm mb-4">
+              {this.state.error?.message || 'An unexpected error occurred.'}
+            </p>
+            <button
+              onClick={() => { this.setState({ hasError: false, error: null }); window.location.reload() }}
+              className="flex items-center gap-2 mx-auto bg-blue-600 hover:bg-blue-500 text-white rounded-lg px-4 py-2 text-sm transition-colors"
+            >
+              <RotateCcw size={14} /> Reload App
+            </button>
+          </div>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
 
 // ── Utility ────────────────────────────────────────────────────────────────────
 function formatMs(ms: number): string {
@@ -73,14 +117,9 @@ function SourceCard({ source, index, question }: SourceCardProps) {
 
   const handleVote = async (relevant: boolean) => {
     setVoted(relevant ? 'up' : 'down')
-    try {
-      await submitSourceFeedback({
-        question,
-        source_title: source.title,
-        source_type: source.source_type,
-        relevant,
-      })
-    } catch { /* silent */ }
+    // Note: per-source feedback requires feedback_id + document_id chain.
+    // For now, just record the UI state. Full source feedback is
+    // submitted after the main answer feedback creates a feedback_id.
   }
 
   return (
@@ -179,22 +218,22 @@ interface FeedbackBarProps {
   question: string
   answer: string
   messageId: string
+  chatId?: string
 }
 
-function FeedbackBar({ question, answer, messageId }: FeedbackBarProps) {
+function FeedbackBar({ question, answer, messageId, chatId }: FeedbackBarProps) {
   const [sent, setSent] = useState<'helpful' | 'not_helpful' | null>(null)
   const [showComment, setShowComment] = useState(false)
   const [comment, setComment] = useState('')
 
   const handleFeedback = async (helpful: boolean) => {
-    const rating = helpful ? 5 : 2
     setSent(helpful ? 'helpful' : 'not_helpful')
+    // Only submit if we have a chat_id (requires auth + DB persistence)
+    if (!chatId) return
     try {
       await submitFeedback({
-        question,
-        answer: answer.slice(0, 2000), // match backend truncation
-        helpful,
-        rating,
+        chat_id: chatId,
+        rating: helpful ? 1 : -1,
         comment: comment || undefined,
       })
     } catch { /* silent */ }
@@ -304,7 +343,7 @@ function MessageBubble({ message, prevQuestion }: MessageBubbleProps) {
 
         {/* Answer content */}
         <div className={`text-slate-200 text-sm prose prose-invert prose-sm max-w-none ${useRtl ? 'text-right' : ''}`}>
-          <ReactMarkdown>{message.content}</ReactMarkdown>
+          <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{message.content}</ReactMarkdown>
         </div>
 
         {/* Metadata row */}
@@ -329,6 +368,7 @@ function MessageBubble({ message, prevQuestion }: MessageBubbleProps) {
             question={prevQuestion || ''}
             answer={message.content}
             messageId={message.id}
+            chatId={message.chatId}
           />
         )}
       </div>
@@ -389,8 +429,144 @@ function LoadingBubble() {
   )
 }
 
+// ── Login / Register Screen ──────────────────────────────────────────────────
+interface AuthScreenProps {
+  onAuth: (token: AuthToken) => void
+}
+
+function AuthScreen({ onAuth }: AuthScreenProps) {
+  const [mode, setMode] = useState<'login' | 'register'>('login')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [fullName, setFullName] = useState('')
+  const [langPref, setLangPref] = useState('en')
+  const [error, setError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setSubmitting(true)
+    try {
+      let token: AuthToken
+      if (mode === 'login') {
+        token = await login(email, password)
+      } else {
+        token = await register(email, password, fullName || undefined, langPref)
+      }
+      onAuth(token)
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
+      setError(msg || (mode === 'login' ? 'Invalid email or password' : 'Registration failed'))
+    }
+    setSubmitting(false)
+  }
+
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-[#0f1117]">
+      <div className="w-full max-w-sm mx-4">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <Microscope size={48} className="text-blue-400 mx-auto mb-3" />
+          <h1 className="text-2xl font-bold text-white">Glass Expert AI</h1>
+          <p className="text-slate-500 text-sm mt-1">Glass science knowledge assistant</p>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="bg-[#1a1f2e] border border-[#2d3748] rounded-xl p-6 space-y-4">
+          <h2 className="text-lg font-semibold text-white text-center">
+            {mode === 'login' ? 'Sign In' : 'Create Account'}
+          </h2>
+
+          {error && (
+            <div className="flex items-center gap-2 bg-red-900/30 border border-red-800/50 rounded-lg px-3 py-2 text-xs text-red-400">
+              <AlertCircle size={14} /> {error}
+            </div>
+          )}
+
+          {mode === 'register' && (
+            <div>
+              <label className="text-xs text-slate-400 block mb-1">Full Name</label>
+              <input
+                type="text"
+                value={fullName}
+                onChange={e => setFullName(e.target.value)}
+                placeholder="John Doe"
+                className="w-full bg-[#0f1117] border border-[#2d3748] rounded-lg px-3 py-2 text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-blue-500"
+              />
+            </div>
+          )}
+
+          <div>
+            <label className="text-xs text-slate-400 block mb-1">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="you@company.com"
+              required
+              className="w-full bg-[#0f1117] border border-[#2d3748] rounded-lg px-3 py-2 text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs text-slate-400 block mb-1">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder={mode === 'register' ? 'Min 6 characters' : '••••••••'}
+              required
+              minLength={mode === 'register' ? 6 : undefined}
+              className="w-full bg-[#0f1117] border border-[#2d3748] rounded-lg px-3 py-2 text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-blue-500"
+            />
+          </div>
+
+          {mode === 'register' && (
+            <div>
+              <label className="text-xs text-slate-400 block mb-1">Language Preference</label>
+              <select
+                value={langPref}
+                onChange={e => setLangPref(e.target.value)}
+                className="w-full bg-[#0f1117] border border-[#2d3748] rounded-lg px-3 py-2 text-sm text-slate-200 outline-none focus:border-blue-500"
+              >
+                <option value="en">English</option>
+                <option value="fa">فارسی (Persian)</option>
+              </select>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={submitting}
+            className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 disabled:text-blue-400 text-white font-medium rounded-lg py-2.5 text-sm transition-colors"
+          >
+            {submitting ? 'Please wait...' : mode === 'login' ? 'Sign In' : 'Create Account'}
+          </button>
+
+          <p className="text-center text-xs text-slate-500">
+            {mode === 'login' ? (
+              <>Don't have an account?{' '}
+                <button type="button" onClick={() => { setMode('register'); setError('') }} className="text-blue-400 hover:text-blue-300">
+                  Sign up
+                </button>
+              </>
+            ) : (
+              <>Already have an account?{' '}
+                <button type="button" onClick={() => { setMode('login'); setError('') }} className="text-blue-400 hover:text-blue-300">
+                  Sign in
+                </button>
+              </>
+            )}
+          </p>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 // ── Main App ───────────────────────────────────────────────────────────────────
-export default function App() {
+function AppInner() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -538,6 +714,7 @@ export default function App() {
         role: 'assistant',
         content: res.answer || 'No answer generated.',
         sources: res.sources,
+        chatId: res.chat_id,
         meta: {
           retrieval_time_ms: res.retrieval_time_ms,
           language_detected: res.language_detected,
@@ -714,6 +891,14 @@ export default function App() {
               <option value="manual">Manual</option>
             </select>
           </div>
+
+          {/* Logout */}
+          <button
+            onClick={() => logout()}
+            className="w-full flex items-center gap-2 text-xs text-slate-500 hover:text-red-400 transition-colors px-1 py-1"
+          >
+            <LogOut size={13} /> Sign Out
+          </button>
         </div>
       </aside>
 
@@ -811,5 +996,26 @@ export default function App() {
         </div>
       </main>
     </div>
+  )
+}
+
+// ── App with Auth + Error Boundary ───────────────────────────────────────────
+export default function App() {
+  const [authed, setAuthed] = useState<boolean>(() => !!getStoredToken())
+
+  useEffect(() => {
+    const handleLogout = () => setAuthed(false)
+    window.addEventListener('auth:logout', handleLogout)
+    return () => window.removeEventListener('auth:logout', handleLogout)
+  }, [])
+
+  return (
+    <ErrorBoundary>
+      {authed ? (
+        <AppInner />
+      ) : (
+        <AuthScreen onAuth={() => setAuthed(true)} />
+      )}
+    </ErrorBoundary>
   )
 }

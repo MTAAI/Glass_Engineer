@@ -10,7 +10,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from loguru import logger
 from api.models.schemas import QueryRequest, QueryResponse, SourceChunk
-from api.auth import get_current_user, UserInToken
+from api.auth import require_auth, UserInToken
 
 router = APIRouter()
 
@@ -51,21 +51,40 @@ def _validate_citations(answer: str, num_sources: int) -> str:
     return answer.strip()
 
 
+def _load_user_memory(user_id: str) -> list:
+    """Load user memory entries to personalize LLM responses."""
+    try:
+        from api.database import get_db
+        with get_db() as conn:
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT key, value FROM user_memory
+                WHERE user_id = %s
+                ORDER BY updated_at DESC
+                LIMIT 10
+            """, [user_id])
+            rows = cur.fetchall()
+            cur.close()
+        return [{"key": r[0], "value": r[1]} for r in rows]
+    except Exception as e:
+        logger.warning(f"Could not load user memory: {e}")
+        return []
+
+
 def _load_conversation_history(user_id: str, session_id: str, limit: int = 10) -> list:
     """Load recent messages from chat_history for conversation continuity."""
     try:
-        import psycopg2
-        conn = psycopg2.connect(os.getenv("DATABASE_URL"))
-        cur = conn.cursor()
-        cur.execute("""
-            SELECT role, content FROM chat_history
-            WHERE user_id = %s AND session_id = %s
-            ORDER BY created_at DESC
-            LIMIT %s
-        """, [user_id, session_id, limit])
-        rows = cur.fetchall()
-        cur.close()
-        conn.close()
+        from api.database import get_db
+        with get_db() as conn:
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT role, content FROM chat_history
+                WHERE user_id = %s AND session_id = %s
+                ORDER BY created_at DESC
+                LIMIT %s
+            """, [user_id, session_id, limit])
+            rows = cur.fetchall()
+            cur.close()
         # Reverse to chronological order
         return [{"role": r[0], "content": r[1]} for r in reversed(rows)]
     except Exception as e:
@@ -74,7 +93,7 @@ def _load_conversation_history(user_id: str, session_id: str, limit: int = 10) -
 
 
 @router.post("/query", response_model=QueryResponse)
-async def query_knowledge_base(request: QueryRequest, user: UserInToken = Depends(get_current_user)):
+async def query_knowledge_base(request: QueryRequest, user: UserInToken = Depends(require_auth)):
     """
     Ask a glass science question. The system will:
     1. Detect the language (English or Farsi)
@@ -91,11 +110,14 @@ async def query_knowledge_base(request: QueryRequest, user: UserInToken = Depend
     # Auto-create session_id if not provided
     session_id = request.session_id or str(uuid.uuid4())
 
-    # Load conversation history for continuity (if authenticated + has session)
+    # Load conversation history + user memory for continuity
     conversation_history = []
+    user_memory = []
     is_authenticated = user.user_id != "anonymous"
-    if is_authenticated and request.session_id:
-        conversation_history = _load_conversation_history(user.user_id, session_id)
+    if is_authenticated:
+        if request.session_id:
+            conversation_history = _load_conversation_history(user.user_id, session_id)
+        user_memory = _load_user_memory(user.user_id)
 
     # ── Step 1: Retrieve relevant chunks ──────────────────────────────────────
     try:
@@ -142,6 +164,7 @@ async def query_knowledge_base(request: QueryRequest, user: UserInToken = Depend
             context=context_block,
             language=detected_language,
             conversation_history=conversation_history if conversation_history else None,
+            user_memory=user_memory if user_memory else None,
         )
     except Exception as e:
         logger.error(f"LLM generation error: {e}")

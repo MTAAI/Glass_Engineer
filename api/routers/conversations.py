@@ -17,6 +17,7 @@ from api.models.schemas import (
     UserMemorySaveRequest,
 )
 from api.auth import require_auth, UserInToken
+from api.database import get_db_conn, return_db_conn
 
 router = APIRouter()
 
@@ -24,7 +25,11 @@ psycopg2.extras.register_uuid()
 
 
 def _get_db():
-    return psycopg2.connect(os.getenv("DATABASE_URL"))
+    return get_db_conn()
+
+
+def _return_db(conn):
+    return_db_conn(conn)
 
 
 # ── Conversations ─────────────────────────────────────────────────────────────
@@ -41,7 +46,12 @@ async def list_conversations(user: UserInToken = Depends(require_auth)):
                 MIN(content) FILTER (WHERE role = 'user') AS first_question,
                 COUNT(*) AS message_count,
                 MAX(created_at)::text AS last_message_at,
-                MIN(created_at)::text AS first_message_at
+                MIN(created_at)::text AS first_message_at,
+                (SELECT metadata->>'custom_title'
+                 FROM chat_history h2
+                 WHERE h2.session_id = chat_history.session_id
+                   AND h2.metadata->>'custom_title' IS NOT NULL
+                 LIMIT 1) AS custom_title
             FROM chat_history
             WHERE user_id = %s
             GROUP BY session_id
@@ -51,11 +61,11 @@ async def list_conversations(user: UserInToken = Depends(require_auth)):
         rows = cur.fetchall()
     finally:
         cur.close()
-        conn.close()
+        _return_db(conn)
 
     conversations = []
     for row in rows:
-        title = (row[1] or "Untitled conversation")[:80]
+        title = (row[5] or row[1] or "Untitled conversation")[:80]
         conversations.append(ConversationSummary(
             session_id=row[0],
             title=title,
@@ -93,7 +103,7 @@ async def get_conversation(session_id: str, user: UserInToken = Depends(require_
         rows = cur.fetchall()
     finally:
         cur.close()
-        conn.close()
+        _return_db(conn)
 
     if not rows:
         raise HTTPException(status_code=404, detail="Conversation not found")
@@ -120,6 +130,41 @@ async def get_conversation(session_id: str, user: UserInToken = Depends(require_
     )
 
 
+@router.patch("/conversations/{session_id}")
+async def rename_conversation(
+    session_id: str,
+    body: dict,
+    user: UserInToken = Depends(require_auth),
+):
+    """Rename a conversation by updating the metadata of its first message."""
+    title = body.get("title", "").strip()
+    if not title:
+        raise HTTPException(status_code=400, detail="Title is required")
+
+    conn = _get_db()
+    cur = conn.cursor()
+    try:
+        # Update metadata of the first message in this session to include custom title
+        cur.execute("""
+            UPDATE chat_history
+            SET metadata = COALESCE(metadata, '{}'::jsonb) || jsonb_build_object('custom_title', %s)
+            WHERE id = (
+                SELECT id FROM chat_history
+                WHERE user_id = %s AND session_id = %s
+                ORDER BY created_at ASC
+                LIMIT 1
+            )
+        """, [title, user.user_id, session_id])
+        if cur.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Conversation not found")
+        conn.commit()
+    finally:
+        cur.close()
+        _return_db(conn)
+
+    return {"success": True, "title": title}
+
+
 @router.delete("/conversations/{session_id}")
 async def delete_conversation(session_id: str, user: UserInToken = Depends(require_auth)):
     """Delete a conversation and all its messages."""
@@ -134,7 +179,7 @@ async def delete_conversation(session_id: str, user: UserInToken = Depends(requi
         conn.commit()
     finally:
         cur.close()
-        conn.close()
+        _return_db(conn)
 
     if deleted == 0:
         raise HTTPException(status_code=404, detail="Conversation not found")
@@ -178,7 +223,7 @@ def save_message(
         conn.rollback()
     finally:
         cur.close()
-        conn.close()
+        _return_db(conn)
     return chat_id
 
 
@@ -199,7 +244,7 @@ async def get_user_memory(user: UserInToken = Depends(require_auth)):
         rows = cur.fetchall()
     finally:
         cur.close()
-        conn.close()
+        _return_db(conn)
 
     entries = [
         UserMemoryEntry(id=r[0], memory_type=r[1], key=r[2], value=r[3], updated_at=r[4])
@@ -242,7 +287,7 @@ async def save_user_memory(
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         cur.close()
-        conn.close()
+        _return_db(conn)
 
     return {"success": True, "key": request.key}
 
@@ -261,7 +306,7 @@ async def delete_user_memory(key: str, user: UserInToken = Depends(require_auth)
         conn.commit()
     finally:
         cur.close()
-        conn.close()
+        _return_db(conn)
 
     if deleted == 0:
         raise HTTPException(status_code=404, detail="Memory entry not found")

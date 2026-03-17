@@ -7,10 +7,45 @@ Supports:
 """
 import os
 import re
+import json
+from datetime import datetime, timezone
 from loguru import logger
 
 # Singleton client cache — avoids creating a new connection per request
 _client_cache: dict = {}
+
+# ── Fallback governance: structured logging ──────────────────────────────────
+_FALLBACK_LOG_PATH = os.getenv("FALLBACK_LOG_PATH", "logs/fallback_governance.jsonl")
+
+
+def _log_fallback_event(
+    reason: str,
+    question: str,
+    language: str,
+    local_error: str = "",
+    model_used: str = "gpt-4o-mini",
+):
+    """Log every OpenAI fallback call for governance/auditing.
+    Writes structured JSONL so it's easy to grep, count, and alert on.
+    """
+    event = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "event": "openai_fallback",
+        "reason": reason,
+        "language": language,
+        "model_used": model_used,
+        "question_preview": question[:120],
+        "local_error": local_error[:200] if local_error else "",
+    }
+    logger.warning(
+        f"FALLBACK → {model_used} | reason={reason} | lang={language} | q='{question[:60]}...'"
+    )
+    try:
+        os.makedirs(os.path.dirname(_FALLBACK_LOG_PATH) or "logs", exist_ok=True)
+        with open(_FALLBACK_LOG_PATH, "a", encoding="utf-8") as f:
+            f.write(json.dumps(event, ensure_ascii=False) + "\n")
+    except Exception as e:
+        logger.debug(f"Could not write fallback log: {e}")
 
 # ── System prompts ─────────────────────────────────────────────────────────
 # Full prompt for cloud models (GPT-4o-mini) — detailed instructions
@@ -200,6 +235,7 @@ async def generate_answer(
     context: str,
     language: str = "en",
     conversation_history: list | None = None,
+    user_memory: list | None = None,
 ) -> tuple[str, str]:
     """
     Generate an expert answer using the configured LLM.
@@ -213,6 +249,7 @@ async def generate_answer(
     Args:
         conversation_history: List of prior messages as dicts with 'role' and 'content'.
                               Capped at 10 messages (5 turns) to manage token budget.
+        user_memory: List of user memory dicts with 'key' and 'value' for personalization.
 
     Returns:
         Tuple of (answer_text, model_name_used)
@@ -225,6 +262,15 @@ async def generate_answer(
 
     # Full system prompts for cloud models
     cloud_system_prompt = SYSTEM_PROMPT_FA if language == "fa" else SYSTEM_PROMPT_EN
+
+    # Inject user memory/preferences into system prompt
+    if user_memory:
+        memory_lines = []
+        for mem in user_memory:
+            memory_lines.append(f"- {mem['key']}: {mem['value']}")
+        if memory_lines:
+            memory_block = "\n\nUser context (personalization):\n" + "\n".join(memory_lines)
+            cloud_system_prompt += memory_block
 
     # Add conversation continuity instruction when history is present
     if conversation_history:
@@ -263,6 +309,7 @@ Provide a precise, technical answer based strictly on the knowledge base context
     local_failed = False
     if language == "fa":
         logger.info("Farsi query detected — routing directly to GPT-4o-mini (local model is English-only)")
+        _log_fallback_event("farsi_query", question, language)
         local_failed = True
     else:
         # ── Try local LLM (English only) ──────────────────────────────────────
@@ -307,12 +354,13 @@ Important: Use specific numbers, temperatures, and compositions from the referen
             # Quality gate: detect degenerate output (repetitive/nonsensical)
             if _is_degenerate(answer):
                 logger.warning(f"Local model produced degenerate output ({len(answer)} chars): {answer[:200]!r}")
-                logger.warning(f"Falling back to OpenAI")
+                _log_fallback_event("degenerate_output", question, language, local_error=answer[:200])
                 local_failed = True
             else:
                 return answer, llm_model
         except Exception as e:
             logger.warning(f"Local LLM at {local_url} not available: {e}")
+            _log_fallback_event("local_unavailable", question, language, local_error=str(e))
             local_failed = True
 
     # ── Fallback: OpenAI GPT (Farsi queries or local model failure) ───────────

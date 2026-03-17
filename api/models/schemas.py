@@ -22,7 +22,7 @@ class SourceChunk(BaseModel):
 
 class QueryRequest(BaseModel):
     """Request model for the main /query endpoint."""
-    question: str = Field(..., min_length=5, description="The user's question about glass science.")
+    question: str = Field(..., min_length=5, max_length=2000, description="The user's question about glass science.")
     language: str = Field("auto", description="Language for the answer ('en', 'fa', or 'auto').")
     mode: str = Field("simple", description="Query mode: 'simple', 'detailed', or 'research'.")
     top_k: int = Field(5, ge=1, le=20, description="Number of source chunks to retrieve.")

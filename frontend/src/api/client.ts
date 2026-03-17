@@ -1,5 +1,9 @@
 import axios from 'axios'
-import type { QueryResponse, HealthResponse, FeedbackPayload, SourceFeedbackPayload, AuthToken, ConversationListResponse } from '../types'
+import type {
+  QueryResponse, HealthResponse, FeedbackPayload, SourceFeedbackPayload,
+  AuthToken, ConversationListResponse, ConversationDetail, ConversationCreateResponse,
+  Conversation,
+} from '../types'
 
 const API = axios.create({
   baseURL: '/api/v1',
@@ -106,17 +110,32 @@ export async function queryKnowledgeBase(
 
 // ── Conversations ─────────────────────────────────────────────────────────────
 
-export async function listConversations(): Promise<ConversationListResponse> {
-  const { data } = await API.get<ConversationListResponse>('/conversations')
+export async function createConversation(title?: string): Promise<ConversationCreateResponse> {
+  const { data } = await API.post<ConversationCreateResponse>('/conversations', { title })
   return data
+}
+
+export async function listConversations(): Promise<Conversation[]> {
+  const { data } = await API.get<ConversationListResponse>('/conversations')
+  return data.conversations
+}
+
+export async function getConversation(sessionId: string): Promise<ConversationDetail> {
+  const { data } = await API.get<ConversationDetail>(`/conversations/${sessionId}`)
+  return data
+}
+
+export async function renameConversation(sessionId: string, title: string): Promise<void> {
+  await API.patch(`/conversations/${sessionId}`, { title })
 }
 
 export async function deleteConversation(sessionId: string): Promise<void> {
   await API.delete(`/conversations/${sessionId}`)
 }
 
-export async function submitFeedback(payload: FeedbackPayload): Promise<void> {
-  await API.post('/feedback', payload)
+export async function submitFeedback(payload: FeedbackPayload): Promise<{ feedback_id: string }> {
+  const { data } = await API.post('/feedback', payload)
+  return data
 }
 
 export async function submitSourceFeedback(payload: SourceFeedbackPayload): Promise<void> {
