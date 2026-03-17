@@ -25,6 +25,8 @@ logs/
 
 # Large data / exports
 data/
+!data/evaluation/
+!data/evaluation/*.jsonl
 *.csv
 *.jsonl
 *.npz
