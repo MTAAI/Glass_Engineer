@@ -2,23 +2,42 @@
 venv/
 .venv/
 
-# Environment variables (contains passwords )
+# Environment variables
 .env
+.env.*
 
 # Python cache
 __pycache__/
 *.pyc
 *.pyo
 
-# Model cache (2.2GB - too large for GitHub)
+# Model files / caches
 models/
 *.bin
 *.safetensors
+*.pth
+*.onnx
+*.pt
 
 # Logs
 *.log
 logs/
 
-# OS files
+# Large data / exports
+data/
+*.csv
+*.jsonl
+*.npz
+*.gz
+*.xz
+*.tar.gz
+*.tar.xz
+*.zip
+*.dump
+*.sql
+
+# OS / editor
 .DS_Store
 Thumbs.db
+.vscode/
+.idea/
