@@ -1,134 +1,159 @@
 """
 Glass Expert AI — Feedback Router
-POST /api/v1/feedback        — Submit overall answer feedback (thumbs up/down + rating)
+POST /api/v1/feedback        — Submit thumbs up/down on a chat message
 POST /api/v1/feedback/source — Submit per-source relevance feedback
 GET  /api/v1/feedback/stats  — Get aggregated feedback statistics
+
+Schema follows docker/init.sql:
+  feedback(id UUID, chat_id UUID FK, user_id UUID FK, rating SMALLINT(-1/1), corrected_text, comment)
+  source_feedback(id UUID, feedback_id UUID FK, document_id UUID FK, is_relevant BOOLEAN)
 """
 import os
-import psycopg2
-from fastapi import APIRouter, HTTPException
-from loguru import logger
+from typing import Optional
+from uuid import UUID
 
-from api.models.schemas import (
-    FeedbackRequest, SourceFeedbackRequest, FeedbackResponse
-)
+import psycopg2
+from fastapi import APIRouter, Depends, HTTPException
+from loguru import logger
+from pydantic import BaseModel, Field
+
+from api.auth import UserInToken, require_auth
 
 router = APIRouter()
 
 
+# ── Schemas (aligned with init.sql) ─────────────────────────────────────────
+
+class FeedbackRequest(BaseModel):
+    """Submit thumbs up/down on an assistant message."""
+    chat_id: str  # UUID of the chat_history row (assistant message)
+    rating: int = Field(..., description="1 = thumbs up, -1 = thumbs down")
+    corrected_text: Optional[str] = None
+    comment: Optional[str] = None
+
+
+class SourceFeedbackRequest(BaseModel):
+    """Submit per-source relevance feedback (linked to a feedback entry)."""
+    feedback_id: str  # UUID of the parent feedback row
+    document_id: str  # UUID of the document being rated
+    is_relevant: bool
+
+
+class FeedbackResponse(BaseModel):
+    success: bool
+    message: str
+    feedback_id: str  # UUID string
+
+
+# ── DB helper ────────────────────────────────────────────────────────────────
+
 def _get_db_conn():
-    """Get a database connection."""
-    return psycopg2.connect(os.getenv("DATABASE_URL"))
+    from api.database import get_db_conn
+    return get_db_conn()
 
 
-def _ensure_feedback_tables(conn):
-    """Create feedback tables if they don't exist."""
-    cur = conn.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS feedback (
-            id          SERIAL PRIMARY KEY,
-            question    TEXT NOT NULL,
-            answer      TEXT NOT NULL,
-            rating      INTEGER CHECK (rating BETWEEN 1 AND 5),
-            helpful     BOOLEAN NOT NULL,
-            comment     TEXT,
-            query_id    TEXT,
-            created_at  TIMESTAMPTZ DEFAULT NOW()
-        );
-    """)
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS source_feedback (
-            id           SERIAL PRIMARY KEY,
-            question     TEXT NOT NULL,
-            source_title TEXT NOT NULL,
-            source_type  TEXT,
-            relevant     BOOLEAN NOT NULL,
-            comment      TEXT,
-            created_at   TIMESTAMPTZ DEFAULT NOW()
-        );
-    """)
-    conn.commit()
-    cur.close()
+def _return_db(conn):
+    from api.database import return_db_conn
+    return_db_conn(conn)
 
+
+# ── Endpoints ────────────────────────────────────────────────────────────────
 
 @router.post("/feedback", response_model=FeedbackResponse)
-async def submit_feedback(request: FeedbackRequest):
+async def submit_feedback(
+    request: FeedbackRequest,
+    user: UserInToken = Depends(require_auth),
+):
     """
-    Submit feedback on a generated answer.
+    Submit feedback on an assistant message.
+    - `chat_id`: the assistant message UUID from chat_history
+    - `rating`:  1 (thumbs up) or -1 (thumbs down)
+    - `corrected_text`: optional corrected answer text
+    - `comment`: optional free-text comment
+    """
+    if request.rating not in (-1, 1):
+        raise HTTPException(status_code=422, detail="rating must be -1 or 1")
 
-    - `rating`: 1 (poor) to 5 (excellent)
-    - `helpful`: true/false
-    - `comment`: optional free-text feedback
-    """
     try:
         conn = _get_db_conn()
-        _ensure_feedback_tables(conn)
         cur = conn.cursor()
+
+        # Verify the chat_id exists
+        cur.execute("SELECT id FROM chat_history WHERE id = %s", (request.chat_id,))
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Chat message not found")
+
         cur.execute(
             """
-            INSERT INTO feedback (question, answer, rating, helpful, comment, query_id)
-            VALUES (%s, %s, %s, %s, %s, %s)
+            INSERT INTO feedback (chat_id, user_id, rating, corrected_text, comment)
+            VALUES (%s, %s, %s, %s, %s)
             RETURNING id;
             """,
-            (
-                request.question,
-                request.answer[:2000],  # Truncate to avoid huge DB entries
-                request.rating,
-                request.helpful,
-                request.comment,
-                request.query_id,
-            )
+            (request.chat_id, user.user_id, request.rating,
+             request.corrected_text, request.comment),
         )
-        feedback_id = cur.fetchone()[0]
+        feedback_id = str(cur.fetchone()[0])
         conn.commit()
         cur.close()
-        conn.close()
-        logger.info(f"Feedback recorded: id={feedback_id}, rating={request.rating}, helpful={request.helpful}")
+        _return_db(conn)
+
+        logger.info(f"Feedback recorded: id={feedback_id}, chat_id={request.chat_id}, rating={request.rating}")
         return FeedbackResponse(
             success=True,
             message="Thank you for your feedback!",
             feedback_id=feedback_id,
         )
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Feedback submission error: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to save feedback: {str(e)}")
 
 
 @router.post("/feedback/source", response_model=FeedbackResponse)
-async def submit_source_feedback(request: SourceFeedbackRequest):
+async def submit_source_feedback(
+    request: SourceFeedbackRequest,
+    user: UserInToken = Depends(require_auth),
+):
     """
-    Submit feedback on whether a specific source was relevant to the question.
-
-    Used to improve retrieval quality over time.
+    Submit feedback on whether a specific source document was relevant.
+    Linked to an existing feedback entry via feedback_id.
     """
     try:
         conn = _get_db_conn()
-        _ensure_feedback_tables(conn)
         cur = conn.cursor()
+
+        # Verify feedback_id exists
+        cur.execute("SELECT id FROM feedback WHERE id = %s", (request.feedback_id,))
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Parent feedback not found")
+
+        # Verify document_id exists
+        cur.execute("SELECT id FROM documents WHERE id = %s", (request.document_id,))
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Document not found")
+
         cur.execute(
             """
-            INSERT INTO source_feedback (question, source_title, source_type, relevant, comment)
-            VALUES (%s, %s, %s, %s, %s)
+            INSERT INTO source_feedback (feedback_id, document_id, is_relevant)
+            VALUES (%s, %s, %s)
             RETURNING id;
             """,
-            (
-                request.question,
-                request.source_title,
-                request.source_type,
-                request.relevant,
-                request.comment,
-            )
+            (request.feedback_id, request.document_id, request.is_relevant),
         )
-        feedback_id = cur.fetchone()[0]
+        sf_id = str(cur.fetchone()[0])
         conn.commit()
         cur.close()
-        conn.close()
-        logger.info(f"Source feedback recorded: id={feedback_id}, source={request.source_title}, relevant={request.relevant}")
+        _return_db(conn)
+
+        logger.info(f"Source feedback recorded: id={sf_id}, doc={request.document_id}, relevant={request.is_relevant}")
         return FeedbackResponse(
             success=True,
             message="Source feedback recorded.",
-            feedback_id=feedback_id,
+            feedback_id=sf_id,
         )
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Source feedback error: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to save source feedback: {str(e)}")
@@ -138,56 +163,58 @@ async def submit_source_feedback(request: SourceFeedbackRequest):
 async def get_feedback_stats():
     """
     Get aggregated feedback statistics.
-    Returns overall ratings, helpfulness rate, and top-rated sources.
+    Returns thumbs up/down counts and per-source relevance rates.
     """
     try:
         conn = _get_db_conn()
-        _ensure_feedback_tables(conn)
         cur = conn.cursor()
 
         # Overall feedback stats
         cur.execute("""
             SELECT
-                COUNT(*)                                    AS total_feedback,
-                ROUND(AVG(rating)::numeric, 2)              AS avg_rating,
-                SUM(CASE WHEN helpful THEN 1 ELSE 0 END)    AS helpful_count,
-                COUNT(*)                                    AS total_count
+                COUNT(*)                                            AS total,
+                SUM(CASE WHEN rating = 1 THEN 1 ELSE 0 END)        AS thumbs_up,
+                SUM(CASE WHEN rating = -1 THEN 1 ELSE 0 END)       AS thumbs_down
             FROM feedback;
         """)
         row = cur.fetchone()
-        total, avg_rating, helpful_count, total_count = row
+        total, thumbs_up, thumbs_down = row
 
-        # Source feedback stats
+        # Source relevance stats (top 10 documents by feedback count)
         cur.execute("""
             SELECT
-                source_title,
-                COUNT(*)                                        AS total_feedback,
-                SUM(CASE WHEN relevant THEN 1 ELSE 0 END)      AS relevant_count
-            FROM source_feedback
-            GROUP BY source_title
-            ORDER BY relevant_count DESC
+                d.title,
+                d.source_type,
+                COUNT(*)                                            AS total_votes,
+                SUM(CASE WHEN sf.is_relevant THEN 1 ELSE 0 END)    AS relevant_count
+            FROM source_feedback sf
+            JOIN documents d ON d.id = sf.document_id
+            GROUP BY d.id, d.title, d.source_type
+            ORDER BY total_votes DESC
             LIMIT 10;
         """)
         source_stats = [
             {
-                "source": r[0],
-                "total_feedback": r[1],
-                "relevant_count": r[2],
-                "relevance_rate": round(r[2] / r[1] * 100, 1) if r[1] > 0 else 0,
+                "title": r[0],
+                "source_type": r[1],
+                "total_votes": r[2],
+                "relevant_count": r[3],
+                "relevance_pct": round(r[3] / r[2] * 100, 1) if r[2] > 0 else 0,
             }
             for r in cur.fetchall()
         ]
 
         cur.close()
-        conn.close()
+        _return_db(conn)
 
-        helpfulness_rate = round(helpful_count / total_count * 100, 1) if total_count > 0 else 0
+        approval_pct = round(thumbs_up / total * 100, 1) if total and total > 0 else 0
 
         return {
-            "total_feedback": total,
-            "average_rating": float(avg_rating) if avg_rating else 0.0,
-            "helpfulness_rate_pct": helpfulness_rate,
-            "top_sources_by_relevance": source_stats,
+            "total_feedback": total or 0,
+            "thumbs_up": thumbs_up or 0,
+            "thumbs_down": thumbs_down or 0,
+            "approval_rate_pct": approval_pct,
+            "top_sources_by_feedback": source_stats,
         }
     except Exception as e:
         logger.error(f"Feedback stats error: {e}")
