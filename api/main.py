@@ -1,3 +1,4 @@
+
 """
 Glass Expert AI — FastAPI Backend
 Phase 2: RAG Query API + Specialized Engineering Endpoints
@@ -5,6 +6,7 @@ Phase 2: RAG Query API + Specialized Engineering Endpoints
 import os
 import sys
 from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -13,19 +15,20 @@ from loguru import logger
 from dotenv import load_dotenv
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-
-# Load environment variables from .env BEFORE importing routers
 load_dotenv(Path(__file__).parent.parent / ".env")
 
-from api.routers import conversations
-app.include_router(conversations.router, prefix="/api/v1", tags=["Conversations"])
+from api.routers import (
+    query, health, ingest, analyze, design,
+    troubleshoot, feedback, conversations
+)
+
+from api.auth import router as auth_router
 
 app = FastAPI(
     title="Glass Expert AI",
     description=(
         "RAG-powered glass science assistant for engineers. "
-        "Endpoints: /query (general Q&A), /analyze (composition analysis), "
-        "/design (composition design), /troubleshoot (defect root cause)."
+        "Endpoints: /query /analyze /design /troubleshoot /feedback /auth /conversations"
     ),
     version="3.0.0",
 )
@@ -38,32 +41,37 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ── Auth endpoints ────────────────────────────────────────────────────────────
-app.include_router(auth.router,         prefix="/api/v1/auth", tags=["Auth"])
+# ── Auth ───────────────────────────────────────────────────────────────────────
+app.include_router(auth_router,             prefix="/api/v1", tags=["Auth"])
+# ── Core ───────────────────────────────────────────────────────────────────────
+app.include_router(health.router,           prefix="/api/v1",      tags=["Health"])
+app.include_router(query.router,            prefix="/api/v1",      tags=["Query"])
+app.include_router(ingest.router,           prefix="/api/v1",      tags=["Ingestion"])
 
-# ── Core endpoints ─────────────────────────────────────────────────────────────
-app.include_router(health.router,       prefix="/api/v1", tags=["Health"])
-app.include_router(query.router,        prefix="/api/v1", tags=["Query"])
-app.include_router(ingest.router,       prefix="/api/v1", tags=["Ingestion"])
+# ── Specialized engineering ────────────────────────────────────────────────────
+app.include_router(analyze.router,          prefix="/api/v1",      tags=["Analyze"])
+app.include_router(design.router,           prefix="/api/v1",      tags=["Design"])
+app.include_router(troubleshoot.router,     prefix="/api/v1",      tags=["Troubleshoot"])
+app.include_router(feedback.router,         prefix="/api/v1",      tags=["Feedback"])
 
-# ── Specialized engineering endpoints ─────────────────────────────────────────
-app.include_router(analyze.router,      prefix="/api/v1", tags=["Analyze"])
-app.include_router(design.router,       prefix="/api/v1", tags=["Design"])
-app.include_router(troubleshoot.router, prefix="/api/v1", tags=["Troubleshoot"])
-app.include_router(feedback.router,     prefix="/api/v1", tags=["Feedback"])
+# ── Conversations & Memory ─────────────────────────────────────────────────────
+app.include_router(conversations.router,    prefix="/api/v1",      tags=["Conversations"])
 
 # ── Serve React frontend ───────────────────────────────────────────────────────
-_project_root = Path(__file__).resolve().parent.parent
+_project_root  = Path(__file__).resolve().parent.parent
 _frontend_dist = _project_root / "frontend" / "dist"
-_assets_dir = _frontend_dist / "assets"
-_index_html = _frontend_dist / "index.html"
+_assets_dir    = _frontend_dist / "assets"
+_index_html    = _frontend_dist / "index.html"
 
 
 @app.get("/", include_in_schema=False)
 async def serve_frontend():
     if _index_html.exists():
         return FileResponse(str(_index_html))
-    return HTMLResponse("<h1>Glass Expert AI</h1><p>Frontend not built. Run: cd frontend && npm run build</p>")
+    return HTMLResponse(
+        "<h1>Glass Expert AI</h1>"
+        "<p>Frontend not built. Run: cd frontend && npm run build</p>"
+    )
 
 
 @app.get("/favicon.svg", include_in_schema=False)
@@ -74,7 +82,6 @@ async def favicon():
     return FileResponse(str(_index_html))
 
 
-# Mount static assets LAST — after all @app.get() routes
 if _assets_dir.exists():
     app.mount("/assets", StaticFiles(directory=str(_assets_dir)), name="assets")
 
@@ -82,12 +89,8 @@ if _assets_dir.exists():
 @app.on_event("startup")
 async def startup_event():
     logger.info("Glass Expert AI API v3.0.0 starting up...")
-    logger.info("Chat UI available at: http://localhost:8080/")
-    logger.info("API Docs available at: http://localhost:8080/docs")
-    logger.info("New endpoints: /analyze, /design, /troubleshoot, /feedback, /auth")
-    logger.info("Auth endpoints: /api/v1/auth/register, /api/v1/auth/login, /api/v1/auth/me")
-    logger.info(f"Frontend dist: {_frontend_dist} (exists: {_frontend_dist.exists()})")
-    logger.info(f"Assets dir: {_assets_dir} (exists: {_assets_dir.exists()})")
+    logger.info("API Docs: http://localhost:8080/docs")
+    logger.info(f"Frontend: {_frontend_dist} (exists={_frontend_dist.exists()})")
 
 
 if __name__ == "__main__":

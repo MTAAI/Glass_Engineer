@@ -484,11 +484,9 @@ def retrieve(
             return cached
 
     # ── 1. Embed query ─────────────────────────────────────────────────────────
-    embedding     = embed_query(query)
-    dense_vec     = embedding["dense"]
+    embedding = embed_query(query)
+    dense_vec = embedding["dense"]
     sparse_weights: dict = embedding.get("sparse", {})
-
-    logger.debug(f"Query embedded | sparse_tokens={len(sparse_weights)}")
 
     conn, pooled = _get_conn()
     cur = conn.cursor()

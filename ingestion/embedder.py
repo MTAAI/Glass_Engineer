@@ -76,7 +76,6 @@ def embed_texts(
             return_colbert_vecs=False,
             batch_size=bs,
             max_length=MAX_LENGTH,
-            show_progress_bar=show_progress,
         )
         dense  = _normalise(result["dense_vecs"])
         sparse = result.get("lexical_weights", []) if return_sparse else []
@@ -91,27 +90,29 @@ def embed_texts(
         return {"dense": dense, "sparse": []}
 
 
+# Separate sentence-transformers model for queries
+# (documents were stored with sentence-transformers, so queries must match)
+_st_model = None
+
+def _get_st_model():
+    global _st_model
+    if _st_model is None:
+        from sentence_transformers import SentenceTransformer
+        logger.info(f"Loading sentence-transformers for query embedding: {MODEL_NAME}")
+        _st_model = SentenceTransformer(MODEL_NAME, device=DEVICE)
+        logger.info("sentence-transformers query model loaded")
+    return _st_model
+
+
 def embed_query(query: str) -> dict:
-    """Embed a single query. Returns dense (1024,) and sparse dict."""
-    prefixed = _QUERY_PREFIX + query
-
-    if _use_flag_embedding:
-        model  = _get_model()
-        result = model.encode(
-            [prefixed],
-            return_dense=True,
-            return_sparse=True,
-            return_colbert_vecs=False,
-            batch_size=1,
-            max_length=MAX_LENGTH,
-        )
-        dense  = _normalise(result["dense_vecs"])[0]
-        sparse = result["lexical_weights"][0] if result.get("lexical_weights") else {}
-        return {"dense": dense, "sparse": sparse}
-    else:
-        result = embed_texts([prefixed], return_sparse=False, batch_size=1)
-        return {"dense": result["dense"][0], "sparse": {}}
-
+    """
+    Embed a single query using sentence-transformers WITH instruction prefix.
+    Documents were ingested with this prefix so queries must match exactly.
+    """
+    prefixed = "Represent this sentence for searching relevant passages: " + query
+    model = _get_st_model()
+    vec = model.encode([prefixed], normalize_embeddings=True)[0]
+    return {"dense": vec, "sparse": {}}
 
 def get_embedding_dim() -> int:
     return 1024
