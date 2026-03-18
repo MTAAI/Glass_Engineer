@@ -208,3 +208,29 @@ CREATE INDEX IF NOT EXISTS documents_bgem3_hnsw_idx
 
 CREATE INDEX IF NOT EXISTS documents_bgem3_source_type_idx ON documents_bgem3 (source_type);
 CREATE INDEX IF NOT EXISTS documents_bgem3_language_idx ON documents_bgem3 (language);
+-- ============================================================
+-- DOCUMENTS_BGEM3 TABLE
+-- ============================================================
+CREATE TABLE IF NOT EXISTS documents_bgem3 (LIKE documents INCLUDING ALL);
+
+CREATE INDEX IF NOT EXISTS documents_bgem3_hnsw_idx
+    ON documents_bgem3 USING hnsw (embedding vector_cosine_ops)
+    WITH (m = 16, ef_construction = 64);
+
+CREATE INDEX IF NOT EXISTS documents_bgem3_source_type_idx ON documents_bgem3 (source_type);
+CREATE INDEX IF NOT EXISTS documents_bgem3_language_idx ON documents_bgem3 (language);
+
+-- ============================================================
+-- CONVERSATIONS TABLE
+-- ============================================================
+CREATE TABLE IF NOT EXISTS conversations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    session_id UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+    title TEXT NOT NULL DEFAULT 'New Conversation',
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS conversations_user_id_idx ON conversations (user_id);
+CREATE INDEX IF NOT EXISTS conversations_session_id_idx ON conversations (session_id);
