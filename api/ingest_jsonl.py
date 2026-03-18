@@ -80,7 +80,7 @@ def ingest_qa_file(file_path: str):
                 )
                 cur.execute(
                     """
-                    INSERT INTO documents
+                    INSERT INTO documents_bgem3
                         (title, source_type, language, content, metadata, embedding)
                     VALUES (%s, %s, %s, %s, %s, %s)
                     """,
