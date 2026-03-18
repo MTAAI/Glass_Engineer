@@ -57,13 +57,13 @@ def test_database_connection():
         conn = psycopg2.connect(os.getenv("DATABASE_URL"))
         cur = conn.cursor()
 
-        cur.execute("SELECT COUNT(*) FROM documents;")
+        cur.execute("SELECT COUNT(*) FROM documents_bgem3;")
         doc_count = cur.fetchone()[0]
 
-        cur.execute("SELECT COUNT(DISTINCT title) FROM documents;")
+        cur.execute("SELECT COUNT(DISTINCT title) FROM documents_bgem3;")
         title_count = cur.fetchone()[0]
 
-        cur.execute("SELECT source_type, COUNT(*) FROM documents GROUP BY source_type;")
+        cur.execute("SELECT source_type, COUNT(*) FROM documents_bgem3 GROUP BY source_type;")
         breakdown = cur.fetchall()
 
         cur.close()

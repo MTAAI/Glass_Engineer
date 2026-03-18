@@ -23,9 +23,9 @@ async def health_check():
         from api.database import get_db
         with get_db() as conn:
             cur = conn.cursor()
-            cur.execute("SELECT COUNT(DISTINCT title) FROM documents;")
+            cur.execute("SELECT COUNT(DISTINCT title) FROM documents_bgem3;")
             total_docs = cur.fetchone()[0]
-            cur.execute("SELECT COUNT(*) FROM documents;")
+            cur.execute("SELECT COUNT(*) FROM documents_bgem3;")
             total_chunks = cur.fetchone()[0]
             cur.close()
         db_status = "healthy"

@@ -1,14 +1,16 @@
 """
-Glass Expert AI — Retrieval Module v2
+Glass Expert AI — Retrieval Module v3
 =====================================
 Hybrid search: dense vector + keyword matching + cross-encoder reranking.
-Supports bilingual retrieval (English + Farsi) with language-aware filtering.
+Supports bilingual retrieval (English + Farsi) via bge-m3 multilingual embeddings.
 
 Search pipeline:
-  1. Dense vector search (bge-large-en-v1.5) -> top_k * 4 candidates
+  1. Dense vector search (bge-m3, 1024-dim) -> top_k * 4 candidates
   2. Keyword search (PostgreSQL ILIKE) -> top_k * 2 candidates (catches exact terms)
   3. Merge & deduplicate candidates
   4. Cross-encoder rerank (bge-reranker-v2-m3) -> final top_k results
+
+Data source: documents_bgem3 table (247K chunks, bge-m3 multilingual embeddings)
 """
 
 import os
@@ -235,7 +237,7 @@ def _keyword_search(
                 language,
                 content,
                 metadata
-            FROM documents
+            FROM documents_bgem3
             WHERE ({keyword_where}){extra_where}
             LIMIT %s
         """
@@ -331,7 +333,7 @@ def retrieve(
                 content,
                 metadata,
                 1 - (embedding <=> %s::vector) AS similarity
-            FROM documents
+            FROM documents_bgem3
             {where_clause}
             ORDER BY embedding <=> %s::vector
             LIMIT %s
@@ -435,15 +437,20 @@ def retrieve_with_auto_language(
         language = detect_language(query)
     logger.info(f"Detected query language: {language.upper()}")
 
-    # For non-English queries, translate to English for better embedding/retrieval.
-    # The embedding model (bge-large-en-v1.5) only understands English.
+    # bge-m3 is multilingual — Farsi queries are embedded directly without translation.
+    # The embedding model understands both English and Farsi natively.
+    # Translation is still available as optional boost for edge cases.
     retrieval_query = query
     if language != "en":
-        retrieval_query = _translate_query_to_english(query)
+        # Try glossary-based enhancement: append English terms for domain-specific Farsi words
+        glossary = _load_glossary()
+        hints = [en_term for fa_term, en_term in glossary.items() if fa_term in query]
+        if hints:
+            retrieval_query = f"{query} ({', '.join(hints[:5])})"
+            logger.info(f"Glossary-enhanced query: '{retrieval_query[:80]}'")
 
-    # Since non-English queries are translated to English for embedding,
-    # always search ALL languages to leverage the full English knowledge base.
-    # The LLM will respond in the detected language regardless of source language.
+    # Search ALL languages — bge-m3 multilingual embeddings enable cross-lingual matching.
+    # A Farsi query will naturally match relevant English chunks and vice versa.
     results = retrieve(
         retrieval_query,
         top_k=top_k,
