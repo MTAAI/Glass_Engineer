@@ -61,41 +61,62 @@ def store_chunks(
     embeddings: dict,
     doc_info: dict,
     source_type: str,
+    batch_size: int = 100,
 ) -> int:
-    """Insert document chunks and their embeddings into PostgreSQL."""
+    """
+    Insert document chunks and their embeddings into PostgreSQL.
+    Commits in batches of batch_size for reliability on large documents.
+    Rolls back current batch on error — previously committed batches are kept.
+    """
     cur = conn.cursor()
     inserted = 0
+    failed = 0
 
     for i, (chunk, dense_emb) in enumerate(zip(chunks, embeddings["dense"])):
         metadata = {
-            "chunk_index":   i,
-            "total_chunks":  len(chunks),
-            "file_path":     doc_info["file_path"],
-            "page_count":    doc_info["page_count"],
-            "ingested_at":   datetime.utcnow().isoformat(),
+            "chunk_index": i,
+            "total_chunks": len(chunks),
+            "file_path": doc_info["file_path"],
+            "page_count": doc_info["page_count"],
+            "ingested_at": datetime.utcnow().isoformat(),
+            "embedding_model": os.getenv("EMBEDDING_MODEL", "BAAI/bge-m3"),
         }
+        try:
+            cur.execute(
+                """
+                INSERT INTO documents_bgem3
+                    (title, source_type, language, content, metadata, embedding)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                """,
+                (
+                    doc_info["title"],
+                    source_type,
+                    doc_info["language"],
+                    chunk,
+                    json.dumps(metadata),
+                    dense_emb.tolist(),
+                ),
+            )
+            inserted += 1
+        except psycopg2.Error as e:
+            logger.warning(f"Chunk {i} insert failed: {e} — skipping")
+            conn.rollback()
+            failed += 1
+            continue
 
-        cur.execute(
-            """
-            INSERT INTO documents_bgem3
-                (title, source_type, language, content, metadata, embedding)
-            VALUES (%s, %s, %s, %s, %s, %s)
-            """,
-            (
-                doc_info["title"],
-                source_type,
-                doc_info["language"],
-                chunk,
-                json.dumps(metadata),
-                dense_emb.tolist(),
-            ),
-        )
-        inserted += 1
+        # Commit in batches for reliability on large documents
+        if inserted % batch_size == 0:
+            conn.commit()
+            logger.info(f"Progress: {inserted}/{len(chunks)} chunks committed...")
 
+    # Final commit for remaining chunks
     conn.commit()
     cur.close()
-    return inserted
 
+    if failed:
+        logger.warning(f"Completed with {failed} failed chunks out of {len(chunks)}")
+
+    return inserted
 
 def log_ingestion(conn, doc_info: dict, source_type: str, chunk_count: int, status: str = "completed", error: str = None):
     """Record ingestion in the ingestion_log table."""
