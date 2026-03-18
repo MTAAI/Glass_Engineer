@@ -77,7 +77,7 @@ def store_chunks(
 
         cur.execute(
             """
-            INSERT INTO documents
+            INSERT INTO documents_bgem3
                 (title, source_type, language, content, metadata, embedding)
             VALUES (%s, %s, %s, %s, %s, %s)
             """,
