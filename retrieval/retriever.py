@@ -271,7 +271,7 @@ def _dense_search(
     sql = f"""
         SELECT id::text, title, source_type, language, content, metadata,
                1 - (embedding <=> %s::vector) AS similarity
-        FROM documents
+        FROM documents_bgem3
         {where}
         ORDER BY embedding <=> %s::vector
         LIMIT %s
@@ -340,7 +340,7 @@ def _sparse_search(
             SELECT id::text, title, source_type, language, content, metadata,
                    ts_rank(to_tsvector('english', content),
                             to_tsquery('english', %s)) AS score
-            FROM documents
+            FROM documents_bgem3
             WHERE {base_cond}{extra}
             ORDER BY score DESC
             LIMIT %s
@@ -352,7 +352,7 @@ def _sparse_search(
         # Fallback: ILIKE on first 3 tokens
         cur.execute(
             """SELECT id::text, title, source_type, language, content, metadata, 0.5
-               FROM documents
+               FROM documents_bgem3
                WHERE content ILIKE %s OR title ILIKE %s
                LIMIT %s""",
             (f"%{tokens[0]}%", f"%{tokens[0]}%", limit)
@@ -525,7 +525,7 @@ def retrieve(
                     kw_params.append(final_top_k * 2)
                     cur.execute(
                         f"SELECT id::text, title, source_type, language, content, metadata "
-                        f"FROM documents WHERE {kw_cond} LIMIT %s",
+                        f"FROM documents_bgem3 WHERE {kw_cond} LIMIT %s",
                         kw_params,
                     )
                     for row in cur.fetchall():
