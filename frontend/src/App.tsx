@@ -133,6 +133,11 @@ function SourceCard({ source, index, question }: SourceCardProps) {
         {rerankBadge(source.rerank_score)}
         <span className="text-[10px] text-slate-400">{langFlag(source.language)}</span>
         <span className="text-green-400 text-xs font-semibold">{pct}%</span>
+{source.rerank_score && (
+  <span className="text-[10px] text-slate-500 ml-1">
+    rerank: {(source.rerank_score * 100).toFixed(0)}%
+  </span>
+)}
       </div>
 
       {/* Similarity bar */}
@@ -145,7 +150,7 @@ function SourceCard({ source, index, question }: SourceCardProps) {
 
       {/* Content preview */}
       <p
-        className="text-slate-500 text-xs italic leading-relaxed line-clamp-2"
+        className="text-slate-500 text-xs italic leading-relaxed line-clamp-4"
         dir={rtl ? 'rtl' : 'ltr'}
       >
         {source.content_preview}

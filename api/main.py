@@ -56,7 +56,7 @@ from collections import defaultdict
 
 _rate_limits: dict = defaultdict(list)  # ip -> list of timestamps
 _RATE_LIMIT_WINDOW = 60  # seconds
-_RATE_LIMIT_MAX = int(os.getenv("RATE_LIMIT_PER_MINUTE", "30"))  # requests per minute
+_RATE_LIMIT_MAX = int(os.getenv("RATE_LIMIT_PER_MINUTE", "60"))  # requests per minute
 
 
 @app.middleware("http")
