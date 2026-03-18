@@ -44,17 +44,33 @@ atexit.register(_shutdown_pool)
 
 
 def get_db_conn():
-    """Get a pooled connection. MUST call return_db_conn() when done."""
+    """
+    Get a pooled connection. MUST call return_db_conn() when done.
+
+    Raises:
+        psycopg2.pool.PoolError: If all connections are exhausted.
+        psycopg2.OperationalError: If DB is unreachable.
+    """
     if _pool is None:
         _init_pool()
-    conn = _pool.getconn()
+    try:
+        conn = _pool.getconn()
+    except psycopg2.pool.PoolError as e:
+        logger.error(f"DB pool exhausted — all 20 connections in use: {e}")
+        raise
+    except psycopg2.OperationalError as e:
+        logger.error(f"DB unreachable: {e}")
+        raise
+
     if id(conn) not in _pgvector_registered:
         try:
             from pgvector.psycopg2 import register_vector
             register_vector(conn)
             _pgvector_registered.add(id(conn))
-        except Exception:
-            pass
+        except ImportError:
+            logger.warning("pgvector not installed — vector search unavailable")
+        except psycopg2.Error as e:
+            logger.warning(f"pgvector registration failed: {e}")
     return conn
 
 

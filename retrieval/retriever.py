@@ -60,8 +60,8 @@ def _get_conn():
         conn = get_db_conn()
         register_vector(conn)
         return conn, True   # (conn, pooled)
-    except Exception:
-        pass
+    except psycopg2.OperationalError as e:
+        logger.debug(f"Pool connection failed: {e}")
 
     import psycopg2
     from pgvector.psycopg2 import register_vector
@@ -79,8 +79,8 @@ def _return_conn(conn, pooled: bool) -> None:
             from api.database import return_db_conn
             return_db_conn(conn)
             return
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"Could not return to pool: {e}")
     conn.close()
 
 
@@ -91,7 +91,11 @@ def _get_redis():
         r = redis.from_url(REDIS_URL, decode_responses=True)
         r.ping()
         return r
-    except Exception:
+    except (ConnectionError, OSError) as e:
+        logger.warning(f"Redis unavailable: {e}")
+        return None
+    except Exception as e:
+        logger.warning(f"Redis unexpected error ({type(e).__name__}): {e}")
         return None
 
 
@@ -109,8 +113,10 @@ def _get_cached(key: str) -> Optional[list]:
         if data:
             logger.debug("Cache hit")
             return json.loads(data)
-    except Exception:
-        pass
+    except (ConnectionError, OSError) as e:
+        logger.debug(f"Cache read failed: {e}")
+    except Exception as e:
+        logger.debug(f"Cache read unexpected error: {e}")
     return None
 
 
@@ -119,9 +125,11 @@ def _set_cached(key: str, results: list) -> None:
     if not r or not results:
         return
     try:
-        r.setex(key, REDIS_TTL, json.dumps(results))
-    except Exception:
-        pass
+        rr.setex(key, REDIS_TTL, json.dumps(results))
+    except (ConnectionError, OSError) as e:
+        logger.debug(f"Cache write failed: {e}")
+    except Exception as e:
+        logger.debug(f"Cache write unexpected error: {e}")
 
 
 # ── Language detection ─────────────────────────────────────────────────────────
