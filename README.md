@@ -36,13 +36,16 @@ React UI (:8080)
 | **Total**   | **247,001** |
 
 Languages: English + Farsi
-Embedding model: BAAI/bge-m3 (1024-dim, multilingual, sentence-transformers with instruction prefix)
+Embedding model: BAAI/bge-m3 (1024-dim, multilingual, sentence-transformers + instruction prefix)
 Vector index: HNSW (m=16, ef_construction=64)
 Reranker top score: 0.9980
+Golden set score: 97.6% composite (50 questions)
 
 ---
 
 ## Quick Start
+
+> **One-command startup** (after first install): `.\start_api.ps1`
 
 ### Step 1 — Start Docker services
 ```powershell
@@ -56,18 +59,19 @@ docker-compose -f docker/docker-compose.yml up -d
 
 ### Step 3 — Install dependencies
 ```powershell
+# Install PyTorch with CUDA first
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
+# Install all other dependencies
 pip install -r requirements.txt
-pip install FlagEmbedding==1.3.3
 ```
 
 ### Step 4 — Configure environment
 ```powershell
 copy .env.example .env
-# Edit .env — set JWT_SECRET_KEY, LLM_BASE_URL
+# Edit .env — set JWT_SECRET_KEY, LLM_BASE_URL, OPENAI_API_KEY
 ```
 
-### Step 5 — Start LLM server (requires model weights from Engineer Z)
+### Step 5 — Start LLM server (requires model weights)
 ```powershell
 python model_service/serve.py
 ```
@@ -111,11 +115,11 @@ All endpoints except health require JWT authentication via `Authorization: Beare
 ## LLM Configuration
 
 Tried in order:
-1. **Local model server** (`model_service/serve.py`) — fine-tuned Llama-3.1-8B on port 8000
+1. **Local model server** (`model_service/serve.py`) — fine-tuned Llama-3.1-8B on port 8000. Retry: 3 attempts, 30s timeout per call.
 2. **OpenAI GPT-4o-mini** — fallback if local model unavailable
 3. **Retrieval-only** — returns raw retrieved context if no LLM available
 
-To start the local model server (requires weights from Engineer Z):
+To start the local model server (requires weights):
 ```powershell
 python model_service/serve.py
 ```
@@ -124,14 +128,31 @@ python model_service/serve.py
 
 ## Evaluation
 
-Golden evaluation set (50 questions) available at `data/evaluation/golden_eval_set.jsonl`.
+Golden evaluation set (50 questions) at `data/evaluation/golden_eval_set.jsonl`.
+Farsi evaluation set at `data/evaluation/persian_eval_set.jsonl`.
 
-Run evaluation after LLM is connected:
+Run retrieval-only evaluation (no OpenAI key needed):
+```powershell
+python scripts/evaluation/run_retrieval_eval.py --url http://localhost:8080
+```
+
+Run full LLM-as-judge evaluation (requires OpenAI key):
 ```powershell
 python scripts/evaluation/run_golden_eval.py --url http://localhost:8080 --label arjun-247k
 ```
 
-Target: beat Engineer Z's baseline of **4.08/5.00 judge score, 66.58% composite**.
+Current retrieval score: **97.6% composite, 4.88/5.00 average** (50 questions, no LLM)
+Target LLM score: beat baseline of **4.08/5.00 judge score, 66.58% composite**
+
+---
+
+## Data Quality Maintenance
+
+To clean the corpus (remove short, duplicate, or garbled chunks):
+```powershell
+# Review the script first — it uses ROLLBACK by default (safe)
+docker exec glass_ai_postgres psql -U glassai -d glass_expert_ai -f /scripts/database/cleanup_garbage_chunks.sql
+```
 
 ---
 
@@ -152,7 +173,7 @@ Target: beat Engineer Z's baseline of **4.08/5.00 judge score, 66.58% composite*
 glass-expert-ai/
 ├── api/
 │   ├── auth.py                ← JWT auth (register/login/me) + UserInToken
-│   ├── database.py            ← ThreadedConnectionPool (min=2, max=20)
+│   ├── database.py            ← ThreadedConnectionPool (min=2, max=20) + pool exhaustion handling
 │   ├── main.py                ← FastAPI v3.1.0 — CORS, rate limiting, DB pool init
 │   ├── models/schemas.py      ← Pydantic request/response models
 │   └── routers/               ← query, analyze, design, troubleshoot,
@@ -160,24 +181,51 @@ glass-expert-ai/
 ├── ingestion/
 │   ├── embedder.py            ← bge-m3 via sentence-transformers + instruction prefix
 │   ├── ingest_jsonl.py        ← Q&A pair ingestion — bge-m3 embeddings
-│   └── ingest.py              ← Main ingestion pipeline
+│   ├── ingest.py              ← Main ingestion pipeline → documents_bgem3
+│   ├── chunker.py             ← Text chunking
+│   └── extractor.py           ← PDF, CSV, DOCX, TXT, JSON extraction
 ├── retrieval/
 │   ├── retriever.py           ← Hybrid: dense + sparse BM25 + RRF → documents_bgem3
 │   ├── reranker.py            ← bge-reranker-v2-m3 cross-encoder
-│   └── llm.py                 ← LLM integration + fallback governance
+│   ├── llm.py                 ← LLM integration + retry (3 attempts) + 30s timeout + fallback governance
+│   └── glossary_fa_en.json    ← 93 Farsi glass science terms for query enhancement
 ├── model_service/
 │   ├── serve.py               ← Local LLM server (HuggingFace + LoRA)
 │   └── serve_vllm.py          ← vLLM server (Linux only)
 ├── data/evaluation/
 │   ├── golden_eval_set.jsonl  ← 50-question English evaluation set
-│   └── persian_eval_set.jsonl ← Farsi evaluation set
-├── scripts/evaluation/
-│   └── run_golden_eval.py     ← Evaluation runner with LLM-as-judge scoring
+│   ├── persian_eval_set.jsonl ← Farsi evaluation set
+│   └── results/               ← Saved evaluation results
+├── scripts/
+│   ├── database/
+│   │   └── cleanup_garbage_chunks.sql  ← Remove short/duplicate/garbled chunks
+│   └── evaluation/
+│       ├── run_golden_eval.py          ← LLM-as-judge evaluation (requires OpenAI key)
+│       └── run_retrieval_eval.py       ← Retrieval-only evaluation (no key needed)
+├── tests/
+│   └── test_api.py            ← API test suite (6 tests, all passing)
 ├── docker/
 │   ├── docker-compose.yml     ← PostgreSQL + Redis + pgAdmin
-│   └── init.sql               ← Database schema (HNSW index)
+│   └── init.sql               ← Schema: documents_bgem3, HNSW, conversations, all tables
+├── .dockerignore              ← Docker build exclusions (venv, models, data)
 ├── .env.example               ← Environment template
-└── README.md
+├── .gitignore                 ← Git exclusions
+├── Dockerfile                 ← Multi-stage: React build + FastAPI
+├── README.md
+├── requirements.txt           ← Production dependencies (FlagEmbedding==1.3.3)
+├── requirements_finetune.txt  ← Fine-tuning dependencies (separate from production)
+└── start_api.ps1              ← Full stack startup: Docker + LLM server + API
+```
+
+---
+
+## Running Tests
+```powershell
+# API test suite (6 tests)
+.\venv\Scripts\python.exe tests\test_api.py
+
+# RAG quality test (10 questions, no OpenAI key needed)
+.\venv\Scripts\python.exe test_rag_score.py
 ```
 
 ---
