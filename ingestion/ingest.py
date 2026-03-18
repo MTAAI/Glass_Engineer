@@ -13,7 +13,7 @@ import json
 import argparse
 import psycopg2
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 from loguru import logger
 from dotenv import load_dotenv
 
@@ -78,7 +78,7 @@ def store_chunks(
             "total_chunks": len(chunks),
             "file_path": doc_info["file_path"],
             "page_count": doc_info["page_count"],
-            "ingested_at": datetime.utcnow().isoformat(),
+            "ingested_at": datetime.now(timezone.utc).isoformat(),
             "embedding_model": os.getenv("EMBEDDING_MODEL", "BAAI/bge-m3"),
         }
         try:
