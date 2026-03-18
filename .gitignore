@@ -62,3 +62,5 @@ C:\Users\Documents\Projects\glass-expert-ai-phase1\glass-expert-ai\
 ├── api\routers\health.py                      ← aligned with Engineer Z
 └── api\routers\ingest.py                      ← aligned with Engineer Z
 test_retrieval.py
+rag_test_results.json
+test_rag_score.py
