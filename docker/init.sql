@@ -133,6 +133,22 @@ CREATE TABLE IF NOT EXISTS ingestion_log (
 );
 
 -- ============================================================
+-- CONVERSATIONS TABLE (Session metadata for chat sidebar)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS conversations (
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    session_id  UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+    title       TEXT NOT NULL DEFAULT 'New Conversation',
+    created_at  TIMESTAMPTZ DEFAULT NOW(),
+    updated_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS conversations_user_id_idx    ON conversations (user_id);
+CREATE INDEX IF NOT EXISTS conversations_session_id_idx ON conversations (session_id);
+CREATE INDEX IF NOT EXISTS conversations_updated_at_idx ON conversations (updated_at DESC);
+
+-- ============================================================
 -- HELPER FUNCTION: Update updated_at timestamp automatically
 -- ============================================================
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -151,12 +167,44 @@ CREATE TRIGGER update_user_memory_updated_at
     BEFORE UPDATE ON user_memory
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+CREATE TRIGGER update_conversations_updated_at
+    BEFORE UPDATE ON conversations
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================================
+-- SEED: Anonymous user (used until auth is implemented)
+-- ============================================================
+INSERT INTO users (id, email, hashed_password, full_name, role)
+VALUES (
+    '00000000-0000-0000-0000-000000000001',
+    'anonymous@glassai.local',
+    'no-auth',
+    'Anonymous User',
+    'engineer'
+) ON CONFLICT (id) DO NOTHING;
+
 -- ============================================================
 -- VERIFICATION
 -- ============================================================
 DO $$
 BEGIN
     RAISE NOTICE '✅ Glass Expert AI database initialized successfully.';
-    RAISE NOTICE '   Tables: documents, users, chat_history, feedback, source_feedback, user_memory, ingestion_log';
+    RAISE NOTICE '   Tables: documents, users, chat_history, conversations, feedback, source_feedback, user_memory, ingestion_log';
     RAISE NOTICE '   Extensions: vector (pgvector), uuid-ossp, pg_trgm';
 END $$;
+-- ============================================================
+-- DOCUMENTS_BGEM3 TABLE (bge-m3 re-embedded knowledge base)
+-- 247,001 chunks embedded with BAAI/bge-m3 + instruction prefix
+-- ============================================================
+CREATE TABLE IF NOT EXISTS documents_bgem3 (
+    LIKE documents INCLUDING ALL
+);
+
+-- HNSW index for fast ANN search (better than ivfflat at 247K+ rows)
+CREATE INDEX IF NOT EXISTS documents_bgem3_hnsw_idx
+    ON documents_bgem3
+    USING hnsw (embedding vector_cosine_ops)
+    WITH (m = 16, ef_construction = 64);
+
+CREATE INDEX IF NOT EXISTS documents_bgem3_source_type_idx ON documents_bgem3 (source_type);
+CREATE INDEX IF NOT EXISTS documents_bgem3_language_idx ON documents_bgem3 (language);
