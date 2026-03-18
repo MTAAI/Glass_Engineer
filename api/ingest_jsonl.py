@@ -20,6 +20,17 @@ load_dotenv(Path(__file__).parent / ".env")
 import psycopg2
 from sentence_transformers import SentenceTransformer
 
+from langdetect import detect, LangDetectException
+
+
+def _detect_language(text: str) -> str:
+    """Detect language — returns 'fa' for Farsi/Arabic, 'en' for everything else."""
+    try:
+        lang = detect(text)
+        return "fa" if lang in ("fa", "ar") else "en"
+    except LangDetectException:
+        return "en"
+
 DB_URL          = os.getenv("DATABASE_URL")
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "BAAI/bge-m3")
 BATCH_SIZE      = 500
@@ -71,13 +82,14 @@ def ingest_qa_file(file_path: str):
                 continue
 
             # Apply instruction prefix — matches query-time embedding
-            text_for_embedding = _PREFIX + f"Q: {question}\nA: {answer}"
+            text_for_embedding = _PREFIX + question
 
             try:
                 embedding = model.encode(
                     text_for_embedding,
                     normalize_embeddings=True,
                 )
+                language = _detect_language(question)
                 cur.execute(
                     """
                     INSERT INTO documents_bgem3
@@ -87,12 +99,13 @@ def ingest_qa_file(file_path: str):
                     (
                         question[:500],
                         "qa_pair",
-                        "en",
+                        "language",
                         answer,
                         json.dumps({
                             "source_file":    file_path.name,
                             "question":       question,
                             "embedding_model": EMBEDDING_MODEL,
+                            "language":        language,
                         }),
                         embedding.tolist(),
                     ),
