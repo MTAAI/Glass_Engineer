@@ -1,0 +1,27 @@
+# Glass Expert AI — Fine-tuning Requirements
+# Install with: pip install -r requirements_finetune.txt
+
+# Core training stack
+torch>=2.3.0
+torchvision
+torchaudio
+
+# HuggingFace ecosystem
+transformers>=4.43.0
+datasets>=2.20.0
+accelerate>=0.32.0
+peft>=0.12.0
+trl>=0.9.0
+
+# Quantization (QLoRA)
+bitsandbytes>=0.43.0
+
+# Flash Attention 2 (faster training, less VRAM)
+# Install separately: pip install flash-attn --no-build-isolation
+# flash-attn>=2.6.0
+
+# Utilities
+sentencepiece
+protobuf
+scipy
+einops
