@@ -11,6 +11,7 @@ import sys
 import json
 import argparse
 from pathlib import Path
+
 from loguru import logger
 from dotenv import load_dotenv
 
@@ -19,9 +20,12 @@ load_dotenv(Path(__file__).parent / ".env")
 import psycopg2
 from sentence_transformers import SentenceTransformer
 
-DB_URL = os.getenv("DATABASE_URL")
-EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "BAAI/bge-large-en-v1.5")
-BATCH_SIZE = 500
+DB_URL          = os.getenv("DATABASE_URL")
+EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "BAAI/bge-m3")
+BATCH_SIZE      = 500
+
+# Instruction prefix — must match how documents were ingested
+_PREFIX = "Represent this sentence for searching relevant passages: "
 
 
 def ingest_qa_file(file_path: str):
@@ -30,7 +34,7 @@ def ingest_qa_file(file_path: str):
 
     try:
         conn = psycopg2.connect(DB_URL)
-        cur = conn.cursor()
+        cur  = conn.cursor()
         logger.info("Database connection successful.")
     except Exception as e:
         logger.error(f"Database connection failed: {e}")
@@ -44,7 +48,7 @@ def ingest_qa_file(file_path: str):
     logger.info(f"Total Q&A pairs to ingest: {total_lines:,}")
 
     ingested = 0
-    skipped = 0
+    skipped  = 0
 
     with open(file_path, encoding="utf-8") as f:
         for i, line in enumerate(f):
@@ -61,20 +65,23 @@ def ingest_qa_file(file_path: str):
                 continue
 
             question = qa.get("question", "").strip()
-            answer = qa.get("answer", "").strip()
-
+            answer   = qa.get("answer",   "").strip()
             if not question or not answer:
                 skipped += 1
                 continue
 
-            text_for_embedding = f"Q: {question}\nA: {answer}"
+            # Apply instruction prefix — matches query-time embedding
+            text_for_embedding = _PREFIX + f"Q: {question}\nA: {answer}"
 
             try:
-                embedding = model.encode(text_for_embedding, normalize_embeddings=True)
-
+                embedding = model.encode(
+                    text_for_embedding,
+                    normalize_embeddings=True,
+                )
                 cur.execute(
                     """
-                    INSERT INTO documents (title, source_type, language, content, metadata, embedding)
+                    INSERT INTO documents
+                        (title, source_type, language, content, metadata, embedding)
                     VALUES (%s, %s, %s, %s, %s, %s)
                     """,
                     (
@@ -82,12 +89,15 @@ def ingest_qa_file(file_path: str):
                         "qa_pair",
                         "en",
                         answer,
-                        json.dumps({"source_file": file_path.name, "question": question}),
+                        json.dumps({
+                            "source_file":    file_path.name,
+                            "question":       question,
+                            "embedding_model": EMBEDDING_MODEL,
+                        }),
                         embedding.tolist(),
                     ),
                 )
                 ingested += 1
-
                 if ingested % BATCH_SIZE == 0:
                     conn.commit()
                     logger.info(f"Progress: {ingested:,} / {total_lines:,} ingested...")
