@@ -49,16 +49,13 @@ class HealthResponse(BaseModel):
     embedding_model: str = "BAAI/bge-m3"
     total_documents: int
     total_chunks: int
-    version: str = "3.0.0"
+    version: str = "3.1.0"
 
 # ─── Ingest Endpoint ────────────────────────────────────────────────────────
 
 class IngestRequest(BaseModel):
-    title: str = Field(..., description="Document title")
-    content: str = Field(..., description="Full text content of the document")
-    source_type: str = Field("textbook", description="Type: textbook, paper, sop, standard, datasheet")
-    language: str = Field("en", description="Language code: en or fa")
-    metadata: Optional[Dict[str, Any]] = Field(default_factory=dict)
+    file_path: str = Field(..., description="Absolute path to the file to ingest")
+    source_type: str = Field("textbook", description="Type: textbook, paper, sop, qa_pair, manual, standard")
 
 class IngestResponse(BaseModel):
     success: bool
@@ -142,12 +139,10 @@ class TroubleshootResponse(BaseModel):
 # ─── Feedback Endpoints ─────────────────────────────────────────────────────
 
 class FeedbackRequest(BaseModel):
-    question: str
-    answer: str
-    rating: int = Field(..., ge=1, le=5)
-    helpful: bool
+    chat_id: str
+    rating: int = Field(..., description="1 = thumbs up, -1 = thumbs down")
+    corrected_text: Optional[str] = None
     comment: Optional[str] = None
-    query_id: str
 
 class SourceFeedbackRequest(BaseModel):
     question: str
@@ -159,7 +154,7 @@ class SourceFeedbackRequest(BaseModel):
 class FeedbackResponse(BaseModel):
     success: bool
     message: str
-    feedback_id: int
+    feedback_id: str  # UUID string
 
 # ─── Conversations & Memory ─────────────────────────────────────────────────
 
