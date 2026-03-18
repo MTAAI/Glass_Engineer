@@ -10,6 +10,7 @@ import re
 import json
 from datetime import datetime, timezone
 from loguru import logger
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
 # Singleton client cache — avoids creating a new connection per request
 _client_cache: dict = {}
@@ -386,8 +387,12 @@ Important: Use specific numbers, temperatures, and compositions from the referen
     # ── Final fallback ────────────────────────────────────────────────────────
     logger.warning("No LLM available. Returning retrieved context as answer.")
     raise RuntimeError("No LLM backend available")
-
-
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=2, max=10),
+    retry=retry_if_exception_type((TimeoutError, ConnectionError)),
+    reraise=True,
+)
 async def _call_openai_compatible(
     base_url: str,
     api_key: str,
@@ -430,6 +435,7 @@ async def _call_openai_compatible(
         messages=messages,
         temperature=temperature,
         max_tokens=max_tokens,
+        timeout=30.0,
         **extra,
     )
 
