@@ -13,7 +13,7 @@ import json
 import argparse
 import psycopg2
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 from loguru import logger
 from dotenv import load_dotenv
 
@@ -61,10 +61,15 @@ def store_chunks(
     embeddings: dict,
     doc_info: dict,
     source_type: str,
+    batch_size: int = 100,
 ) -> int:
-    """Insert document chunks and their embeddings into PostgreSQL."""
+    """Insert document chunks and their embeddings into documents_bgem3.
+    Commits in batches for reliability on large documents.
+    Rolls back current batch on error — previously committed batches are kept.
+    """
     cur = conn.cursor()
     inserted = 0
+    failed = 0
 
     for i, (chunk, dense_emb) in enumerate(zip(chunks, embeddings["dense"])):
         metadata = {
@@ -72,28 +77,44 @@ def store_chunks(
             "total_chunks":  len(chunks),
             "file_path":     doc_info["file_path"],
             "page_count":    doc_info["page_count"],
-            "ingested_at":   datetime.utcnow().isoformat(),
+            "ingested_at":   datetime.now(timezone.utc).isoformat(),
+            "embedding_model": os.getenv("EMBEDDING_MODEL", "BAAI/bge-m3"),
         }
 
-        cur.execute(
-            """
-            INSERT INTO documents
-                (title, source_type, language, content, metadata, embedding)
-            VALUES (%s, %s, %s, %s, %s, %s)
-            """,
-            (
-                doc_info["title"],
-                source_type,
-                doc_info["language"],
-                chunk,
-                json.dumps(metadata),
-                dense_emb.tolist(),
-            ),
-        )
-        inserted += 1
+        try:
+            cur.execute(
+                """
+                INSERT INTO documents_bgem3
+                    (title, source_type, language, content, metadata, embedding)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                """,
+                (
+                    doc_info["title"],
+                    source_type,
+                    doc_info["language"],
+                    chunk,
+                    json.dumps(metadata),
+                    dense_emb.tolist(),
+                ),
+            )
+            inserted += 1
+        except psycopg2.Error as e:
+            logger.warning(f"Chunk {i} insert failed: {e} — skipping")
+            conn.rollback()
+            failed += 1
+            continue
 
+        # Batch commit every N chunks for reliability
+        if inserted % batch_size == 0:
+            conn.commit()
+            logger.debug(f"Committed batch: {inserted} chunks so far")
+
+    # Final commit for remaining chunks
     conn.commit()
     cur.close()
+
+    if failed:
+        logger.warning(f"Ingestion: {inserted} inserted, {failed} failed out of {len(chunks)} chunks")
     return inserted
 
 
@@ -192,7 +213,8 @@ def ingest_folder(folder_path: str, source_type: str = "textbook") -> dict:
         logger.warning(f"No supported files found in: {folder_path}")
         return {}
 
-    logger.info(f"Found {len(pdf_files)} files to ingest ({", ".join(SUPPORTED_EXTENSIONS)})")
+    ext_list = ", ".join(SUPPORTED_EXTENSIONS)
+    logger.info(f"Found {len(pdf_files)} files to ingest ({ext_list})")
     results = {}
 
     for pdf_file in pdf_files:
