@@ -18,7 +18,7 @@ from dotenv import load_dotenv
 load_dotenv(Path(__file__).parent / ".env")
 
 import psycopg2
-from sentence_transformers import SentenceTransformer
+from FlagEmbedding import BGEM3FlagModel
 
 from langdetect import detect, LangDetectException
 
@@ -52,8 +52,13 @@ def ingest_qa_file(file_path: str):
         sys.exit(1)
 
     logger.info(f"Loading embedding model: {EMBEDDING_MODEL}")
-    model = SentenceTransformer(EMBEDDING_MODEL)
-    logger.info("Embedding model loaded.")
+    device = os.getenv("EMBEDDING_DEVICE", "cuda")
+    model = BGEM3FlagModel(
+        EMBEDDING_MODEL,
+        use_fp16=os.getenv("EMBEDDING_USE_FP16", "true").lower() == "true",
+        device=device,
+)
+    logger.info(f"Embedding model loaded on {device}.")
 
     total_lines = sum(1 for _ in open(file_path, encoding="utf-8"))
     logger.info(f"Total Q&A pairs to ingest: {total_lines:,}")
@@ -80,26 +85,38 @@ def ingest_qa_file(file_path: str):
             if not question or not answer:
                 skipped += 1
                 continue
+            if len(question) < 10:
+               logger.debug(f"Line {i+1}: question too short — skipped")
+               skipped += 1
+               continue
+
 
             # Apply instruction prefix — matches query-time embedding
             text_for_embedding = _PREFIX + question
 
             try:
-                embedding = model.encode(
-                    text_for_embedding,
-                    normalize_embeddings=True,
-                )
+                result = model.encode(
+                    [text_for_embedding],
+                    batch_size=1,
+                    max_length=int(os.getenv("EMBEDDING_MAX_LENGTH", "512")),
+                    return_dense=True,
+                    return_sparse=False,
+                    return_colbert_vecs=False,
+)
+                embedding = result["dense_vecs"][0]
+
                 language = _detect_language(question)
                 cur.execute(
                     """
                     INSERT INTO documents_bgem3
                         (title, source_type, language, content, metadata, embedding)
                     VALUES (%s, %s, %s, %s, %s, %s)
+                    ON CONFLICT DO NOTHING
                     """,
                     (
                         question[:500],
                         "qa_pair",
-                        "language",
+                        language,
                         answer,
                         json.dumps({
                             "source_file":    file_path.name,
