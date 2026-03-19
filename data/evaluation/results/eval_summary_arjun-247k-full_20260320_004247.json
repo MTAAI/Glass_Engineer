@@ -1,0 +1,41 @@
+{
+  "label": "arjun-247k-full",
+  "timestamp": "20260320_004247",
+  "n_questions": 50,
+  "errors": 0,
+  "mean_judge_score": 4.46,
+  "mean_kw_coverage": 0.3626,
+  "composite_score_pct": 73.32,
+  "score_distribution": {
+    "1": 0,
+    "2": 3,
+    "3": 0,
+    "4": 18,
+    "5": 29
+  },
+  "by_category": {
+    "Thermal Properties": 4.33,
+    "Glass Structure": 5.0,
+    "Glass Composition": 4.17,
+    "Glass Defects": 4.4,
+    "Glass Strengthening": 4.5,
+    "Manufacturing": 4.33,
+    "Optical Properties": 4.67,
+    "Mechanical Properties": 4.5,
+    "Glass Ceramics": 4.5,
+    "Specialty Glass": 4.5,
+    "Chemical Durability": 4.0,
+    "Glass Melting": 4.5,
+    "Glass Forming": 4.0,
+    "Glass Properties": 3.67,
+    "Glass Science Fundamentals": 5.0,
+    "Glass Applications": 5.0,
+    "Glass Manufacturing": 5.0,
+    "Glass Defects & Quality": 5.0
+  },
+  "avg_latency_ms": 17792.0,
+  "avg_similarity": 0.7128,
+  "corpus_size": 235510,
+  "embedding_model": "BAAI/bge-m3",
+  "reranker_model": "BAAI/bge-reranker-v2-m3"
+}
