@@ -141,3 +141,65 @@ export async function submitFeedback(payload: FeedbackPayload): Promise<{ feedba
 export async function submitSourceFeedback(payload: SourceFeedbackPayload): Promise<void> {
   await API.post('/feedback/source', payload)
 }
+
+// ── File Upload ──────────────────────────────────────────────────────────────
+
+export interface UploadResponse {
+  status: string
+  file_name: string
+  source_type: string
+  chunks_stored: number
+  message: string
+}
+
+// ── Admin Dashboard ─────────────────────────────────────────────────────────
+
+export interface AdminStats {
+  total_chunks: number
+  chunks_by_type: { source_type: string; count: number }[]
+  chunks_by_language: { language: string; count: number }[]
+  total_users: number
+  active_users_7d: number
+  total_conversations: number
+  total_messages: number
+  messages_7d: number
+  feedback: { total: number; positive: number; negative: number; satisfaction_pct: number }
+  top_queries: { question: string; count: number }[]
+  recent_ingestions: { file_name: string; source_type: string; language: string; chunk_count: number; status: string; created_at: string }[]
+  model_usage: { model: string; count: number }[]
+}
+
+export async function fetchAdminStats(): Promise<AdminStats> {
+  const { data } = await API.get<AdminStats>('/admin/stats')
+  return data
+}
+
+// ── Export Conversation ──────────────────────────────────────────────────────
+
+export async function exportConversation(sessionId: string): Promise<void> {
+  const response = await API.get(`/export/${sessionId}`, { responseType: 'blob' })
+  const url = window.URL.createObjectURL(new Blob([response.data]))
+  const a = document.createElement('a')
+  a.href = url
+  const disposition = response.headers['content-disposition'] || ''
+  const match = disposition.match(/filename="?(.+?)"?$/)
+  a.download = match?.[1] || `glass_expert_report_${sessionId.slice(0, 8)}.docx`
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  window.URL.revokeObjectURL(url)
+}
+
+export async function uploadDocument(
+  file: File,
+  sourceType: string = 'paper',
+): Promise<UploadResponse> {
+  const form = new FormData()
+  form.append('file', file)
+  form.append('source_type', sourceType)
+  const { data } = await API.post<UploadResponse>('/upload', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 300_000, // 5 min for large files
+  })
+  return data
+}

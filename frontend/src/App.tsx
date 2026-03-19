@@ -7,12 +7,13 @@ import {
   ThumbsUp, ThumbsDown, CheckCircle, AlertCircle,
   BookOpen, FileText, FlaskConical, Layers, Star,
   MessageSquarePlus, MessageSquare, Pencil, X, Check,
-  RotateCcw, Cpu, Globe, LogOut,
+  RotateCcw, Cpu, Globe, LogOut, Upload, Loader2, Download, BarChart3, Users, Database, TrendingUp,
 } from 'lucide-react'
 import {
   fetchHealth, queryKnowledgeBase, submitFeedback, submitSourceFeedback,
   createConversation, listConversations, getConversation, renameConversation, deleteConversation,
-  login, register, logout, getStoredToken,
+  login, register, logout, getStoredToken, uploadDocument, exportConversation, fetchAdminStats,
+  type AdminStats,
 } from './api/client'
 import type { Message, SourceChunk, HealthResponse, Conversation, AuthToken } from './types'
 
@@ -565,6 +566,183 @@ function AuthScreen({ onAuth }: AuthScreenProps) {
   )
 }
 
+// ── Admin Dashboard ──────────────────────────────────────────────────────────
+function AdminDashboard({ onClose }: { onClose: () => void }) {
+  const [stats, setStats] = useState<AdminStats | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchAdminStats()
+      .then(setStats)
+      .catch(err => setError(err?.response?.data?.detail || 'Failed to load stats'))
+      .finally(() => setLoading(false))
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-[#0f1117]">
+        <Loader2 size={32} className="animate-spin text-blue-400" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-[#0f1117] gap-4">
+        <AlertCircle size={32} className="text-red-400" />
+        <p className="text-slate-400">{error}</p>
+        <button onClick={onClose} className="text-blue-400 text-sm hover:text-blue-300">← Back to Chat</button>
+      </div>
+    )
+  }
+
+  if (!stats) return null
+
+  const statCards = [
+    { label: 'Total Chunks', value: stats.total_chunks.toLocaleString(), icon: <Database size={18} />, color: 'text-blue-400' },
+    { label: 'Total Users', value: stats.total_users, icon: <Users size={18} />, color: 'text-green-400' },
+    { label: 'Active (7d)', value: stats.active_users_7d, icon: <TrendingUp size={18} />, color: 'text-cyan-400' },
+    { label: 'Conversations', value: stats.total_conversations.toLocaleString(), icon: <MessageSquare size={18} />, color: 'text-purple-400' },
+    { label: 'Messages', value: stats.total_messages.toLocaleString(), icon: <MessageSquare size={18} />, color: 'text-yellow-400' },
+    { label: 'Messages (7d)', value: stats.messages_7d.toLocaleString(), icon: <BarChart3 size={18} />, color: 'text-orange-400' },
+    { label: 'Feedback', value: `${stats.feedback.satisfaction_pct}% ↑`, icon: <ThumbsUp size={18} />, color: stats.feedback.satisfaction_pct >= 70 ? 'text-green-400' : 'text-red-400' },
+    { label: 'Total Feedback', value: `${stats.feedback.positive}↑ ${stats.feedback.negative}↓`, icon: <ThumbsDown size={18} />, color: 'text-slate-400' },
+  ]
+
+  return (
+    <div className="h-screen bg-[#0f1117] text-slate-200 overflow-y-auto">
+      <div className="max-w-6xl mx-auto px-6 py-6">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <BarChart3 size={24} className="text-blue-400" />
+            <h1 className="text-xl font-bold">Admin Dashboard</h1>
+          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-blue-400 text-sm transition-colors">
+            ← Back to Chat
+          </button>
+        </div>
+
+        {/* Stat Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          {statCards.map((card, i) => (
+            <div key={i} className="bg-[#1a1f2e] border border-[#2d3748] rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <span className={card.color}>{card.icon}</span>
+                <span className="text-xs text-slate-500">{card.label}</span>
+              </div>
+              <p className="text-lg font-bold text-white">{card.value}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Two columns */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          {/* Chunks by Type */}
+          <div className="bg-[#1a1f2e] border border-[#2d3748] rounded-xl p-4">
+            <h3 className="text-sm font-semibold text-slate-300 mb-3">Chunks by Source Type</h3>
+            {stats.chunks_by_type.map((item, i) => {
+              const pct = stats.total_chunks > 0 ? (item.count / stats.total_chunks * 100) : 0
+              return (
+                <div key={i} className="mb-2">
+                  <div className="flex justify-between text-xs text-slate-400 mb-1">
+                    <span>{item.source_type}</span>
+                    <span>{item.count.toLocaleString()} ({pct.toFixed(1)}%)</span>
+                  </div>
+                  <div className="h-1.5 bg-[#0f1117] rounded-full">
+                    <div className="h-1.5 rounded-full bg-blue-500" style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Chunks by Language */}
+          <div className="bg-[#1a1f2e] border border-[#2d3748] rounded-xl p-4">
+            <h3 className="text-sm font-semibold text-slate-300 mb-3">Chunks by Language</h3>
+            {stats.chunks_by_language.map((item, i) => {
+              const pct = stats.total_chunks > 0 ? (item.count / stats.total_chunks * 100) : 0
+              return (
+                <div key={i} className="mb-2">
+                  <div className="flex justify-between text-xs text-slate-400 mb-1">
+                    <span>{item.language === 'en' ? '🇬🇧 English' : item.language === 'fa' ? '🇮🇷 Farsi' : item.language}</span>
+                    <span>{item.count.toLocaleString()} ({pct.toFixed(1)}%)</span>
+                  </div>
+                  <div className="h-1.5 bg-[#0f1117] rounded-full">
+                    <div className="h-1.5 rounded-full bg-cyan-500" style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Model Usage */}
+          <div className="bg-[#1a1f2e] border border-[#2d3748] rounded-xl p-4">
+            <h3 className="text-sm font-semibold text-slate-300 mb-3">Model Usage</h3>
+            {stats.model_usage.length === 0 ? (
+              <p className="text-xs text-slate-600">No data yet</p>
+            ) : stats.model_usage.map((item, i) => (
+              <div key={i} className="flex justify-between text-xs text-slate-400 mb-2">
+                <span className="flex items-center gap-1"><Cpu size={11} /> {item.model}</span>
+                <span>{item.count.toLocaleString()}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Top Queries */}
+          <div className="bg-[#1a1f2e] border border-[#2d3748] rounded-xl p-4">
+            <h3 className="text-sm font-semibold text-slate-300 mb-3">Top Queries (30d)</h3>
+            {stats.top_queries.length === 0 ? (
+              <p className="text-xs text-slate-600">No queries yet</p>
+            ) : stats.top_queries.map((item, i) => (
+              <div key={i} className="flex justify-between text-xs text-slate-400 mb-2 gap-2">
+                <span className="truncate flex-1">{item.question}</span>
+                <span className="text-blue-400 flex-shrink-0">×{item.count}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Recent Ingestions */}
+        <div className="bg-[#1a1f2e] border border-[#2d3748] rounded-xl p-4">
+          <h3 className="text-sm font-semibold text-slate-300 mb-3">Recent Ingestions</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs text-slate-400">
+              <thead>
+                <tr className="border-b border-[#2d3748]">
+                  <th className="text-left py-2 pr-4">File</th>
+                  <th className="text-left py-2 pr-4">Type</th>
+                  <th className="text-left py-2 pr-4">Lang</th>
+                  <th className="text-right py-2 pr-4">Chunks</th>
+                  <th className="text-left py-2 pr-4">Status</th>
+                  <th className="text-left py-2">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats.recent_ingestions.map((item, i) => (
+                  <tr key={i} className="border-b border-[#1a2332]">
+                    <td className="py-1.5 pr-4 truncate max-w-[200px]">{item.file_name}</td>
+                    <td className="py-1.5 pr-4">{item.source_type}</td>
+                    <td className="py-1.5 pr-4">{item.language === 'en' ? '🇬🇧' : '🇮🇷'}</td>
+                    <td className="py-1.5 pr-4 text-right">{item.chunk_count}</td>
+                    <td className="py-1.5 pr-4">
+                      <span className={item.status === 'completed' ? 'text-green-400' : 'text-red-400'}>
+                        {item.status}
+                      </span>
+                    </td>
+                    <td className="py-1.5">{new Date(item.created_at).toLocaleDateString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Main App ───────────────────────────────────────────────────────────────────
 function AppInner() {
   const [messages, setMessages] = useState<Message[]>([])
@@ -583,6 +761,10 @@ function AppInner() {
   const [convLoading, setConvLoading] = useState(false)
   const [editingConvId, setEditingConvId] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState('')
+  const [uploading, setUploading] = useState(false)
+  const [uploadMsg, setUploadMsg] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [showAdmin, setShowAdmin] = useState(false)
 
   // Poll health every 30s
   useEffect(() => {
@@ -756,6 +938,50 @@ function AppInner() {
     }
   }, [messages, sendMessage])
 
+  // ── File upload handler ────────────────────────────────────────────────
+  const handleFileUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    // Reset input so same file can be re-uploaded
+    e.target.value = ''
+
+    setUploading(true)
+    setUploadMsg(null)
+
+    // Show upload message in chat
+    const uploadNotice: Message = {
+      id: uuidv4(),
+      role: 'assistant',
+      content: `📄 Uploading and ingesting **${file.name}**...`,
+      timestamp: new Date(),
+    }
+    setMessages(prev => [...prev, uploadNotice])
+
+    try {
+      const result = await uploadDocument(file, 'paper')
+      // Replace the upload notice with success
+      setMessages(prev => prev.map(m => m.id === uploadNotice.id ? {
+        ...m,
+        content: `✅ **${result.file_name}** ingested successfully — ${result.chunks_stored} chunks added to knowledge base. You can now ask questions about it.`,
+      } : m))
+      setUploadMsg(`${result.file_name}: ${result.chunks_stored} chunks`)
+      // Refresh health to update chunk count
+      try {
+        const h = await fetchHealth()
+        setHealth(h)
+      } catch { /* silent */ }
+    } catch (err: unknown) {
+      const errText = err instanceof Error ? err.message : 'Upload failed'
+      setMessages(prev => prev.map(m => m.id === uploadNotice.id ? {
+        ...m,
+        content: `❌ Upload failed: ${errText}`,
+      } : m))
+    } finally {
+      setUploading(false)
+      setTimeout(() => setUploadMsg(null), 5000)
+    }
+  }, [])
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
@@ -770,6 +996,10 @@ function AppInner() {
     { text: 'علل ایجاد حباب در تولید شیشه چیست؟', lang: 'fa' },
   ]
 
+  if (showAdmin) {
+    return <AdminDashboard onClose={() => setShowAdmin(false)} />
+  }
+
   return (
     <div className="flex h-screen bg-[#0f1117] text-slate-200 overflow-hidden">
 
@@ -781,12 +1011,23 @@ function AppInner() {
             <Microscope size={20} className="text-blue-400" />
             <h1 className="text-base font-bold text-white">Glass Expert AI</h1>
           </div>
-          <button
-            onClick={startNewChat}
-            className="w-full mt-2 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium rounded-lg px-3 py-2 transition-colors active:scale-[0.98]"
-          >
-            <MessageSquarePlus size={14} /> New Chat
-          </button>
+          <div className="flex gap-2 mt-2">
+            <button
+              onClick={startNewChat}
+              className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium rounded-lg px-3 py-2 transition-colors active:scale-[0.98]"
+            >
+              <MessageSquarePlus size={14} /> New Chat
+            </button>
+            {currentSessionId && (
+              <button
+                onClick={() => exportConversation(currentSessionId)}
+                className="flex items-center justify-center gap-1 bg-[#1a1f2e] border border-[#2d3748] hover:border-blue-500 hover:text-blue-400 text-slate-400 text-xs font-medium rounded-lg px-3 py-2 transition-colors active:scale-[0.98]"
+                title="Export conversation as DOCX"
+              >
+                <Download size={14} />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Conversation List */}
@@ -892,7 +1133,13 @@ function AppInner() {
             </select>
           </div>
 
-          {/* Logout */}
+          {/* Admin + Logout */}
+          <button
+            onClick={() => setShowAdmin(true)}
+            className="w-full flex items-center gap-2 text-xs text-slate-500 hover:text-blue-400 transition-colors px-1 py-1"
+          >
+            <BarChart3 size={13} /> Admin Dashboard
+          </button>
           <button
             onClick={() => logout()}
             className="w-full flex items-center gap-2 text-xs text-slate-500 hover:text-red-400 transition-colors px-1 py-1"
@@ -971,6 +1218,23 @@ function AppInner() {
         {/* Input */}
         <div className="border-t border-[#2d3748] px-6 py-4 bg-[#13161f]">
           <div className="flex items-end gap-3 max-w-4xl mx-auto">
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf,.docx,.txt,.csv,.json"
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+            {/* Upload button */}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="bg-[#1a1f2e] border border-[#2d3748] hover:border-blue-500 hover:text-blue-400 disabled:opacity-50 text-slate-400 rounded-xl p-3 transition-colors active:scale-95"
+              title="Upload document (PDF, DOCX, TXT, CSV)"
+            >
+              {uploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+            </button>
             <textarea
               ref={textareaRef}
               value={input}
