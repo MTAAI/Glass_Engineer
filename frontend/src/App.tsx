@@ -3,11 +3,11 @@ import { v4 as uuidv4 } from 'uuid'
 import ReactMarkdown from 'react-markdown'
 import rehypeSanitize from 'rehype-sanitize'
 import {
-  Microscope, Send, Trash2, ChevronDown, ChevronUp,
+  Microscope, Send, Trash2, ChevronDown,
   ThumbsUp, ThumbsDown, CheckCircle, AlertCircle,
   BookOpen, FileText, FlaskConical, Layers, Star,
   MessageSquarePlus, MessageSquare, Pencil, X, Check,
-  RotateCcw, Cpu, Globe, LogOut,
+  RotateCcw, Cpu, Globe, LogOut,Copy, Download
 } from 'lucide-react'
 import {
   fetchHealth, queryKnowledgeBase, submitFeedback, submitSourceFeedback,
@@ -103,7 +103,29 @@ function modelLabel(model: string): string {
   return model.split('/').pop() || model
 }
 
-// ── Source Card ────────────────────────────────────────────────────────────────
+// ── Copy Button ───────────────────────────────────────────────────────────────
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false)
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch { /* silent */ }
+  }
+  return (
+    <button
+      onClick={handleCopy}
+      className="flex items-center gap-1 text-xs text-slate-600 hover:text-slate-400 transition-colors mt-1"
+      title="Copy answer"
+    >
+      {copied ? <CheckCircle size={11} className="text-green-400" /> : <Copy size={11} />}
+      {copied ? 'Copied!' : 'Copy'}
+    </button>
+  )
+}
+
+// ── Source Card ───────────────────────────────────────────────────────────────
 interface SourceCardProps {
   source: SourceChunk
   index: number
@@ -360,6 +382,11 @@ function MessageBubble({ message, prevQuestion }: MessageBubbleProps) {
             </span>
             <span>📊 {message.meta.total_chunks_searched} sources</span>
           </div>
+        )}
+
+        {/* Copy answer button */}
+        {!isError && (
+          <CopyButton text={message.content} />
         )}
 
         {/* Citations panel */}
@@ -896,6 +923,28 @@ function AppInner() {
               <option value="manual">Manual</option>
             </select>
           </div>
+
+          {/* Export chat */}
+        {messages.length > 0 && (
+          <button
+            onClick={() => {
+              const text = messages.map(m =>
+                `[${m.role.toUpperCase()}] ${m.timestamp.toLocaleTimeString()}\n${m.content}`
+              ).join('\n\n---\n\n')
+              const blob = new Blob([text], { type: 'text/plain' })
+              const url = URL.createObjectURL(blob)
+              const a = document.createElement('a')
+              a.href = url
+              a.download = `glass-expert-chat-${new Date().toISOString().slice(0,10)}.txt`
+              a.click()
+              URL.revokeObjectURL(url)
+            }}
+            className="w-full flex items-center gap-2 text-xs text-slate-500 hover:text-blue-400 transition-colors px-1 py-1"
+          >
+            <Download size={13} />
+            Export Chat
+          </button>
+        )}
 
           {/* Logout */}
           <button
