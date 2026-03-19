@@ -1,0 +1,378 @@
+{
+  "total": 250,
+  "max": 250,
+  "average": 5.0,
+  "composite_pct": 100.0,
+  "by_category": {
+    "Thermal Properties": 5.0,
+    "Glass Structure": 5.0,
+    "Glass Composition": 5.0,
+    "Glass Defects": 5.0,
+    "Glass Strengthening": 5.0,
+    "Manufacturing": 5.0,
+    "Optical Properties": 5.0,
+    "Mechanical Properties": 5.0,
+    "Glass Ceramics": 5.0,
+    "Specialty Glass": 5.0,
+    "Chemical Durability": 5.0,
+    "Glass Melting": 5.0,
+    "Glass Forming": 5.0,
+    "Glass Properties": 5.0,
+    "Glass Science Fundamentals": 5.0,
+    "Glass Applications": 5.0,
+    "Glass Manufacturing": 5.0,
+    "Glass Defects & Quality": 5.0
+  },
+  "results": [
+    {
+      "question": "What is the glass transition temperature (Tg) of soda-lime-silica glass?",
+      "category": "Thermal Properties",
+      "score": 5,
+      "note": "rerank=0.998 sim=0.784 kw=28% src=5",
+      "latency_ms": 10446.447134017944
+    },
+    {
+      "question": "What is the glass transition temperature of borosilicate glass (e.g., Pyrex)?",
+      "category": "Thermal Properties",
+      "score": 5,
+      "note": "rerank=0.996 sim=0.764 kw=56% src=5",
+      "latency_ms": 10514.25838470459
+    },
+    {
+      "question": "What is the glass transition temperature of fused silica (pure SiO2 glass)?",
+      "category": "Thermal Properties",
+      "score": 5,
+      "note": "rerank=0.993 sim=0.722 kw=46% src=5",
+      "latency_ms": 9266.90697669983
+    },
+    {
+      "question": "What is the coefficient of thermal expansion (CTE) of borosilicate glass, and why is it important?",
+      "category": "Thermal Properties",
+      "score": 5,
+      "note": "rerank=1.000 sim=0.754 kw=54% src=5",
+      "latency_ms": 10355.0124168396
+    },
+    {
+      "question": "Explain the Vogel-Fulcher-Tammann (VFT) equation and its significance in glass science.",
+      "category": "Thermal Properties",
+      "score": 5,
+      "note": "rerank=1.000 sim=0.829 kw=62% src=5",
+      "latency_ms": 9310.612678527832
+    },
+    {
+      "question": "What are the key viscosity reference points used in glass manufacturing and what do they represent?",
+      "category": "Thermal Properties",
+      "score": 5,
+      "note": "rerank=0.999 sim=0.752 kw=64% src=5",
+      "latency_ms": 9388.301372528076
+    },
+    {
+      "question": "What are Zachariasen's rules for glass formation, and what is their significance?",
+      "category": "Glass Structure",
+      "score": 5,
+      "note": "rerank=0.996 sim=0.689 kw=56% src=5",
+      "latency_ms": 9799.50761795044
+    },
+    {
+      "question": "What is the difference between glass network formers, network modifiers, and intermediates? Give examples of each.",
+      "category": "Glass Structure",
+      "score": 5,
+      "note": "rerank=0.981 sim=0.630 kw=58% src=5",
+      "latency_ms": 9525.648593902588
+    },
+    {
+      "question": "What is a non-bridging oxygen (NBO) and how does it affect glass properties?",
+      "category": "Glass Structure",
+      "score": 5,
+      "note": "rerank=1.000 sim=0.760 kw=48% src=5",
+      "latency_ms": 9897.249698638916
+    },
+    {
+      "question": "What is the typical composition of commercial soda-lime-silica glass used for windows and bottles?",
+      "category": "Glass Composition",
+      "score": 5,
+      "note": "rerank=0.999 sim=0.708 kw=44% src=5",
+      "latency_ms": 9330.703020095825
+    },
+    {
+      "question": "What is the typical composition of borosilicate glass and what role does B2O3 play?",
+      "category": "Glass Composition",
+      "score": 5,
+      "note": "rerank=0.997 sim=0.701 kw=38% src=5",
+      "latency_ms": 10058.105945587158
+    },
+    {
+      "question": "What is devitrification in glass and what are its main causes?",
+      "category": "Glass Defects",
+      "score": 5,
+      "note": "rerank=0.996 sim=0.726 kw=25% src=5",
+      "latency_ms": 9639.977216720581
+    },
+    {
+      "question": "What are seeds and blisters in glass, and how are they caused?",
+      "category": "Glass Defects",
+      "score": 5,
+      "note": "rerank=0.969 sim=0.660 kw=44% src=5",
+      "latency_ms": 9762.458801269531
+    },
+    {
+      "question": "What are stones in glass and what are their typical sources?",
+      "category": "Glass Defects",
+      "score": 5,
+      "note": "rerank=0.916 sim=0.682 kw=41% src=5",
+      "latency_ms": 9742.812156677246
+    },
+    {
+      "question": "What is annealing in glass manufacturing and why is it necessary?",
+      "category": "Glass Defects",
+      "score": 5,
+      "note": "rerank=1.000 sim=0.718 kw=45% src=5",
+      "latency_ms": 9893.477201461792
+    },
+    {
+      "question": "How does thermal tempering strengthen glass and what are its limitations?",
+      "category": "Glass Strengthening",
+      "score": 5,
+      "note": "rerank=0.997 sim=0.749 kw=43% src=5",
+      "latency_ms": 9702.634334564209
+    },
+    {
+      "question": "What is chemical strengthening of glass (ion exchange) and how does it differ from thermal tempering?",
+      "category": "Glass Strengthening",
+      "score": 5,
+      "note": "rerank=0.999 sim=0.765 kw=36% src=5",
+      "latency_ms": 10120.367288589478
+    },
+    {
+      "question": "Describe the float glass process and explain why it produces flat glass with parallel surfaces.",
+      "category": "Manufacturing",
+      "score": 5,
+      "note": "rerank=0.995 sim=0.743 kw=50% src=5",
+      "latency_ms": 9716.769218444824
+    },
+    {
+      "question": "What is the role of fining agents in glass melting and what are common examples?",
+      "category": "Manufacturing",
+      "score": 5,
+      "note": "rerank=0.994 sim=0.741 kw=32% src=5",
+      "latency_ms": 9833.052635192871
+    },
+    {
+      "question": "What is the batch calculation in glass manufacturing and what are the key raw materials for soda-lime glass?",
+      "category": "Manufacturing",
+      "score": 5,
+      "note": "rerank=0.980 sim=0.677 kw=31% src=5",
+      "latency_ms": 9737.23578453064
+    },
+    {
+      "question": "What is the refractive index of common glass types and what factors affect it?",
+      "category": "Optical Properties",
+      "score": 5,
+      "note": "rerank=0.978 sim=0.756 kw=35% src=5",
+      "latency_ms": 9747.458219528198
+    },
+    {
+      "question": "What causes glass to be colored and how are different colors achieved in commercial glass?",
+      "category": "Optical Properties",
+      "score": 5,
+      "note": "rerank=0.944 sim=0.703 kw=44% src=5",
+      "latency_ms": 9622.623920440674
+    },
+    {
+      "question": "What is the Abbe number (V-number) and how is it used in optical glass design?",
+      "category": "Optical Properties",
+      "score": 5,
+      "note": "rerank=0.991 sim=0.693 kw=35% src=5",
+      "latency_ms": 9610.431909561157
+    },
+    {
+      "question": "What is the typical modulus of elasticity (Young's modulus) of glass and how does composition affect it?",
+      "category": "Mechanical Properties",
+      "score": 5,
+      "note": "rerank=0.993 sim=0.750 kw=23% src=5",
+      "latency_ms": 9974.64656829834
+    },
+    {
+      "question": "Explain the Griffith theory of glass fracture and why glass is much weaker in practice than in theory.",
+      "category": "Mechanical Properties",
+      "score": 5,
+      "note": "rerank=0.963 sim=0.704 kw=35% src=5",
+      "latency_ms": 9217.95392036438
+    },
+    {
+      "question": "What is a glass-ceramic and how is it different from glass and from polycrystalline ceramics?",
+      "category": "Glass Ceramics",
+      "score": 5,
+      "note": "rerank=0.972 sim=0.642 kw=26% src=5",
+      "latency_ms": 9970.536947250366
+    },
+    {
+      "question": "What is Zerodur glass-ceramic and why is it used for telescope mirrors?",
+      "category": "Glass Ceramics",
+      "score": 5,
+      "note": "rerank=0.999 sim=0.705 kw=41% src=5",
+      "latency_ms": 9859.689235687256
+    },
+    {
+      "question": "What is Gorilla Glass and what makes it suitable for smartphone screens?",
+      "category": "Specialty Glass",
+      "score": 5,
+      "note": "rerank=0.976 sim=0.687 kw=33% src=5",
+      "latency_ms": 10021.720170974731
+    },
+    {
+      "question": "What is borosilicate glass type 3.3 and what are its key applications?",
+      "category": "Specialty Glass",
+      "score": 5,
+      "note": "rerank=0.939 sim=0.630 kw=28% src=5",
+      "latency_ms": 9187.812566757202
+    },
+    {
+      "question": "What is hydrolytic resistance of glass and how is it classified?",
+      "category": "Chemical Durability",
+      "score": 5,
+      "note": "rerank=0.977 sim=0.679 kw=36% src=5",
+      "latency_ms": 9471.255540847778
+    },
+    {
+      "question": "What temperature is required to melt soda-lime glass and what are the stages of the melting process?",
+      "category": "Glass Melting",
+      "score": 5,
+      "note": "rerank=0.997 sim=0.764 kw=28% src=5",
+      "latency_ms": 9395.233392715454
+    },
+    {
+      "question": "What is a regenerative furnace and why is it used in glass manufacturing?",
+      "category": "Glass Melting",
+      "score": 5,
+      "note": "rerank=0.994 sim=0.681 kw=41% src=5",
+      "latency_ms": 9565.310955047607
+    },
+    {
+      "question": "What are the main glass forming methods used in industry?",
+      "category": "Glass Forming",
+      "score": 5,
+      "note": "rerank=0.987 sim=0.701 kw=43% src=5",
+      "latency_ms": 9331.633567810059
+    },
+    {
+      "question": "How are optical fibers manufactured and what glass composition is used?",
+      "category": "Glass Forming",
+      "score": 5,
+      "note": "rerank=0.931 sim=0.661 kw=22% src=5",
+      "latency_ms": 9790.854692459106
+    },
+    {
+      "question": "What is the fictive temperature of glass and why is it important?",
+      "category": "Glass Properties",
+      "score": 5,
+      "note": "rerank=0.999 sim=0.745 kw=42% src=5",
+      "latency_ms": 9778.775215148926
+    },
+    {
+      "question": "What is the density of common glass types and what factors affect it?",
+      "category": "Glass Properties",
+      "score": 5,
+      "note": "rerank=0.976 sim=0.722 kw=33% src=5",
+      "latency_ms": 9221.387386322021
+    },
+    {
+      "question": "What is the role of alumina (Al2O3) in glass composition and properties?",
+      "category": "Glass Composition",
+      "score": 5,
+      "note": "rerank=1.000 sim=0.725 kw=39% src=5",
+      "latency_ms": 9659.89875793457
+    },
+    {
+      "question": "What is E-glass fiber and what is its composition and use?",
+      "category": "Glass Composition",
+      "score": 5,
+      "note": "rerank=0.996 sim=0.723 kw=23% src=5",
+      "latency_ms": 9179.299592971802
+    },
+    {
+      "question": "What are striae (cords) in glass and how are they formed?",
+      "category": "Glass Defects",
+      "score": 5,
+      "note": "rerank=0.991 sim=0.708 kw=41% src=5",
+      "latency_ms": 9427.461862564087
+    },
+    {
+      "question": "What is the Knoop hardness of glass and how does it compare to other materials?",
+      "category": "Glass Properties",
+      "score": 5,
+      "note": "rerank=0.858 sim=0.568 kw=26% src=5",
+      "latency_ms": 9412.633657455444
+    },
+    {
+      "question": "What is the definition of glass and what distinguishes it from a crystalline solid?",
+      "category": "Glass Science Fundamentals",
+      "score": 5,
+      "note": "rerank=0.966 sim=0.692 kw=41% src=5",
+      "latency_ms": 9948.706150054932
+    },
+    {
+      "question": "What is the glass transition and how does it differ from melting?",
+      "category": "Glass Science Fundamentals",
+      "score": 5,
+      "note": "rerank=0.995 sim=0.712 kw=42% src=5",
+      "latency_ms": 9818.780899047852
+    },
+    {
+      "question": "What is the boron anomaly (boron oxide anomaly) in glass science?",
+      "category": "Glass Composition",
+      "score": 5,
+      "note": "rerank=0.989 sim=0.659 kw=37% src=5",
+      "latency_ms": 9981.203556060791
+    },
+    {
+      "question": "What is laminated safety glass and how does it work?",
+      "category": "Glass Applications",
+      "score": 5,
+      "note": "rerank=0.998 sim=0.748 kw=45% src=5",
+      "latency_ms": 9544.984340667725
+    },
+    {
+      "question": "What is low-emissivity (low-e) glass coating and how does it work?",
+      "category": "Glass Applications",
+      "score": 5,
+      "note": "rerank=0.999 sim=0.723 kw=44% src=5",
+      "latency_ms": 9673.165321350098
+    },
+    {
+      "question": "What is the fragility of a glass-forming liquid and how is it classified?",
+      "category": "Glass Science Fundamentals",
+      "score": 5,
+      "note": "rerank=0.999 sim=0.720 kw=48% src=5",
+      "latency_ms": 9808.364391326904
+    },
+    {
+      "question": "What is the role of iron oxide in glass and how is it controlled?",
+      "category": "Glass Composition",
+      "score": 5,
+      "note": "rerank=0.953 sim=0.644 kw=21% src=5",
+      "latency_ms": 9808.038473129272
+    },
+    {
+      "question": "What is cullet and what are its benefits in glass manufacturing?",
+      "category": "Glass Manufacturing",
+      "score": 5,
+      "note": "rerank=0.996 sim=0.757 kw=36% src=5",
+      "latency_ms": 9777.43935585022
+    },
+    {
+      "question": "What is the Adam-Gibbs theory of glass transition and how does it relate to configurational entropy?",
+      "category": "Glass Science Fundamentals",
+      "score": 5,
+      "note": "rerank=1.000 sim=0.784 kw=48% src=5",
+      "latency_ms": 10047.470092773438
+    },
+    {
+      "question": "What is nickel sulfide (NiS) inclusion in tempered glass and why is it dangerous?",
+      "category": "Glass Defects & Quality",
+      "score": 5,
+      "note": "rerank=0.998 sim=0.699 kw=36% src=5",
+      "latency_ms": 9992.021083831787
+    }
+  ]
+}
