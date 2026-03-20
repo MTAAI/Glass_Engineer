@@ -27,7 +27,6 @@ from api.auth import router as auth_router
 
 app = FastAPI(
     title="Glass Expert AI",
-    debug=True,
     description=(
         "RAG-powered glass science assistant for engineers. "
         "Endpoints: /query (general Q&A), /analyze (composition analysis), "
