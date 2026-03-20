@@ -27,6 +27,7 @@ from api.auth import router as auth_router
 
 app = FastAPI(
     title="Glass Expert AI",
+    debug=True,
     description=(
         "RAG-powered glass science assistant for engineers. "
         "Endpoints: /query (general Q&A), /analyze (composition analysis), "
@@ -83,11 +84,20 @@ async def rate_limit_middleware(request: Request, call_next):
 async def add_request_metadata(request: Request, call_next):
     request_id = str(uuid.uuid4())[:8]
     start = time.perf_counter()
-    response = await call_next(request)
-    process_ms = (time.perf_counter() - start) * 1000
-    response.headers["X-Request-ID"] = request_id
-    response.headers["X-Process-Time"] = f"{process_ms:.0f}ms"
-    return response
+    try:
+        response = await call_next(request)
+        process_ms = (time.perf_counter() - start) * 1000
+        response.headers["X-Request-ID"] = request_id
+        response.headers["X-Process-Time"] = f"{process_ms:.0f}ms"
+        return response
+    except Exception as e:
+        logger.error(f"Middleware error: {e}")
+        process_ms = (time.perf_counter() - start) * 1000
+        return JSONResponse(
+            status_code=500,
+            content={"detail": str(e)},
+            headers={"X-Request-ID": request_id, "X-Process-Time": f"{process_ms:.0f}ms"},
+        )
 
 
 # ── Auth ───────────────────────────────────────────────────────────────────────
