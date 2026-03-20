@@ -127,3 +127,113 @@ async def get_dashboard_stats(user: UserInToken = Depends(require_admin)):
         cur.close()
 
     return stats
+
+@router.get("/admin/analytics")
+async def get_query_analytics(user: UserInToken = Depends(require_admin)):
+    """
+    Query analytics — latency stats, fallback rate, slowest queries.
+    Critical for production monitoring with 300 users.
+    """
+    with get_db() as conn:
+        cur = conn.cursor()
+        analytics = {}
+
+        # Overall latency stats
+        cur.execute("""
+            SELECT
+                COUNT(*) as total_queries,
+                ROUND(AVG(total_latency_ms)::numeric, 0) as avg_latency_ms,
+                ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY total_latency_ms)::numeric, 0) as p50_latency_ms,
+                ROUND(PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY total_latency_ms)::numeric, 0) as p95_latency_ms,
+                ROUND(AVG(retrieval_latency_ms)::numeric, 0) as avg_retrieval_ms,
+                ROUND(AVG(top_rerank_score)::numeric, 4) as avg_rerank_score
+            FROM query_analytics
+            WHERE created_at > now() - interval '24 hours'
+        """)
+        row = cur.fetchone()
+        analytics["last_24h"] = {
+            "total_queries": row[0],
+            "avg_latency_ms": float(row[1]) if row[1] else 0,
+            "p50_latency_ms": float(row[2]) if row[2] else 0,
+            "p95_latency_ms": float(row[3]) if row[3] else 0,
+            "avg_retrieval_ms": float(row[4]) if row[4] else 0,
+            "avg_rerank_score": float(row[5]) if row[5] else 0,
+        }
+
+        # Queries per hour (last 24h)
+        cur.execute("""
+            SELECT
+                DATE_TRUNC('hour', created_at) as hour,
+                COUNT(*) as queries
+            FROM query_analytics
+            WHERE created_at > now() - interval '24 hours'
+            GROUP BY hour
+            ORDER BY hour DESC
+        """)
+        analytics["queries_per_hour"] = [
+            {"hour": row[0].isoformat(), "queries": row[1]}
+            for row in cur.fetchall()
+        ]
+
+        # Fallback rate
+        cur.execute("""
+            SELECT
+                COUNT(*) as total,
+                COUNT(*) FILTER (WHERE fallback_used = TRUE) as fallbacks
+            FROM query_analytics
+            WHERE created_at > now() - interval '24 hours'
+        """)
+        row = cur.fetchone()
+        total = row[0] or 1
+        analytics["fallback_rate_pct"] = round(row[1] / total * 100, 1)
+        analytics["fallback_count"] = row[1]
+
+        # Fallback reasons breakdown
+        cur.execute("""
+            SELECT fallback_reason, COUNT(*) as cnt
+            FROM query_analytics
+            WHERE fallback_used = TRUE
+            AND created_at > now() - interval '24 hours'
+            GROUP BY fallback_reason
+            ORDER BY cnt DESC
+        """)
+        analytics["fallback_reasons"] = [
+            {"reason": row[0], "count": row[1]}
+            for row in cur.fetchall()
+        ]
+
+        # Language breakdown
+        cur.execute("""
+            SELECT language, COUNT(*) as cnt
+            FROM query_analytics
+            WHERE created_at > now() - interval '24 hours'
+            GROUP BY language
+            ORDER BY cnt DESC
+        """)
+        analytics["queries_by_language"] = [
+            {"language": row[0], "count": row[1]}
+            for row in cur.fetchall()
+        ]
+
+        # Slowest queries (top 10)
+        cur.execute("""
+            SELECT query_text, total_latency_ms, retrieval_latency_ms,
+                   model_used, created_at
+            FROM query_analytics
+            WHERE created_at > now() - interval '24 hours'
+            ORDER BY total_latency_ms DESC
+            LIMIT 10
+        """)
+        analytics["slowest_queries"] = [
+            {
+                "query": row[0][:100],
+                "total_ms": round(row[1], 0),
+                "retrieval_ms": round(row[2], 0),
+                "model": row[3],
+                "time": row[4].isoformat(),
+            }
+            for row in cur.fetchall()
+        ]
+
+        cur.close()
+        return analytics

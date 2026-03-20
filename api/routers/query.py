@@ -14,6 +14,44 @@ from api.auth import require_auth, UserInToken
 
 router = APIRouter()
 
+def _log_analytics(
+    user_id: str,
+    query_text: str,
+    language: str,
+    retrieval_latency_ms: float,
+    total_latency_ms: float,
+    chunks_retrieved: int,
+    top_rerank_score: float,
+    fallback_used: bool,
+    fallback_reason: str,
+    model_used: str,
+) -> None:
+    """Log query analytics to query_analytics table — fire and forget."""
+    try:
+        from api.database import get_db
+        with get_db() as conn:
+            cur = conn.cursor()
+            cur.execute(
+                """
+                INSERT INTO query_analytics (
+                    user_id, query_text, language,
+                    retrieval_latency_ms, total_latency_ms,
+                    chunks_retrieved, top_rerank_score,
+                    fallback_used, fallback_reason, model_used
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """,
+                (
+                    user_id, query_text[:500], language,
+                    round(retrieval_latency_ms, 2), round(total_latency_ms, 2),
+                    chunks_retrieved, top_rerank_score,
+                    fallback_used, fallback_reason, model_used,
+                ),
+            )
+            conn.commit()
+            cur.close()
+    except Exception as e:
+        logger.debug(f"Analytics logging failed (non-critical): {e}")
+
 
 def _validate_citations(answer: str, num_sources: int) -> str:
     """
@@ -144,16 +182,35 @@ async def query_knowledge_base(request: QueryRequest, user: UserInToken = Depend
             "اطلاعات مرتبطی در پایگاه دانش برای پاسخ به این سوال یافت نشد. "
             "لطفاً سوال را به شکل دیگری مطرح کنید."
         )
-        return QueryResponse(
-            question=request.question,
-            answer=answer,
-            sources=[],
-            language_detected=detected_language,
-            retrieval_time_ms=retrieval_time_ms,
-            total_chunks_searched=0,
-            model_used="no-retrieval",
-            session_id=session_id,
-        )
+        total_latency_ms = (time.time() - start_time) * 1000
+    top_rerank_score = sources[0].rerank_score if sources and sources[0].rerank_score else 0.0
+    fallback_used = model_used in ("retrieval-only", "no-retrieval") or "fallback" in model_used
+    fallback_reason = model_used if fallback_used else ""
+
+    _log_analytics(
+        user_id=user.user_id,
+        query_text=request.question,
+        language=detected_language,
+        retrieval_latency_ms=retrieval_time_ms,
+        total_latency_ms=total_latency_ms,
+        chunks_retrieved=len(chunks),
+        top_rerank_score=top_rerank_score,
+        fallback_used=fallback_used,
+        fallback_reason=fallback_reason,
+        model_used=model_used,
+    )
+
+    return QueryResponse(
+        question=request.question,
+        answer=answer,
+        sources=sources,
+        language_detected=detected_language,
+        retrieval_time_ms=round(retrieval_time_ms, 2),
+        total_chunks_searched=len(chunks),
+        model_used=model_used,
+        session_id=session_id,
+        chat_id=chat_id,
+    )
 
     context_block = format_context(chunks)
 
