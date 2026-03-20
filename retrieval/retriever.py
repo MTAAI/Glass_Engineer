@@ -449,14 +449,43 @@ def retrieve_with_auto_language(
             retrieval_query = f"{query} ({', '.join(hints[:5])})"
             logger.info(f"Glossary-enhanced query: '{retrieval_query[:80]}'")
 
-    # Search ALL languages — bge-m3 multilingual embeddings enable cross-lingual matching.
-    # A Farsi query will naturally match relevant English chunks and vice versa.
-    results = retrieve(
-        retrieval_query,
-        top_k=top_k,
-        language_filter=None,  # search all languages — English corpus has the best coverage
-        source_type_filter=source_type_filter,
-    )
+    # Bilingual retrieval strategy:
+    # 1. For Farsi queries: search Farsi docs first, then backfill with English (cross-lingual)
+    # 2. For English queries: search all languages (English corpus is primary)
+    if language == "fa":
+        # First, try Farsi-only retrieval
+        fa_results = retrieve(
+            retrieval_query,
+            top_k=top_k,
+            language_filter="fa",
+            source_type_filter=source_type_filter,
+        )
+        # If we got enough Farsi results, use them
+        if len(fa_results) >= top_k:
+            return fa_results, language
+
+        # Backfill with cross-lingual English results
+        remaining = (top_k or FINAL_TOP_K) - len(fa_results)
+        en_results = retrieve(
+            retrieval_query,
+            top_k=remaining,
+            language_filter="en",
+            source_type_filter=source_type_filter,
+        )
+        # Merge: Farsi first, then English backfill
+        seen_ids = {r["id"] for r in fa_results}
+        for r in en_results:
+            if r["id"] not in seen_ids:
+                fa_results.append(r)
+        results = fa_results[:top_k or FINAL_TOP_K]
+    else:
+        # English queries: search all languages (bge-m3 handles cross-lingual)
+        results = retrieve(
+            retrieval_query,
+            top_k=top_k,
+            language_filter=None,
+            source_type_filter=source_type_filter,
+        )
 
     return results, language
 

@@ -2,7 +2,7 @@ import axios from 'axios'
 import type {
   QueryResponse, HealthResponse, FeedbackPayload, SourceFeedbackPayload,
   AuthToken, ConversationListResponse, ConversationDetail, ConversationCreateResponse,
-  Conversation,
+  Conversation, ConversationSearchResponse, UserMemoryEntry, UserMemoryListResponse,
 } from '../types'
 
 const API = axios.create({
@@ -189,6 +189,36 @@ export async function exportConversation(sessionId: string): Promise<void> {
   a.remove()
   window.URL.revokeObjectURL(url)
 }
+
+// ── Conversation Search ──────────────────────────────────────────────────────
+
+export async function searchConversations(query: string, limit: number = 20): Promise<ConversationSearchResponse> {
+  const { data } = await API.get<ConversationSearchResponse>('/conversations/search', {
+    params: { q: query, limit },
+  })
+  return data
+}
+
+// ── User Memory ─────────────────────────────────────────────────────────────
+
+export async function getUserMemory(): Promise<UserMemoryEntry[]> {
+  const { data } = await API.get<UserMemoryListResponse>('/user/memory')
+  return data.entries
+}
+
+export async function saveUserMemory(
+  key: string,
+  value: string,
+  memoryType: string = 'preference',
+): Promise<void> {
+  await API.post('/user/memory', { key, value, memory_type: memoryType })
+}
+
+export async function deleteUserMemory(key: string): Promise<void> {
+  await API.delete(`/user/memory/${encodeURIComponent(key)}`)
+}
+
+// ── File Upload ──────────────────────────────────────────────────────────────
 
 export async function uploadDocument(
   file: File,

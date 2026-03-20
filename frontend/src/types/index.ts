@@ -99,6 +99,36 @@ export interface AuthUser {
   is_active: boolean
 }
 
+// ── User Memory ──────────────────────────────────────────────────────────────
+
+export interface UserMemoryEntry {
+  id: string
+  memory_type: string
+  key: string
+  value: string
+  updated_at: string
+}
+
+export interface UserMemoryListResponse {
+  entries: UserMemoryEntry[]
+}
+
+// ── Conversation Search ──────────────────────────────────────────────────────
+
+export interface ConversationSearchResult {
+  session_id: string
+  role: string
+  snippet: string
+  created_at: string
+  title: string
+}
+
+export interface ConversationSearchResponse {
+  query: string
+  results: ConversationSearchResult[]
+  total: number
+}
+
 export type MessageRole = 'user' | 'assistant'
 
 export interface Message {

@@ -165,6 +165,71 @@ async def rename_conversation(
     return {"success": True, "title": title}
 
 
+@router.get("/conversations/search")
+async def search_conversations(
+    q: str,
+    limit: int = 20,
+    user: UserInToken = Depends(require_auth),
+):
+    """Search across all user's conversations by keyword. Returns matching messages with context."""
+    if not q or len(q.strip()) < 2:
+        raise HTTPException(status_code=400, detail="Search query must be at least 2 characters")
+
+    conn = _get_db()
+    cur = conn.cursor()
+    try:
+        # Search chat_history content using ILIKE for simplicity
+        # Returns matching messages grouped by conversation
+        search_pattern = f"%{q.strip()}%"
+        cur.execute("""
+            SELECT
+                ch.session_id::text,
+                ch.role,
+                ch.content,
+                ch.created_at::text,
+                (SELECT MIN(c2.content) FROM chat_history c2
+                 WHERE c2.session_id = ch.session_id AND c2.role = 'user'
+                 AND c2.user_id = %s) AS conversation_title,
+                (SELECT metadata->>'custom_title' FROM chat_history c3
+                 WHERE c3.session_id = ch.session_id
+                   AND c3.metadata->>'custom_title' IS NOT NULL
+                   AND c3.user_id = %s
+                 LIMIT 1) AS custom_title
+            FROM chat_history ch
+            WHERE ch.user_id = %s
+              AND ch.content ILIKE %s
+            ORDER BY ch.created_at DESC
+            LIMIT %s
+        """, [user.user_id, user.user_id, user.user_id, search_pattern, limit])
+        rows = cur.fetchall()
+    finally:
+        cur.close()
+        _return_db(conn)
+
+    results = []
+    for row in rows:
+        content = row[2] or ""
+        # Create snippet around the match
+        lower_content = content.lower()
+        match_pos = lower_content.find(q.strip().lower())
+        if match_pos >= 0:
+            start = max(0, match_pos - 60)
+            end = min(len(content), match_pos + len(q) + 60)
+            snippet = ("..." if start > 0 else "") + content[start:end] + ("..." if end < len(content) else "")
+        else:
+            snippet = content[:150] + ("..." if len(content) > 150 else "")
+
+        results.append({
+            "session_id": row[0],
+            "role": row[1],
+            "snippet": snippet,
+            "created_at": row[3],
+            "title": (row[5] or row[4] or "Untitled")[:80],
+        })
+
+    return {"query": q, "results": results, "total": len(results)}
+
+
 @router.delete("/conversations/{session_id}")
 async def delete_conversation(session_id: str, user: UserInToken = Depends(require_auth)):
     """Delete a conversation and all its messages."""

@@ -8,14 +8,16 @@ import {
   BookOpen, FileText, FlaskConical, Layers, Star,
   MessageSquarePlus, MessageSquare, Pencil, X, Check,
   RotateCcw, Cpu, Globe, LogOut, Upload, Loader2, Download, BarChart3, Users, Database, TrendingUp,
+  Search, Settings, Plus, Save,
 } from 'lucide-react'
 import {
   fetchHealth, queryKnowledgeBase, submitFeedback, submitSourceFeedback,
   createConversation, listConversations, getConversation, renameConversation, deleteConversation,
   login, register, logout, getStoredToken, uploadDocument, exportConversation, fetchAdminStats,
+  searchConversations, getUserMemory, saveUserMemory, deleteUserMemory,
   type AdminStats,
 } from './api/client'
-import type { Message, SourceChunk, HealthResponse, Conversation, AuthToken } from './types'
+import type { Message, SourceChunk, HealthResponse, Conversation, AuthToken, ConversationSearchResult, UserMemoryEntry } from './types'
 
 // ── Error Boundary ────────────────────────────────────────────────────────────
 interface ErrorBoundaryProps { children: ReactNode }
@@ -566,6 +568,170 @@ function AuthScreen({ onAuth }: AuthScreenProps) {
   )
 }
 
+// ── User Preferences Panel ───────────────────────────────────────────────────
+function UserPreferencesPanel({ onClose }: { onClose: () => void }) {
+  const [memories, setMemories] = useState<UserMemoryEntry[]>([])
+  const [loading, setLoading] = useState(true)
+  const [newKey, setNewKey] = useState('')
+  const [newValue, setNewValue] = useState('')
+  const [newType, setNewType] = useState('preference')
+
+  const PRESET_KEYS = [
+    { key: 'language', label: 'Preferred Language', placeholder: 'e.g., English, Farsi', type: 'preference' },
+    { key: 'department', label: 'Department', placeholder: 'e.g., Quality Control, R&D, Production', type: 'preference' },
+    { key: 'expertise_level', label: 'Expertise Level', placeholder: 'e.g., Beginner, Intermediate, Expert', type: 'preference' },
+    { key: 'glass_type_focus', label: 'Glass Type Focus', placeholder: 'e.g., Soda-lime, Borosilicate, Float glass', type: 'topic' },
+    { key: 'furnace_type', label: 'Furnace Type', placeholder: 'e.g., Regenerative, Oxy-fuel, Electric', type: 'furnace' },
+    { key: 'plant_focus', label: 'Plant / Process Focus', placeholder: 'e.g., Batch mixing, Melting, Annealing', type: 'topic' },
+  ]
+
+  useEffect(() => {
+    loadMem()
+  }, [])
+
+  const loadMem = async () => {
+    setLoading(true)
+    try {
+      const entries = await getUserMemory()
+      setMemories(entries)
+    } catch { /* ignore */ }
+    setLoading(false)
+  }
+
+  const handleSave = async (key: string, value: string, type: string) => {
+    if (!key.trim() || !value.trim()) return
+    try {
+      await saveUserMemory(key.trim(), value.trim(), type)
+      await loadMem()
+      setNewKey('')
+      setNewValue('')
+    } catch (err) {
+      console.error('Failed to save:', err)
+    }
+  }
+
+  const handleDelete = async (key: string) => {
+    try {
+      await deleteUserMemory(key)
+      await loadMem()
+    } catch (err) {
+      console.error('Failed to delete:', err)
+    }
+  }
+
+  const existingKeys = new Set(memories.map(m => m.key))
+
+  return (
+    <div className="flex flex-col h-screen bg-gray-50">
+      <div className="flex items-center justify-between px-6 py-4 bg-white border-b">
+        <div className="flex items-center gap-2">
+          <Settings size={20} className="text-blue-600" />
+          <h1 className="text-xl font-bold">User Preferences</h1>
+        </div>
+        <button onClick={onClose} className="px-4 py-2 text-sm bg-gray-200 rounded-lg hover:bg-gray-300">
+          ← Back to Chat
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-6 max-w-3xl mx-auto w-full">
+        <p className="text-sm text-gray-500 mb-6">
+          Your preferences personalize AI responses. The system uses these to tailor answers to your expertise, department, and focus areas.
+        </p>
+
+        {/* Preset preference fields */}
+        <div className="space-y-4 mb-8">
+          <h2 className="font-semibold text-lg">Quick Settings</h2>
+          {PRESET_KEYS.map(preset => {
+            const existing = memories.find(m => m.key === preset.key)
+            return (
+              <div key={preset.key} className="flex items-center gap-3 bg-white p-3 rounded-lg border">
+                <label className="w-40 text-sm font-medium text-gray-700">{preset.label}</label>
+                <input
+                  type="text"
+                  className="flex-1 px-3 py-1.5 text-sm border rounded-md"
+                  placeholder={preset.placeholder}
+                  defaultValue={existing?.value || ''}
+                  onBlur={(e) => {
+                    const val = e.target.value.trim()
+                    if (val && val !== (existing?.value || '')) {
+                      handleSave(preset.key, val, preset.type)
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      const val = (e.target as HTMLInputElement).value.trim()
+                      if (val) handleSave(preset.key, val, preset.type)
+                    }
+                  }}
+                />
+                {existing && (
+                  <button onClick={() => handleDelete(preset.key)} className="text-red-400 hover:text-red-600">
+                    <Trash2 size={14} />
+                  </button>
+                )}
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Custom memories */}
+        <div className="space-y-4">
+          <h2 className="font-semibold text-lg">Custom Preferences</h2>
+
+          {memories.filter(m => !PRESET_KEYS.some(p => p.key === m.key)).map(mem => (
+            <div key={mem.id} className="flex items-center gap-3 bg-white p-3 rounded-lg border">
+              <span className="w-40 text-sm font-medium text-gray-700 truncate">{mem.key}</span>
+              <span className="flex-1 text-sm text-gray-600">{mem.value}</span>
+              <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded">{mem.memory_type}</span>
+              <button onClick={() => handleDelete(mem.key)} className="text-red-400 hover:text-red-600">
+                <Trash2 size={14} />
+              </button>
+            </div>
+          ))}
+
+          {/* Add custom */}
+          <div className="flex items-center gap-2 bg-white p-3 rounded-lg border">
+            <input
+              type="text"
+              className="w-40 px-3 py-1.5 text-sm border rounded-md"
+              placeholder="Key"
+              value={newKey}
+              onChange={(e) => setNewKey(e.target.value)}
+            />
+            <input
+              type="text"
+              className="flex-1 px-3 py-1.5 text-sm border rounded-md"
+              placeholder="Value"
+              value={newValue}
+              onChange={(e) => setNewValue(e.target.value)}
+            />
+            <select
+              className="px-2 py-1.5 text-sm border rounded-md"
+              value={newType}
+              onChange={(e) => setNewType(e.target.value)}
+            >
+              <option value="preference">Preference</option>
+              <option value="topic">Topic</option>
+              <option value="composition">Composition</option>
+              <option value="furnace">Furnace</option>
+            </select>
+            <button
+              onClick={() => handleSave(newKey, newValue, newType)}
+              disabled={!newKey.trim() || !newValue.trim()}
+              className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+            >
+              <Plus size={14} />
+            </button>
+          </div>
+        </div>
+
+        {loading && <p className="text-center text-gray-400 mt-4">Loading preferences...</p>}
+      </div>
+    </div>
+  )
+}
+
+
 // ── Admin Dashboard ──────────────────────────────────────────────────────────
 function AdminDashboard({ onClose }: { onClose: () => void }) {
   const [stats, setStats] = useState<AdminStats | null>(null)
@@ -765,6 +931,18 @@ function AppInner() {
   const [uploadMsg, setUploadMsg] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [showAdmin, setShowAdmin] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
+
+  // Conversation search
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<ConversationSearchResult[]>([])
+  const [isSearching, setIsSearching] = useState(false)
+
+  // User memory / preferences
+  const [userMemories, setUserMemories] = useState<UserMemoryEntry[]>([])
+  const [newMemKey, setNewMemKey] = useState('')
+  const [newMemValue, setNewMemValue] = useState('')
+  const [newMemType, setNewMemType] = useState('preference')
 
   // Poll health every 30s
   useEffect(() => {
@@ -939,6 +1117,75 @@ function AppInner() {
   }, [messages, sendMessage])
 
   // ── File upload handler ────────────────────────────────────────────────
+  // ── Conversation search ─────────────────────────────────────────────────────
+  const handleSearch = useCallback(async (q: string) => {
+    setSearchQuery(q)
+    if (q.trim().length < 2) {
+      setSearchResults([])
+      return
+    }
+    setIsSearching(true)
+    try {
+      const resp = await searchConversations(q.trim())
+      setSearchResults(resp.results)
+    } catch {
+      setSearchResults([])
+    } finally {
+      setIsSearching(false)
+    }
+  }, [])
+
+  const handleSearchResultClick = useCallback(async (sessionId: string) => {
+    setSearchQuery('')
+    setSearchResults([])
+    try {
+      const detail = await getConversation(sessionId)
+      setCurrentSessionId(sessionId)
+      const loaded: Message[] = detail.messages.map((m) => ({
+        id: m.id,
+        role: m.role as 'user' | 'assistant',
+        content: m.content,
+        sources: m.sources || undefined,
+        chatId: m.id,
+        timestamp: new Date(m.created_at),
+      }))
+      setMessages(loaded)
+    } catch (err) {
+      console.error('Failed to load conversation from search:', err)
+    }
+  }, [])
+
+  // ── User memory / preferences ──────────────────────────────────────────────
+  const loadUserMemory = useCallback(async () => {
+    try {
+      const entries = await getUserMemory()
+      setUserMemories(entries)
+    } catch {
+      setUserMemories([])
+    }
+  }, [])
+
+  const handleSaveMemory = useCallback(async () => {
+    if (!newMemKey.trim() || !newMemValue.trim()) return
+    try {
+      await saveUserMemory(newMemKey.trim(), newMemValue.trim(), newMemType)
+      setNewMemKey('')
+      setNewMemValue('')
+      await loadUserMemory()
+    } catch (err) {
+      console.error('Failed to save memory:', err)
+    }
+  }, [newMemKey, newMemValue, newMemType, loadUserMemory])
+
+  const handleDeleteMemory = useCallback(async (key: string) => {
+    try {
+      await deleteUserMemory(key)
+      await loadUserMemory()
+    } catch (err) {
+      console.error('Failed to delete memory:', err)
+    }
+  }, [loadUserMemory])
+
   const handleFileUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -1000,6 +1247,10 @@ function AppInner() {
     return <AdminDashboard onClose={() => setShowAdmin(false)} />
   }
 
+  if (showSettings) {
+    return <UserPreferencesPanel onClose={() => setShowSettings(false)} />
+  }
+
   return (
     <div className="flex h-screen bg-[#0f1117] text-slate-200 overflow-hidden">
 
@@ -1029,6 +1280,50 @@ function AppInner() {
             )}
           </div>
         </div>
+
+        {/* Search bar */}
+        <div className="px-2 py-1.5">
+          <div className="relative">
+            <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => handleSearch(e.target.value)}
+              placeholder="Search conversations..."
+              className="w-full bg-[#0f1117] border border-[#2d3748] rounded-md pl-7 pr-2 py-1.5 text-xs text-slate-300 placeholder-slate-600 outline-none focus:border-blue-500"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => { setSearchQuery(''); setSearchResults([]) }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
+              >
+                <X size={11} />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Search Results */}
+        {searchQuery.length >= 2 && (
+          <div className="px-2 py-1 border-b border-[#1a1f2e]">
+            {isSearching ? (
+              <p className="text-xs text-slate-500 text-center py-2">Searching...</p>
+            ) : searchResults.length === 0 ? (
+              <p className="text-xs text-slate-600 text-center py-2">No results</p>
+            ) : (
+              searchResults.map((sr, i) => (
+                <div
+                  key={`${sr.session_id}-${i}`}
+                  onClick={() => handleSearchResultClick(sr.session_id)}
+                  className="cursor-pointer rounded-lg px-2 py-1.5 mb-0.5 text-xs text-slate-400 hover:bg-[#1a1f2e] hover:text-slate-200 transition-colors"
+                >
+                  <div className="font-medium text-slate-300 truncate">{sr.title}</div>
+                  <div className="text-[10px] text-slate-500 mt-0.5 line-clamp-2">{sr.snippet}</div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
 
         {/* Conversation List */}
         <div className="flex-1 overflow-y-auto px-2 py-1 scrollbar-thin scrollbar-thumb-[#2d3748]">
@@ -1133,7 +1428,13 @@ function AppInner() {
             </select>
           </div>
 
-          {/* Admin + Logout */}
+          {/* Settings + Admin + Logout */}
+          <button
+            onClick={() => setShowSettings(true)}
+            className="w-full flex items-center gap-2 text-xs text-slate-500 hover:text-blue-400 transition-colors px-1 py-1"
+          >
+            <Settings size={13} /> Preferences
+          </button>
           <button
             onClick={() => setShowAdmin(true)}
             className="w-full flex items-center gap-2 text-xs text-slate-500 hover:text-blue-400 transition-colors px-1 py-1"
