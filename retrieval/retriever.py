@@ -1,139 +1,83 @@
 """
 Glass Expert AI — Retrieval Module v3
-=======================================
+=====================================
+Hybrid search: dense vector + keyword matching + cross-encoder reranking.
+Supports bilingual retrieval (English + Farsi) via bge-m3 multilingual embeddings.
+
 Search pipeline:
-  1. bge-m3 embed query → dense vector + sparse lexical weights
-  2. Dense ANN search (pgvector HNSW)         → top_k × 4 candidates
-  3. Sparse BM25-style search (bge-m3 weights) → top_k × 2 candidates
-  4. Reciprocal Rank Fusion (RRF)              → merged ranked list
-  5. bge-reranker-v2-m3 cross-encoder          → precise top_k results
-  6. Redis cache                               → 1h TTL on final results
+  1. Dense vector search (bge-m3, 1024-dim) -> top_k * 4 candidates
+  2. Keyword search (PostgreSQL ILIKE) -> top_k * 2 candidates (catches exact terms)
+  3. Merge & deduplicate candidates
+  4. Cross-encoder rerank (bge-reranker-v2-m3) -> final top_k results
 
-Improvements vs both branches:
-  - bge-m3 sparse weights used for retrieval (not thrown away)
-  - RRF fusion outperforms simple concatenation + dedup
-  - ILIKE keyword search retained as fallback when sparse weights absent
-  - Deduplication by chunk ID (not title)
-  - Per-source cap of 2 chunks for diversity
-  - Farsi glossary translation support (Engineer Z's pattern)
-  - Works with both psycopg2 ThreadedPool and asyncpg pool
-  - Structured logging with loguru
+Data source: documents_bgem3 table (247K chunks, bge-m3 multilingual embeddings)
 """
-from __future__ import annotations
 
-import hashlib
-import json
 import os
 import re
 import sys
+import json
+import redis
+import hashlib
+import psycopg2
 from pathlib import Path
-from typing import Optional
-
 from loguru import logger
 from dotenv import load_dotenv
+from typing import Optional
 from langdetect import detect, LangDetectException
 
+# Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
+
 from ingestion.embedder import embed_query
 
 load_dotenv()
 
 # ── Configuration ──────────────────────────────────────────────────────────────
-TOP_K                  = int(os.getenv("RETRIEVAL_TOP_K",       "30"))
-FINAL_TOP_K            = int(os.getenv("RETRIEVAL_FINAL_TOP_K", "8"))
-SIM_THRESHOLD          = float(os.getenv("SIMILARITY_THRESHOLD", "0.30"))
-REDIS_URL              = os.getenv("REDIS_URL",         "redis://localhost:6379")
-REDIS_TTL              = int(os.getenv("REDIS_TTL_SECONDS", "3600"))  # 1h
-RRF_K                  = 60   # RRF constant — standard value
+TOP_K                  = int(os.getenv("RETRIEVAL_TOP_K", 30))
+FINAL_TOP_K            = int(os.getenv("RETRIEVAL_FINAL_TOP_K", 8))
+_SIM_THRESHOLD_DEFAULT = 0.30  # lowered to let reranker decide
+REDIS_URL              = os.getenv("REDIS_URL", "redis://localhost:6379")
+SEMANTIC_CACHE_THRESHOLD = float(os.getenv("SEMANTIC_CACHE_THRESHOLD", "0.92"))
+SEMANTIC_CACHE_PREFIX    = "glass_ai:semantic:"
+SEMANTIC_CACHE_INDEX_KEY = "glass_ai:semantic:index"
+REDIS_TTL = int(os.getenv("REDIS_TTL_SECONDS", "3600"))
 
 
-# ── DB connection (compatible with both pool patterns) ─────────────────────────
-def _get_conn():
-    """
-    Get a database connection.
-    Tries the new asyncpg-aware pool first, then Engineer Z's ThreadedPool,
-    then falls back to a raw psycopg2 connection.
-    """
-    try:
-        from api.database import get_db_conn
-        from pgvector.psycopg2 import register_vector
-        conn = get_db_conn()
-        register_vector(conn)
-        return conn, True   # (conn, pooled)
-    except psycopg2.OperationalError as e:
-        logger.debug(f"Pool connection failed: {e}")
+# ── Database connection ────────────────────────────────────────────────────────
+_pgvector_registered = set()
 
-    import psycopg2
+def _get_db_connection():
+    """Get a pooled DB connection with pgvector extension registered."""
     from pgvector.psycopg2 import register_vector
-    conn = psycopg2.connect(os.getenv(
-        "DATABASE_URL",
-        "postgresql://glassai:glassai_secret@localhost:5432/glass_expert_ai"
-    ))
-    register_vector(conn)
-    return conn, False
+    from api.database import get_db_conn
+    conn = get_db_conn()
+    conn_id = id(conn)
+    if conn_id not in _pgvector_registered:
+        register_vector(conn)
+        _pgvector_registered.add(conn_id)
+    return conn
 
 
-def _return_conn(conn, pooled: bool) -> None:
-    if pooled:
-        try:
-            from api.database import return_db_conn
-            return_db_conn(conn)
-            return
-        except Exception as e:
-            logger.debug(f"Could not return to pool: {e}")
-    conn.close()
+def _return_db_connection(conn):
+    from api.database import return_db_conn
+    return_db_conn(conn)
 
 
-# ── Redis cache ────────────────────────────────────────────────────────────────
+# ── Redis cache connection ─────────────────────────────────────────────────────
 def _get_redis():
     try:
-        import redis
         r = redis.from_url(REDIS_URL, decode_responses=True)
         r.ping()
         return r
-    except (ConnectionError, OSError) as e:
-        logger.warning(f"Redis unavailable: {e}")
+    except Exception:
+        logger.warning("Redis not available -- caching disabled.")
         return None
-    except Exception as e:
-        logger.warning(f"Redis unexpected error ({type(e).__name__}): {e}")
-        return None
-
-
-def _cache_key(query: str, top_k: int, lang: str, src: str) -> str:
-    raw = f"{query}|{top_k}|{lang}|{src}"
-    return f"glass_ai:retrieval:{hashlib.md5(raw.encode()).hexdigest()}"
-
-
-def _get_cached(key: str) -> Optional[list]:
-    r = _get_redis()
-    if not r:
-        return None
-    try:
-        data = r.get(key)
-        if data:
-            logger.debug("Cache hit")
-            return json.loads(data)
-    except (ConnectionError, OSError) as e:
-        logger.debug(f"Cache read failed: {e}")
-    except Exception as e:
-        logger.debug(f"Cache read unexpected error: {e}")
-    return None
-
-
-def _set_cached(key: str, results: list) -> None:
-    r = _get_redis()
-    if not r or not results:
-        return
-    try:
-        rr.setex(key, REDIS_TTL, json.dumps(results))
-    except (ConnectionError, OSError) as e:
-        logger.debug(f"Cache write failed: {e}")
-    except Exception as e:
-        logger.debug(f"Cache write unexpected error: {e}")
 
 
 # ── Language detection ─────────────────────────────────────────────────────────
 def detect_language(text: str) -> str:
+    """Detect query language, returning 'en' or 'fa'."""
     try:
         lang = detect(text)
         return "fa" if lang in ("fa", "ar") else "en"
@@ -141,480 +85,579 @@ def detect_language(text: str) -> str:
         return "en"
 
 
-# ── Farsi → English query translation (Engineer Z's pattern) ──────────────────
-_GLOSSARY: Optional[dict] = None
+# ── Query translation (for non-English -> English retrieval) ──────────────────
+_GLOSSARY_CACHE = None
 
 def _load_glossary() -> dict:
-    global _GLOSSARY
-    if _GLOSSARY is not None:
-        return _GLOSSARY
-    path = Path(__file__).parent / "glossary_fa_en.json"
-    if path.exists():
-        with open(path, "r", encoding="utf-8") as f:
+    """Load Persian -> English glass terminology glossary."""
+    global _GLOSSARY_CACHE
+    if _GLOSSARY_CACHE is not None:
+        return _GLOSSARY_CACHE
+    glossary_path = Path(__file__).parent / "glossary_fa_en.json"
+    if glossary_path.exists():
+        with open(glossary_path, "r", encoding="utf-8") as f:
             data = json.load(f)
-        _GLOSSARY = data.get("terms", {})
-        logger.info(f"Loaded {len(_GLOSSARY)} Farsi glossary terms")
+        _GLOSSARY_CACHE = data.get("terms", {})
+        logger.info(f"Loaded {len(_GLOSSARY_CACHE)} glossary terms")
     else:
-        _GLOSSARY = {}
-    return _GLOSSARY
+        _GLOSSARY_CACHE = {}
+    return _GLOSSARY_CACHE
 
 
-def _translate_to_english(query: str) -> str:
-    """
-    Translate a Farsi query to English using:
-      1. Domain glossary lookup (fast, free, glass-specific)
-      2. OpenAI gpt-4o-mini (if API key set)
-    Returns the original query if translation fails.
-    """
+def _translate_query_to_english(query: str) -> str:
+    """Translate a non-English query to English for embedding/retrieval.
+    Uses glossary for domain-specific terms + OpenAI for full translation.
+    Returns original query if translation fails."""
     try:
+        from openai import OpenAI
         api_key = os.getenv("OPENAI_API_KEY", "")
         if not api_key:
-            logger.debug("No OPENAI_API_KEY — skipping Farsi translation")
+            logger.warning("No OPENAI_API_KEY -- skipping query translation")
             return query
 
+        # Build glossary hint from matching terms
         glossary = _load_glossary()
-        hints = [f"{fa}={en}" for fa, en in glossary.items() if fa in query]
-        hint_block = ""
+        hints = []
+        for fa_term, en_term in glossary.items():
+            if fa_term in query:
+                hints.append(f"{fa_term} = {en_term}")
+        glossary_block = ""
         if hints:
-            hint_block = "\n\nDomain terms:\n" + "\n".join(hints[:10])
+            glossary_block = "\n\nUse these domain-specific translations:\n" + "\n".join(hints)
 
-        from openai import OpenAI
         client = OpenAI(api_key=api_key)
         resp = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        "Translate the following glass science query to English. "
-                        f"Return ONLY the English translation.{hint_block}"
-                    ),
-                },
+                {"role": "system", "content": f"Translate the following glass science query to English. Return ONLY the English translation, nothing else.{glossary_block}"},
                 {"role": "user", "content": query},
             ],
             max_tokens=200,
             temperature=0,
         )
         translated = resp.choices[0].message.content.strip()
-        logger.info(f"Farsi query translated: '{query[:40]}' → '{translated[:80]}'")
+        logger.info(f"Translated query: '{query[:40]}...' -> '{translated[:80]}'")
         return translated
     except Exception as e:
         logger.warning(f"Query translation failed: {e}")
         return query
 
 
-# ── Keyword extraction (fallback when sparse weights absent) ───────────────────
-_STOPWORDS = {
-    "what", "how", "why", "when", "where", "which", "who", "does", "is",
-    "are", "was", "were", "the", "a", "an", "of", "in", "for", "to", "and",
-    "or", "with", "about", "from", "that", "this", "can", "tell", "explain",
-    "describe", "provide", "give", "its", "they", "it", "be", "been", "have",
-    "has", "had",
-}
+# ── Cache helpers ──────────────────────────────────────────────────────────────
+def _semantic_cache_lookup(
+    query_embedding: list,
+    top_k: int,
+    source_filter: str,
+) -> Optional[list]:
+    """
+    Semantic cache lookup — returns cached results if a similar query
+    (cosine similarity >= SEMANTIC_CACHE_THRESHOLD) was previously cached.
+    Falls back gracefully if Redis unavailable.
+    """
+    r = _get_redis()
+    if not r:
+        return None
+    try:
+        import numpy as np
+        # Load index of cached embeddings
+        index_data = r.get(SEMANTIC_CACHE_INDEX_KEY)
+        if not index_data:
+            return None
+        index = json.loads(index_data)
+        q_vec = np.array(query_embedding, dtype=np.float32)
+        best_sim = 0.0
+        best_key = None
+        for entry in index:
+            if entry.get("top_k") != top_k:
+                continue
+            if entry.get("source_filter") != source_filter:
+                continue
+            cached_vec = np.array(entry["embedding"], dtype=np.float32)
+            # Cosine similarity
+            sim = float(np.dot(q_vec, cached_vec) / (np.linalg.norm(q_vec) * np.linalg.norm(cached_vec) + 1e-10))
+            if sim > best_sim:
+                best_sim = sim
+                best_key = entry.get("result_key")
+        if best_sim >= SEMANTIC_CACHE_THRESHOLD and best_key:
+            data = r.get(best_key)
+            if data:
+                logger.debug(f"Semantic cache hit (similarity={best_sim:.4f})")
+                return json.loads(data)
+        return None
+    except Exception as e:
+        logger.debug(f"Semantic cache lookup error: {e}")
+        return None
 
-def _extract_keywords(query: str) -> list[str]:
-    """Extract meaningful keywords; preserve chemical formulas like SiO2, Na2O."""
+
+def _semantic_cache_store(
+    query: str,
+    query_embedding: list,
+    top_k: int,
+    source_filter: str,
+    results: list,
+) -> None:
+    """Store results in semantic cache with embedding for future similarity lookup."""
+    r = _get_redis()
+    if not r:
+        return
+    try:
+        import numpy as np
+        result_key = f"{SEMANTIC_CACHE_PREFIX}result:{hashlib.md5(query.encode()).hexdigest()}"
+        r.setex(result_key, REDIS_TTL, json.dumps(results))
+        # Update index
+        index_data = r.get(SEMANTIC_CACHE_INDEX_KEY)
+        index = json.loads(index_data) if index_data else []
+        # Normalize embedding for storage (keep small — only first 128 dims for comparison)
+        vec = np.array(query_embedding, dtype=np.float32)
+        vec = vec / (np.linalg.norm(vec) + 1e-10)
+        index.append({
+            "query": query[:100],
+            "embedding": vec.tolist()[:128],  # Store subset to keep index small
+            "result_key": result_key,
+            "top_k": top_k,
+            "source_filter": source_filter,
+        })
+        # Keep index max 500 entries
+        if len(index) > 500:
+            index = index[-500:]
+        r.setex(SEMANTIC_CACHE_INDEX_KEY, REDIS_TTL * 24, json.dumps(index))
+        logger.debug(f"Semantic cache stored ({len(index)} entries in index)")
+    except Exception as e:
+        logger.debug(f"Semantic cache store error: {e}")
+
+def _cache_key(query: str, top_k: int, language_filter: str) -> str:
+    raw = f"{query}|{top_k}|{language_filter}"
+    return f"glass_ai:retrieval:{hashlib.md5(raw.encode()).hexdigest()}"
+
+
+def _get_cached(query: str, top_k: int, language_filter: str):
+    r = _get_redis()
+    if not r:
+        return None
+    key = _cache_key(query, top_k, language_filter)
+    cached = r.get(key)
+    if cached:
+        logger.debug("Cache hit for query")
+        return json.loads(cached)
+    return None
+
+
+def _set_cache(query: str, top_k: int, language_filter: str, results: list):
+    r = _get_redis()
+    if not r:
+        return
+    key = _cache_key(query, top_k, language_filter)
+    r.setex(key, REDIS_TTL, json.dumps(results))
+
+
+# ── Keyword extraction for hybrid search ─────────────────────────────────────
+def _extract_keywords(query: str) -> list:
+    """Extract meaningful keywords from a query for keyword search."""
+    stopwords = {
+        "what", "how", "why", "when", "where", "which", "who", "does", "do",
+        "is", "are", "was", "were", "the", "a", "an", "of", "in", "for",
+        "to", "and", "or", "with", "about", "from", "that", "this", "can",
+        "tell", "me", "explain", "describe", "provide", "give", "its",
+        "their", "they", "it", "be", "been", "being", "have", "has", "had",
+    }
+    # Keep chemical formulas intact (e.g. SiO2, Na2O, B2O3)
     words = re.findall(r'[A-Za-z][A-Za-z0-9]*(?:[.-][A-Za-z0-9]+)*', query)
     keywords = []
     for w in words:
-        if re.match(r'^[A-Z][a-z]?\d', w):   # chemical formula — keep original case
-            keywords.append(w)
-        elif w.lower() not in _STOPWORDS and len(w) > 2:
+        # Chemical formula detection: has both letters and numbers
+        if re.match(r'^[A-Z][a-z]?\d', w):
+            keywords.append(w)  # Keep original case for chemical formulas
+        elif w.lower() not in stopwords and len(w) > 2:
             keywords.append(w.lower())
     return keywords
 
 
-# ── RRF fusion ─────────────────────────────────────────────────────────────────
-def _rrf_fuse(
-    dense_ranked: list[dict],
-    sparse_ranked: list[dict],
-) -> list[dict]:
+def _keyword_search(
+    conn,
+    query: str,
+    keywords: list,
+    language_filter: str = None,
+    source_type_filter: str = None,
+    limit: int = 20,
+) -> list:
     """
-    Reciprocal Rank Fusion.
-    RRF(d) = Σ 1 / (k + rank_i(d))    where k=60 (standard)
+    Keyword-based search using PostgreSQL ILIKE.
+    Catches exact terms that embedding search might miss (chemical formulas,
+    glass IDs, specific property names, author names).
     """
-    scores: dict[str, float]  = {}
-    all_chunks: dict[str, dict] = {}
-
-    for rank, chunk in enumerate(dense_ranked, 1):
-        cid = chunk["id"]
-        scores[cid]     = scores.get(cid, 0.0) + 1.0 / (RRF_K + rank)
-        all_chunks[cid] = chunk
-
-    for rank, chunk in enumerate(sparse_ranked, 1):
-        cid = chunk["id"]
-        scores[cid]     = scores.get(cid, 0.0) + 1.0 / (RRF_K + rank)
-        if cid not in all_chunks:
-            all_chunks[cid] = chunk
-
-    for cid, score in scores.items():
-        all_chunks[cid]["rrf_score"] = score
-
-    return sorted(all_chunks.values(), key=lambda c: c.get("rrf_score", 0), reverse=True)
-
-
-# ── Dense search ───────────────────────────────────────────────────────────────
-def _dense_search(
-    cur,
-    dense_vec,
-    limit: int,
-    language_filter: Optional[str],
-    source_type_filter: Optional[str],
-) -> list[dict]:
-    filters, params = [], [dense_vec.tolist()]
-    idx = 2
-
-    if language_filter:
-        filters.append(f"language = %s")
-        params.append(language_filter)
-        idx += 1
-    if source_type_filter and source_type_filter != "all":
-        filters.append(f"source_type = %s")
-        params.append(source_type_filter)
-        idx += 1
-
-    where = ("WHERE " + " AND ".join(filters)) if filters else ""
-    params += [dense_vec.tolist(), limit]
-
-    sql = f"""
-        SELECT id::text, title, source_type, language, content, metadata,
-               1 - (embedding <=> %s::vector) AS similarity
-        FROM documents_bgem3
-        {where}
-        ORDER BY embedding <=> %s::vector
-        LIMIT %s
-    """
-    cur.execute(sql, params)
-    rows = cur.fetchall()
-
-    results = []
-    for row in rows:
-        sim = float(row[6])
-        if sim < SIM_THRESHOLD:
-            continue
-        results.append({
-            "id":          row[0],
-            "title":       row[1] or "",
-            "source_type": row[2] or "unknown",
-            "language":    row[3] or "en",
-            "content":     row[4] or "",
-            "metadata":    row[5] if isinstance(row[5], dict) else {},
-            "similarity":  round(sim, 4),
-            "_source":     "dense",
-        })
-    return results
-
-
-# ── Sparse search (bge-m3 lexical weights) ────────────────────────────────────
-def _sparse_search(
-    cur,
-    sparse_weights: dict[str, float],
-    limit: int,
-    language_filter: Optional[str],
-    source_type_filter: Optional[str],
-) -> list[dict]:
-    """
-    Build a tsquery from bge-m3 top tokens.
-    Falls back to ILIKE if tsquery fails or weights are empty.
-    """
-    if not sparse_weights:
+    if not keywords:
         return []
 
-    # Top-10 tokens by weight (skip very short tokens)
-    top_tokens = sorted(sparse_weights.items(), key=lambda x: x[1], reverse=True)
-    tokens = [t for t, _ in top_tokens if len(t) > 2][:10]
-    if not tokens:
-        return []
-
-    filters, params = [], []
-
-    # Try tsvector first (faster, uses the GIN index)
+    cur = conn.cursor()
     try:
-        tsquery = " | ".join(tokens)
-        base_cond = "to_tsvector('english', content) @@ to_tsquery('english', %s)"
-        params.append(tsquery)
+        # Build keyword conditions: match ANY keyword in content or title
+        keyword_conditions = []
+        params = []
+        for kw in keywords[:8]:  # limit to 8 keywords
+            keyword_conditions.append("(content ILIKE %s OR title ILIKE %s)")
+            pattern = f"%{kw}%"
+            params.extend([pattern, pattern])
 
+        keyword_where = " OR ".join(keyword_conditions)
+
+        # Additional filters
+        extra_filters = []
         if language_filter:
-            filters.append("language = %s")
+            extra_filters.append("language = %s")
             params.append(language_filter)
-        if source_type_filter and source_type_filter != "all":
-            filters.append("source_type = %s")
+        if source_type_filter:
+            extra_filters.append("source_type = %s")
             params.append(source_type_filter)
 
-        extra = (" AND " + " AND ".join(filters)) if filters else ""
-        params.append(limit)
+        extra_where = (" AND " + " AND ".join(extra_filters)) if extra_filters else ""
 
+        # Simple ranking: count how many keywords match via CASE
+        # We use parameterized ILIKE inside a subquery for scoring
+        # For simplicity, just order by number of keyword matches
         sql = f"""
-            SELECT id::text, title, source_type, language, content, metadata,
-                   ts_rank(to_tsvector('english', content),
-                            to_tsquery('english', %s)) AS score
+            SELECT
+                id::text,
+                title,
+                source_type,
+                language,
+                content,
+                metadata
             FROM documents_bgem3
-            WHERE {base_cond}{extra}
-            ORDER BY score DESC
+            WHERE ({keyword_where}){extra_where}
             LIMIT %s
         """
-        params.insert(0, tsquery)   # first %s in SELECT ts_rank(...)
+        params.append(limit)
+
         cur.execute(sql, params)
+        rows = cur.fetchall()
 
-    except Exception:
-        # Fallback: ILIKE on first 3 tokens
-        cur.execute(
-            """SELECT id::text, title, source_type, language, content, metadata, 0.5
-               FROM documents_bgem3
-               WHERE content ILIKE %s OR title ILIKE %s
-               LIMIT %s""",
-            (f"%{tokens[0]}%", f"%{tokens[0]}%", limit)
-        )
+        results = []
+        for row in rows:
+            # Score locally: count keyword hits in content
+            content_lower = (row[4] or "").lower()
+            title_lower = (row[1] or "").lower()
+            hits = sum(1 for kw in keywords if kw.lower() in content_lower or kw.lower() in title_lower)
+            score = hits / len(keywords) if keywords else 0
 
-    rows = cur.fetchall()
-    return [
-        {
-            "id":          row[0],
-            "title":       row[1] or "",
-            "source_type": row[2] or "unknown",
-            "language":    row[3] or "en",
-            "content":     row[4] or "",
-            "metadata":    row[5] if isinstance(row[5], dict) else {},
-            "similarity":  float(row[6]),
-            "_source":     "sparse",
-        }
-        for row in rows
-    ]
+            results.append({
+                "id":            row[0],
+                "title":         row[1],
+                "source_type":   row[2],
+                "language":      row[3],
+                "content":       row[4],
+                "metadata":      row[5] if isinstance(row[5], dict) else {},
+                "similarity":    0.5,  # placeholder, reranker will rescore
+                "keyword_score": score,
+                "_source":       "keyword",
+            })
 
+        # Sort by keyword score descending
+        results.sort(key=lambda r: r["keyword_score"], reverse=True)
+        return results
 
-# ── Deduplication ──────────────────────────────────────────────────────────────
-def _deduplicate(chunks: list[dict], final_top_k: int, max_per_source: int = 2) -> list[dict]:
-    """Deduplicate by chunk ID; cap at max_per_source chunks per title."""
-    seen_ids:     set[str]  = set()
-    title_counts: dict[str, int] = {}
-    result: list[dict]      = []
-
-    for chunk in chunks:
-        cid   = chunk["id"]
-        title = chunk.get("title", "").strip().lower()
-
-        if cid in seen_ids:
-            continue
-        if title_counts.get(title, 0) >= max_per_source:
-            continue
-
-        seen_ids.add(cid)
-        title_counts[title] = title_counts.get(title, 0) + 1
-        result.append(chunk)
-
-        if len(result) >= final_top_k:
-            break
-
-    return result
-
-
-# ── Context formatter ──────────────────────────────────────────────────────────
-def _smart_truncate(text: str, max_chars: int = 1500) -> str:
-    """Keep first + last paragraphs, trim middle to fit budget."""
-    if len(text) <= max_chars:
-        return text
-    paras = [p.strip() for p in text.split("\n\n") if p.strip()]
-    if len(paras) <= 2:
-        return text[:max_chars - 20].rsplit(" ", 1)[0] + "\n[...truncated...]"
-    head, tail = paras[0], paras[-1]
-    budget = max_chars - len(head) - len(tail) - 30
-    middle = []
-    for p in paras[1:-1]:
-        if budget <= 0:
-            break
-        if len(p) <= budget:
-            middle.append(p)
-            budget -= len(p)
-        else:
-            middle.append(p[:budget].rsplit(" ", 1)[0] + "...")
-            break
-    parts = [head] + (middle or ["[...truncated...]"]) + [tail]
-    return "\n\n".join(parts)
-
-
-def format_context(
-    results: list[dict],
-    max_total_tokens: int = 3000,
-    max_chunk_chars:  int = 1500,
-) -> str:
-    """Format retrieved chunks into a structured context block for the LLM."""
-    if not results:
-        return "No relevant information found in the knowledge base."
-
-    max_total_chars = max_total_tokens * 4
-    parts = ["KNOWLEDGE BASE CONTEXT:", "=" * 60]
-    used  = 60
-
-    for i, r in enumerate(results, 1):
-        score   = r.get("rerank_score") or r.get("rrf_score") or r.get("similarity", 0)
-        budget  = max_chunk_chars if (score > 0.5 or i <= 3) else max_chunk_chars // 2
-        content = _smart_truncate(r.get("content", ""), budget)
-
-        header = (
-            f"\n[Source {i}] {r['title']}\n"
-            f"Type: {r['source_type']} | Lang: {r['language'].upper()} | "
-            f"Score: {score:.3f}"
-        )
-        block = header + "\n" + content + "\n" + "-" * 40
-
-        if used + len(block) > max_total_chars and i > 3:
-            logger.debug(f"Context budget reached at source {i}")
-            break
-
-        parts.append(block)
-        used += len(block)
-
-    return "\n".join(parts)
+    except Exception as e:
+        logger.warning(f"Keyword search failed: {e}")
+        return []
+    finally:
+        cur.close()
 
 
 # ── Core retrieval ─────────────────────────────────────────────────────────────
 def retrieve(
     query: str,
     top_k: int = None,
-    language_filter: Optional[str] = None,
-    source_type_filter: Optional[str] = None,
+    language_filter: str = None,
+    source_type_filter: str = None,
     use_cache: bool = True,
-) -> list[dict]:
+) -> list:
     """
-    Full hybrid retrieval:
-      bge-m3 embed → dense search + sparse search → RRF → rerank → dedup → cache
+    Hybrid retrieval: dense vector search + keyword search + cross-encoder reranking.
 
-    Returns list of chunk dicts with keys:
-      id, title, source_type, language, content, metadata,
-      similarity, rerank_score (if reranked), rrf_score
+    Pipeline:
+      1. Dense search -> top_k * 4 candidates (semantic similarity)
+      2. Keyword search -> top_k * 2 candidates (exact term matching)
+      3. Merge & deduplicate
+      4. Cross-encoder rerank -> final top_k
     """
-    final_top_k = top_k or FINAL_TOP_K
-    cache_key   = _cache_key(query, final_top_k, str(language_filter), str(source_type_filter))
+    top_k = top_k or FINAL_TOP_K
 
+    # Check cache first
+# Generate query embedding first (needed for semantic cache)
+    logger.debug(f"Generating embedding for query: '{query[:80]}...'")
+    query_emb = embed_query(query)
+    dense_vec = query_emb["dense"]
+
+    # Check exact cache first
     if use_cache:
-        cached = _get_cached(cache_key)
+        cached = _get_cached(query, top_k, str(language_filter))
         if cached:
             return cached
+        # Semantic cache — similar query above threshold
+        sem_cached = _semantic_cache_lookup(
+            dense_vec.tolist(), top_k, str(source_type_filter)
+        )
+        if sem_cached is not None:
+            return sem_cached
 
-    # ── 1. Embed query ─────────────────────────────────────────────────────────
-    embedding = embed_query(query)
-    dense_vec = embedding["dense"]
-    sparse_weights: dict = embedding.get("sparse", {})
-
-    conn, pooled = _get_conn()
-    cur = conn.cursor()
+    conn = _get_db_connection()
 
     try:
-        # ── 2. Dense search ────────────────────────────────────────────────────
-        dense_results = _dense_search(
-            cur, dense_vec,
-            limit=final_top_k * 4,
-            language_filter=language_filter,
-            source_type_filter=source_type_filter,
-        )
-        logger.debug(f"Dense: {len(dense_results)} candidates")
+        # ── Step 1: Dense vector search ───────────────────────────────────────
+        filters = []
+        params = []
 
-        # ── 3. Sparse search ───────────────────────────────────────────────────
-        if sparse_weights:
-            sparse_results = _sparse_search(
-                cur, sparse_weights,
-                limit=final_top_k * 2,
+        if language_filter:
+            filters.append("language = %s")
+            params.append(language_filter)
+
+        if source_type_filter:
+            filters.append("source_type = %s")
+            params.append(source_type_filter)
+
+        where_clause = ("WHERE " + " AND ".join(filters)) if filters else ""
+
+        sql = f"""
+            SELECT
+                id::text,
+                title,
+                source_type,
+                language,
+                content,
+                metadata,
+                1 - (embedding <=> %s::vector) AS similarity
+            FROM documents_bgem3
+            {where_clause}
+            ORDER BY embedding <=> %s::vector
+            LIMIT %s
+        """
+
+        dense_limit = top_k * 4
+        params_final = [dense_vec.tolist()] + params + [dense_vec.tolist(), dense_limit]
+
+        cur = conn.cursor()
+        try:
+            cur.execute(sql, params_final)
+            rows = cur.fetchall()
+        finally:
+            cur.close()
+
+        sim_threshold = float(os.getenv("SIMILARITY_THRESHOLD", str(_SIM_THRESHOLD_DEFAULT)))
+        dense_results = []
+        seen_ids = set()
+        for row in rows:
+            similarity = float(row[6])
+            if similarity < sim_threshold:
+                continue
+            doc_id = row[0]
+            seen_ids.add(doc_id)
+            dense_results.append({
+                "id":          doc_id,
+                "title":       row[1],
+                "source_type": row[2],
+                "language":    row[3],
+                "content":     row[4],
+                "metadata":    row[5] if isinstance(row[5], dict) else {},
+                "similarity":  round(similarity, 4),
+                "_source":     "dense",
+            })
+
+        logger.debug(f"Dense search: {len(dense_results)} candidates (threshold={sim_threshold})")
+
+        # ── Step 2: Keyword search ────────────────────────────────────────────
+        keywords = _extract_keywords(query)
+        keyword_results = []
+        if keywords:
+            keyword_results = _keyword_search(
+                conn, query, keywords,
                 language_filter=language_filter,
                 source_type_filter=source_type_filter,
+                limit=top_k * 2,
             )
-        else:
-            # Fallback: keyword search using extracted terms
-            from retrieval.retriever import _extract_keywords
-            keywords = _extract_keywords(query)
-            sparse_results = []
-            if keywords:
-                try:
-                    kw_cond = " OR ".join(
-                        ["(content ILIKE %s OR title ILIKE %s)"] * min(len(keywords), 6)
-                    )
-                    kw_params = []
-                    for kw in keywords[:6]:
-                        kw_params.extend([f"%{kw}%", f"%{kw}%"])
-                    kw_params.append(final_top_k * 2)
-                    cur.execute(
-                        f"SELECT id::text, title, source_type, language, content, metadata "
-                        f"FROM documents_bgem3 WHERE {kw_cond} LIMIT %s",
-                        kw_params,
-                    )
-                    for row in cur.fetchall():
-                        sparse_results.append({
-                            "id": row[0], "title": row[1] or "", "source_type": row[2] or "unknown",
-                            "language": row[3] or "en", "content": row[4] or "",
-                            "metadata": row[5] if isinstance(row[5], dict) else {},
-                            "similarity": 0.5, "_source": "keyword",
-                        })
-                except Exception as e:
-                    logger.warning(f"Keyword fallback failed: {e}")
+            # Deduplicate: only add keyword results not already in dense results
+            new_keyword = [r for r in keyword_results if r["id"] not in seen_ids]
+            logger.debug(f"Keyword search: {len(keyword_results)} total, {len(new_keyword)} new")
+            keyword_results = new_keyword
 
-        logger.debug(f"Sparse/keyword: {len(sparse_results)} candidates")
+        # ── Step 3: Merge candidates ──────────────────────────────────────────
+        all_candidates = dense_results + keyword_results
+        logger.info(
+            f"Hybrid search: {len(dense_results)} dense + {len(keyword_results)} keyword "
+            f"= {len(all_candidates)} candidates"
+        )
+
+        # ── Step 4: Reranking (cross-encoder) ─────────────────────────────────
+        try:
+            from retrieval.reranker import rerank, RERANK_ENABLED
+            if RERANK_ENABLED and len(all_candidates) > 1:
+                results = rerank(query, all_candidates, top_n=top_k)
+                logger.debug(f"Reranking applied: {len(results)} chunks after rerank")
+            else:
+                results = all_candidates[:top_k]
+        except Exception as e:
+            logger.warning(f"Reranking skipped: {e}")
+            results = all_candidates[:top_k]
+
+        # Clean up internal fields
+        for r in results:
+            r.pop("_source", None)
+            r.pop("keyword_score", None)
+
+# Cache the results
+        if use_cache and results:
+            _set_cache(query, top_k, str(language_filter), results)
+            _semantic_cache_store(
+                query=query,
+                query_embedding=dense_vec.tolist(),
+                top_k=top_k,
+                source_filter=str(source_type_filter),
+                results=results,
+            )
+
+        logger.info(f"Retrieved {len(results)} chunks for query")
+        return results
 
     finally:
-        cur.close()
-        _return_conn(conn, pooled)
-
-    # ── 4. RRF fusion ──────────────────────────────────────────────────────────
-    fused = _rrf_fuse(dense_results, sparse_results)
-    logger.debug(f"After RRF: {len(fused)} unique candidates")
-
-    # ── 5. Cross-encoder reranking ─────────────────────────────────────────────
-    try:
-        from retrieval.reranker import rerank, RERANK_ENABLED
-        if RERANK_ENABLED and len(fused) > 1:
-            fused = rerank(query, fused, top_n=min(final_top_k * 2, len(fused)))
-            logger.debug(f"After rerank: {len(fused)}")
-    except Exception as e:
-        logger.warning(f"Reranking failed: {e}")
-
-    # ── 6. Dedup + truncate ────────────────────────────────────────────────────
-    results = _deduplicate(fused, final_top_k)
-
-    # Clean internal fields
-    for r in results:
-        r.pop("_source", None)
-
-    logger.info(
-        f"Retrieved {len(results)} chunks | "
-        f"dense={len(dense_results)} sparse={len(sparse_results)}"
-    )
-
-    # ── 7. Cache ───────────────────────────────────────────────────────────────
-    if use_cache and results:
-        _set_cached(cache_key, results)
-
-    return results
+        _return_db_connection(conn)
 
 
 def retrieve_with_auto_language(
     query: str,
     top_k: int = None,
-    source_type_filter: Optional[str] = None,
-    language_override: Optional[str] = None,
-) -> tuple[list[dict], str]:
+    source_type_filter: str = None,
+    language_override: str = None,
+) -> tuple:
     """
-    Retrieve with automatic language detection and Farsi translation.
-    Returns (chunks, detected_language).
-
-    bge-m3 handles Farsi natively in the embedding space, but translating
-    the query to English also improves recall on English-dominant corpus.
-    Both approaches are attempted via the translation layer.
+    Retrieve results with automatic language detection and bilingual fallback.
+    Returns (results, detected_language).
     """
-    language = (
-        language_override
-        if language_override and language_override != "auto"
-        else detect_language(query)
-    )
-    logger.info(f"Language detected: {language.upper()}")
+    if language_override and language_override != "auto":
+        language = language_override
+    else:
+        language = detect_language(query)
+    logger.info(f"Detected query language: {language.upper()}")
 
-    # For Farsi queries: translate to English for better retrieval on
-    # the English-dominant corpus, then re-embed the translated query
+    # bge-m3 is multilingual — Farsi queries are embedded directly without translation.
+    # The embedding model understands both English and Farsi natively.
+    # Translation is still available as optional boost for edge cases.
     retrieval_query = query
-    if language == "fa":
-        retrieval_query = _translate_to_english(query)
+    if language != "en":
+        # Try glossary-based enhancement: append English terms for domain-specific Farsi words
+        glossary = _load_glossary()
+        hints = [en_term for fa_term, en_term in glossary.items() if fa_term in query]
+        if hints:
+            retrieval_query = f"{query} ({', '.join(hints[:5])})"
+            logger.info(f"Glossary-enhanced query: '{retrieval_query[:80]}'")
 
+    # Search ALL languages — bge-m3 multilingual embeddings enable cross-lingual matching.
+    # A Farsi query will naturally match relevant English chunks and vice versa.
     results = retrieve(
-        query=retrieval_query,
+        retrieval_query,
         top_k=top_k,
-        language_filter=None,      # search across all languages
+        language_filter=None,  # search all languages — English corpus has the best coverage
         source_type_filter=source_type_filter,
     )
+
     return results, language
+
+
+def _estimate_tokens(text: str) -> int:
+    """Rough token count: ~4 chars per token for English, ~2 for CJK/Farsi."""
+    return len(text) // 3  # conservative estimate
+
+
+def _smart_truncate(text: str, max_chars: int = 1500) -> str:
+    """Truncate a chunk intelligently — keep first and last paragraphs,
+    trim the middle. Preserves the most relevant info (usually at boundaries)."""
+    if len(text) <= max_chars:
+        return text
+
+    # Split into paragraphs
+    paragraphs = [p.strip() for p in text.split("\n\n") if p.strip()]
+    if len(paragraphs) <= 2:
+        # Single or two paragraphs: just hard-truncate with ellipsis
+        return text[:max_chars - 20].rsplit(" ", 1)[0] + "\n[...truncated...]"
+
+    # Keep first paragraph(s) and last paragraph, trim middle
+    head = paragraphs[0]
+    tail = paragraphs[-1]
+
+    # Fill remaining budget from middle paragraphs
+    budget = max_chars - len(head) - len(tail) - 30  # 30 for separator
+    middle_parts = []
+    for p in paragraphs[1:-1]:
+        if budget <= 0:
+            break
+        if len(p) <= budget:
+            middle_parts.append(p)
+            budget -= len(p)
+        else:
+            # Partial middle paragraph
+            middle_parts.append(p[:budget].rsplit(" ", 1)[0] + "...")
+            break
+
+    parts = [head]
+    if middle_parts:
+        parts.extend(middle_parts)
+    else:
+        parts.append("[...truncated...]")
+    parts.append(tail)
+    return "\n\n".join(parts)
+
+
+def format_context_for_llm(
+    results: list,
+    max_total_tokens: int = 3000,
+    max_chunk_chars: int = 1500,
+) -> str:
+    """
+    Format retrieved chunks into a structured context block for the LLM prompt.
+
+    Smart token budgeting:
+      - Each chunk is truncated to max_chunk_chars (~500 tokens)
+      - Total context capped at max_total_tokens (~12K chars)
+      - Higher-relevance chunks get more space
+      - Enables fitting 6-8 sources in a 4K context window
+    """
+    if not results:
+        return "No relevant information found in the knowledge base."
+
+    max_total_chars = max_total_tokens * 4  # ~4 chars per token
+    context_parts = ["KNOWLEDGE BASE CONTEXT:", "=" * 50]
+    total_chars = 60  # header overhead
+
+    for i, result in enumerate(results, 1):
+        # Higher-relevance chunks get more space
+        similarity = result.get("similarity", 0.5)
+        rerank = result.get("rerank_score", 0)
+        # Top results (rerank > 0.5 or sim > 0.7) get full budget, others get less
+        if rerank > 0.5 or similarity > 0.7:
+            chunk_budget = max_chunk_chars
+        elif i <= 3:
+            chunk_budget = max_chunk_chars  # always give top 3 full budget
+        else:
+            chunk_budget = max_chunk_chars // 2  # lower-ranked chunks get half
+
+        content = _smart_truncate(result.get("content", ""), chunk_budget)
+
+        header = (
+            f"\n[Source {i}] {result['title']} "
+            f"(Type: {result['source_type']} | "
+            f"Language: {result['language'].upper()} | "
+            f"Relevance: {result['similarity']:.0%})"
+        )
+        chunk_text = header + "\n" + content + "\n" + "-" * 40
+
+        # Check if adding this chunk would exceed budget
+        if total_chars + len(chunk_text) > max_total_chars and i > 3:
+            # Always include at least 3 sources
+            logger.debug(f"Context budget reached at source {i}, stopping")
+            break
+
+        context_parts.append(chunk_text)
+        total_chars += len(chunk_text)
+
+    return "\n".join(context_parts)
+
+
+# Alias used by query router
+format_context = format_context_for_llm
