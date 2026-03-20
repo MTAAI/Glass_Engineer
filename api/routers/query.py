@@ -14,6 +14,7 @@ from api.auth import require_auth, UserInToken
 
 router = APIRouter()
 
+
 def _log_analytics(
     user_id: str,
     query_text: str,
@@ -64,17 +65,14 @@ def _validate_citations(answer: str, num_sources: int) -> str:
     def _replace_invalid(match):
         num = int(match.group(1))
         if 1 <= num <= num_sources:
-            return match.group(0)  # valid — keep it
-        return ""  # invalid — remove
+            return match.group(0)
+        return ""
 
-    # English: [Source 1], [Source 2], etc.
     answer = re.sub(r'\[Source\s+(\d+)\]', _replace_invalid, answer)
-    # Farsi: [منبع ۱], [منبع ۲], etc. (convert Persian digits)
+
     def _replace_invalid_fa(match):
         fa_num = match.group(1)
-        # Convert Persian/Arabic digits to int
-        digit_map = {'۰': '0', '۱': '1', '۲': '2', '۳': '3', '۴': '4',
-                     '۵': '5', '۶': '6', '۷': '7', '۸': '8', '۹': '9'}
+        digit_map = {'۰':'0','۱':'1','۲':'2','۳':'3','۴':'4','۵':'5','۶':'6','۷':'7','۸':'8','۹':'9'}
         en_num = ''.join(digit_map.get(c, c) for c in fa_num)
         try:
             num = int(en_num)
@@ -85,7 +83,6 @@ def _validate_citations(answer: str, num_sources: int) -> str:
         return ""
 
     answer = re.sub(r'\[منبع\s+([۰-۹0-9]+)\]', _replace_invalid_fa, answer)
-
     return answer.strip()
 
 
@@ -97,13 +94,11 @@ def _load_user_memory(user_id: str) -> list:
             cur = conn.cursor()
             cur.execute("""
                 SELECT key, value FROM user_memory
-                WHERE user_id = %s
-                ORDER BY updated_at DESC
-                LIMIT 10
+                WHERE user_id = %s ORDER BY updated_at DESC LIMIT 10
             """, [user_id])
             rows = cur.fetchall()
             cur.close()
-        return [{"key": r[0], "value": r[1]} for r in rows]
+            return [{"key": r[0], "value": r[1]} for r in rows]
     except Exception as e:
         logger.warning(f"Could not load user memory: {e}")
         return []
@@ -118,13 +113,11 @@ def _load_conversation_history(user_id: str, session_id: str, limit: int = 10) -
             cur.execute("""
                 SELECT role, content FROM chat_history
                 WHERE user_id = %s AND session_id = %s
-                ORDER BY created_at DESC
-                LIMIT %s
+                ORDER BY created_at DESC LIMIT %s
             """, [user_id, session_id, limit])
             rows = cur.fetchall()
             cur.close()
-        # Reverse to chronological order
-        return [{"role": r[0], "content": r[1]} for r in reversed(rows)]
+            return [{"role": r[0], "content": r[1]} for r in reversed(rows)]
     except Exception as e:
         logger.warning(f"Could not load conversation history: {e}")
         return []
@@ -144,20 +137,16 @@ async def query_knowledge_base(request: QueryRequest, user: UserInToken = Depend
     from retrieval.llm import generate_answer
 
     start_time = time.time()
-
-    # Auto-create session_id if not provided
     session_id = request.session_id or str(uuid.uuid4())
 
-    # Load conversation history + user memory for continuity
     conversation_history = []
     user_memory = []
     is_authenticated = user.user_id != "anonymous"
-    if is_authenticated:
-        if request.session_id:
-            conversation_history = _load_conversation_history(user.user_id, session_id)
+    if is_authenticated and request.session_id:
+        conversation_history = _load_conversation_history(user.user_id, session_id)
         user_memory = _load_user_memory(user.user_id)
 
-    # ── Step 1: Retrieve relevant chunks ──────────────────────────────────────
+    # ── Step 1: Retrieve ────────────────────────────────────────────────────────
     try:
         chunks, detected_language = retrieve_with_auto_language(
             query=request.question,
@@ -171,50 +160,44 @@ async def query_knowledge_base(request: QueryRequest, user: UserInToken = Depend
 
     retrieval_time_ms = (time.time() - start_time) * 1000
 
-    # ── Step 2: Format context for LLM ────────────────────────────────────────
+    # ── Step 2: No results early return ────────────────────────────────────────
     if not chunks:
         answer = (
             "I could not find relevant information in the knowledge base to answer "
             "this question. Please try rephrasing, or this topic may not yet be "
             "covered in the ingested documents."
             if detected_language == "en"
-            else
-            "اطلاعات مرتبطی در پایگاه دانش برای پاسخ به این سوال یافت نشد. "
-            "لطفاً سوال را به شکل دیگری مطرح کنید."
+            else "اطلاعات مرتبطی در پایگاه دانش برای پاسخ به این سوال یافت نشد. "
+                 "لطفاً سوال را به شکل دیگری مطرح کنید."
         )
         total_latency_ms = (time.time() - start_time) * 1000
-    top_rerank_score = sources[0].rerank_score if sources and sources[0].rerank_score else 0.0
-    fallback_used = model_used in ("retrieval-only", "no-retrieval") or "fallback" in model_used
-    fallback_reason = model_used if fallback_used else ""
+        _log_analytics(
+            user_id=user.user_id,
+            query_text=request.question,
+            language=detected_language,
+            retrieval_latency_ms=retrieval_time_ms,
+            total_latency_ms=total_latency_ms,
+            chunks_retrieved=0,
+            top_rerank_score=0.0,
+            fallback_used=True,
+            fallback_reason="no-retrieval",
+            model_used="no-retrieval",
+        )
+        return QueryResponse(
+            question=request.question,
+            answer=answer,
+            sources=[],
+            language_detected=detected_language,
+            retrieval_time_ms=round(retrieval_time_ms, 2),
+            total_chunks_searched=0,
+            model_used="no-retrieval",
+            session_id=session_id,
+        )
 
-    _log_analytics(
-        user_id=user.user_id,
-        query_text=request.question,
-        language=detected_language,
-        retrieval_latency_ms=retrieval_time_ms,
-        total_latency_ms=total_latency_ms,
-        chunks_retrieved=len(chunks),
-        top_rerank_score=top_rerank_score,
-        fallback_used=fallback_used,
-        fallback_reason=fallback_reason,
-        model_used=model_used,
-    )
-
-    return QueryResponse(
-        question=request.question,
-        answer=answer,
-        sources=sources,
-        language_detected=detected_language,
-        retrieval_time_ms=round(retrieval_time_ms, 2),
-        total_chunks_searched=len(chunks),
-        model_used=model_used,
-        session_id=session_id,
-        chat_id=chat_id,
-    )
-
+    # ── Step 3: Format context ──────────────────────────────────────────────────
     context_block = format_context(chunks)
 
-    # ── Step 3: Generate answer with LLM ──────────────────────────────────────
+    # ── Step 4: Generate answer ─────────────────────────────────────────────────
     try:
         answer, model_used = await generate_answer(
             question=request.question,
@@ -231,10 +214,10 @@ async def query_knowledge_base(request: QueryRequest, user: UserInToken = Depend
         )
         model_used = "retrieval-only"
 
-    # ── Step 3.5: Validate citations ─────────────────────────────────────────
+    # ── Step 5: Validate citations ──────────────────────────────────────────────
     answer = _validate_citations(answer, len(chunks))
 
-    # ── Step 4: Build response ─────────────────────────────────────────────────
+    # ── Step 6: Build sources ───────────────────────────────────────────────────
     sources = [
         SourceChunk(
             title=chunk.get("title", "Unknown"),
@@ -247,20 +230,35 @@ async def query_knowledge_base(request: QueryRequest, user: UserInToken = Depend
         for chunk in chunks
     ]
 
-    # ── Step 5: Auto-save to chat_history ─────────────────────────────────────
+    # ── Step 7: Log analytics ───────────────────────────────────────────────────
+    total_latency_ms = (time.time() - start_time) * 1000
+    top_rerank_score = sources[0].rerank_score if sources and sources[0].rerank_score else 0.0
+    fallback_used = model_used in ("retrieval-only", "no-retrieval") or "fallback" in model_used
+    _log_analytics(
+        user_id=user.user_id,
+        query_text=request.question,
+        language=detected_language,
+        retrieval_latency_ms=retrieval_time_ms,
+        total_latency_ms=total_latency_ms,
+        chunks_retrieved=len(chunks),
+        top_rerank_score=top_rerank_score,
+        fallback_used=fallback_used,
+        fallback_reason=model_used if fallback_used else "",
+        model_used=model_used,
+    )
+
+    # ── Step 8: Save to chat_history ────────────────────────────────────────────
     chat_id = None
     if is_authenticated:
         try:
             from api.routers.conversations import save_message
             source_data = [s.model_dump() for s in sources]
-            # Save user question
             save_message(
                 user_id=user.user_id,
                 session_id=session_id,
                 role="user",
                 content=request.question,
             )
-            # Save assistant answer — capture chat_id for feedback
             chat_id = save_message(
                 user_id=user.user_id,
                 session_id=session_id,
