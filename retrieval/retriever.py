@@ -25,6 +25,7 @@ from loguru import logger
 from dotenv import load_dotenv
 from typing import Optional
 from langdetect import detect, LangDetectException
+from rank_bm25 import BM25Okapi
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -272,91 +273,80 @@ def _extract_keywords(query: str) -> list:
     return keywords
 
 
-def _keyword_search(
+def _bm25_search(
     conn,
     query: str,
-    keywords: list,
     language_filter: str = None,
     source_type_filter: str = None,
     limit: int = 20,
 ) -> list:
     """
-    Keyword-based search using PostgreSQL ILIKE.
-    Catches exact terms that embedding search might miss (chemical formulas,
-    glass IDs, specific property names, author names).
+    BM25 sparse search using rank_bm25 (Okapi BM25).
+    Fetches candidate documents from Postgres then scores with BM25.
+    More accurate than ILIKE for chemical formulas (SiO2, Na2O, B2O3)
+    because BM25 accounts for term frequency and document length normalization.
     """
-    if not keywords:
-        return []
-
     cur = conn.cursor()
     try:
-        # Build keyword conditions: match ANY keyword in content or title
-        keyword_conditions = []
+        filters = []
         params = []
-        for kw in keywords[:8]:  # limit to 8 keywords
-            keyword_conditions.append("(content ILIKE %s OR title ILIKE %s)")
-            pattern = f"%{kw}%"
-            params.extend([pattern, pattern])
-
-        keyword_where = " OR ".join(keyword_conditions)
-
-        # Additional filters
-        extra_filters = []
         if language_filter:
-            extra_filters.append("language = %s")
+            filters.append("language = %s")
             params.append(language_filter)
         if source_type_filter:
-            extra_filters.append("source_type = %s")
+            filters.append("source_type = %s")
             params.append(source_type_filter)
+        where = ("WHERE " + " AND ".join(filters)) if filters else ""
 
-        extra_where = (" AND " + " AND ".join(extra_filters)) if extra_filters else ""
-
-        # Simple ranking: count how many keywords match via CASE
-        # We use parameterized ILIKE inside a subquery for scoring
-        # For simplicity, just order by number of keyword matches
+        # Fetch candidate pool for BM25 scoring
         sql = f"""
-            SELECT
-                id::text,
-                title,
-                source_type,
-                language,
-                content,
-                metadata
+            SELECT id::text, title, source_type, language, content, metadata
             FROM documents_bgem3
-            WHERE ({keyword_where}){extra_where}
+            {where}
             LIMIT %s
         """
-        params.append(limit)
-
+        params.append(limit * 10)
         cur.execute(sql, params)
         rows = cur.fetchall()
 
-        results = []
-        for row in rows:
-            # Score locally: count keyword hits in content
-            content_lower = (row[4] or "").lower()
-            title_lower = (row[1] or "").lower()
-            hits = sum(1 for kw in keywords if kw.lower() in content_lower or kw.lower() in title_lower)
-            score = hits / len(keywords) if keywords else 0
+        if not rows:
+            return []
 
-            results.append({
-                "id":            row[0],
-                "title":         row[1],
-                "source_type":   row[2],
-                "language":      row[3],
-                "content":       row[4],
-                "metadata":      row[5] if isinstance(row[5], dict) else {},
-                "similarity":    0.5,  # placeholder, reranker will rescore
-                "keyword_score": score,
-                "_source":       "keyword",
-            })
+        # Tokenize corpus for BM25
+        tokenized_corpus = [
+            (row[4] or "").lower().split()
+            for row in rows
+        ]
 
-        # Sort by keyword score descending
-        results.sort(key=lambda r: r["keyword_score"], reverse=True)
-        return results
+        # Tokenize query
+        tokenized_query = query.lower().split()
+
+        # BM25 Okapi scoring
+        bm25 = BM25Okapi(tokenized_corpus)
+        scores = bm25.get_scores(tokenized_query)
+
+        # Build results with BM25 scores
+        scored = []
+        for i, row in enumerate(rows):
+            if scores[i] > 0:
+                scored.append({
+                    "id":          row[0],
+                    "title":       row[1],
+                    "source_type": row[2],
+                    "language":    row[3],
+                    "content":     row[4],
+                    "metadata":    row[5] if isinstance(row[5], dict) else {},
+                    "similarity":  0.0,
+                    "bm25_score":  float(scores[i]),
+                    "_source":     "bm25",
+                })
+
+        # Sort by BM25 score descending
+        scored.sort(key=lambda r: r["bm25_score"], reverse=True)
+        return scored[:limit]
 
     except Exception as e:
-        logger.warning(f"Keyword search failed: {e}")
+        logger.warning(f"BM25 search failed: {e}")
         return []
     finally:
         cur.close()
@@ -463,26 +453,45 @@ def retrieve(
 
         logger.debug(f"Dense search: {len(dense_results)} candidates (threshold={sim_threshold})")
 
-        # ── Step 2: Keyword search ────────────────────────────────────────────
+        # ── Step 2: BM25 sparse search ────────────────────────────────────────────
         keywords = _extract_keywords(query)
         keyword_results = []
         if keywords:
-            keyword_results = _keyword_search(
-                conn, query, keywords,
-                language_filter=language_filter,
-                source_type_filter=source_type_filter,
-                limit=top_k * 2,
-            )
+            keyword_results = _bm25_search(
+            conn, query,
+            language_filter=language_filter,
+            source_type_filter=source_type_filter,
+            limit=top_k * 2,
+        )
             # Deduplicate: only add keyword results not already in dense results
             new_keyword = [r for r in keyword_results if r["id"] not in seen_ids]
             logger.debug(f"Keyword search: {len(keyword_results)} total, {len(new_keyword)} new")
             keyword_results = new_keyword
 
-        # ── Step 3: Merge candidates ──────────────────────────────────────────
-        all_candidates = dense_results + keyword_results
+        # ── Step 3: Reciprocal Rank Fusion (RRF) ──────────────────────────────
+        # score = Σ 1/(k + rank_i) where k=60
+        RRF_K = 60
+        rrf_scores: dict = {}
+
+        for rank, doc in enumerate(dense_results):
+            doc_id = doc["id"]
+            if doc_id not in rrf_scores:
+                rrf_scores[doc_id] = {"doc": doc, "score": 0.0}
+            rrf_scores[doc_id]["score"] += 1.0 / (RRF_K + rank + 1)
+
+        for rank, doc in enumerate(keyword_results):
+            doc_id = doc["id"]
+            if doc_id not in rrf_scores:
+                rrf_scores[doc_id] = {"doc": doc, "score": 0.0}
+            rrf_scores[doc_id]["score"] += 1.0 / (RRF_K + rank + 1)
+
+        all_candidates = [
+            entry["doc"]
+            for entry in sorted(rrf_scores.values(), key=lambda x: x["score"], reverse=True)
+        ]
         logger.info(
-            f"Hybrid search: {len(dense_results)} dense + {len(keyword_results)} keyword "
-            f"= {len(all_candidates)} candidates"
+            f"Hybrid RRF: {len(dense_results)} dense + {len(keyword_results)} BM25 "
+            f"= {len(all_candidates)} candidates after RRF (k={RRF_K})"
         )
 
         # ── Step 4: Reranking (cross-encoder) ─────────────────────────────────
