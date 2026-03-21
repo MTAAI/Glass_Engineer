@@ -57,18 +57,23 @@ app.add_middleware(
 # ── Rate limiting ──────────────────────────────────────────────────────────────
 _rate_limits: dict = defaultdict(list)
 _RATE_LIMIT_WINDOW = 60  # seconds
-_RATE_LIMIT_MAX = int(os.getenv("RATE_LIMIT_PER_MINUTE", "60"))
+_RATE_LIMIT_MAX = int(os.getenv("RATE_LIMIT_PER_MINUTE", "30"))
 
 
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
+    # Skip rate limiting for health checks and static files
+    path = request.url.path
+    if path.startswith("/assets") or path == "/api/v1/health" or path == "/" or path == "/favicon.svg":
+        return await call_next(request)
+
     client_ip = request.client.host if request.client else "unknown"
     now = time.time()
     _rate_limits[client_ip] = [
         t for t in _rate_limits[client_ip] if now - t < _RATE_LIMIT_WINDOW
     ]
     if len(_rate_limits[client_ip]) >= _RATE_LIMIT_MAX:
-        logger.warning(f"Rate limit exceeded for {client_ip}")
+        logger.warning(f"Rate limit exceeded for {client_ip}: {len(_rate_limits[client_ip])} requests in {_RATE_LIMIT_WINDOW}s")
         return JSONResponse(
             status_code=429,
             content={"detail": "Too many requests. Please wait before trying again."},
