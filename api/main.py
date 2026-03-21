@@ -22,7 +22,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 # Load environment variables BEFORE importing routers
 load_dotenv(Path(__file__).parent.parent / ".env")
 
-from api.routers import query, health, ingest, analyze, design, troubleshoot, feedback, conversations, upload, export, admin
+from api.routers import query, health, ingest, analyze, design, troubleshoot, feedback, conversations, admin
 from api.auth import router as auth_router
 
 app = FastAPI(
@@ -113,8 +113,6 @@ app.include_router(design.router,        prefix="/api/v1", tags=["Design"])
 app.include_router(troubleshoot.router,  prefix="/api/v1", tags=["Troubleshoot"])
 app.include_router(feedback.router,      prefix="/api/v1", tags=["Feedback"])
 app.include_router(conversations.router, prefix="/api/v1", tags=["Conversations"])
-app.include_router(upload.router,        prefix="/api/v1", tags=["Upload"])
-app.include_router(export.router,        prefix="/api/v1", tags=["Export"])
 app.include_router(admin.router,         prefix="/api/v1", tags=["Admin"])
 
 # ── Serve React frontend ───────────────────────────────────────────────────────
