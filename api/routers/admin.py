@@ -292,7 +292,7 @@ async def list_users(user: UserInToken = Depends(require_admin)):
                 COUNT(DISTINCT ch.session_id) as conversation_count,
                 COUNT(ch.id) FILTER (WHERE ch.role = 'user') as query_count
             FROM users u
-            LEFT JOIN chat_history ch ON ch.user_id = u.id::text
+            LEFT JOIN chat_history ch ON ch.user_id = u.id
             GROUP BY u.id, u.email, u.full_name, u.role, u.is_active, u.created_at
             ORDER BY last_active DESC NULLS LAST
         """)
@@ -370,10 +370,10 @@ async def get_ingestion_log(
         params = [status, limit] if status else [limit]
         cur.execute(f"""
             SELECT file_name, file_path, source_type, language,
-                   chunk_count, status, error_message, created_at
+                   chunk_count, status, error_message, ingested_at
             FROM ingestion_log
             {where}
-            ORDER BY created_at DESC
+            ORDER BY ingested_at DESC
             LIMIT %s
         """, params)
         rows = cur.fetchall()
@@ -384,32 +384,45 @@ async def get_ingestion_log(
             "file_name": r[0], "file_path": r[1], "source_type": r[2],
             "language": r[3], "chunk_count": r[4], "status": r[5],
             "error_message": r[6],
-            "created_at": r[7].isoformat() if r[7] else None,
+            "ingested_at": r[7].isoformat() if r[7] else None,
         }
         for r in rows
     ]
 
 
-@router.post("/admin/ingestion/reindex")
-async def reindex_failed(user: UserInToken = Depends(require_admin)):
-    """Get list of failed ingestions that can be re-triggered."""
+@router.get("/admin/users")
+async def list_users(user: UserInToken = Depends(require_admin)):
+    """List all users with last active time and query count."""
     with get_db() as conn:
         cur = conn.cursor()
-        cur.execute("""
-            SELECT file_name, file_path, source_type, error_message, created_at
-            FROM ingestion_log
-            WHERE status = 'failed'
-            ORDER BY created_at DESC
-            LIMIT 50
-        """)
-        rows = cur.fetchall()
-        cur.close()
+        try:
+            cur.execute("""
+                SELECT
+                    u.id, u.email, u.full_name, u.role,
+                    u.is_active, u.created_at,
+                    MAX(ch.created_at) as last_active,
+                    COUNT(DISTINCT ch.session_id) as conversation_count,
+                    COUNT(ch.id) FILTER (WHERE ch.role = 'user') as query_count
+                FROM users u
+                LEFT JOIN chat_history ch ON ch.user_id = u.id
+                GROUP BY u.id, u.email, u.full_name, u.role, u.is_active, u.created_at
+                ORDER BY last_active DESC NULLS LAST
+            """)
+            rows = cur.fetchall()
+        finally:
+            cur.close()
 
-    failed = [
+    return [
         {
-            "file_name": r[0], "file_path": r[1],
-            "source_type": r[2], "error_message": r[3],
-            "failed_at": r[4].isoformat() if r[4] else None,
+            "id": str(r[0]),
+            "email": r[1],
+            "full_name": r[2],
+            "role": r[3],
+            "is_active": r[4],
+            "created_at": r[5].isoformat() if r[5] else None,
+            "last_active": r[6].isoformat() if r[6] else None,
+            "conversation_count": r[7],
+            "query_count": r[8],
         }
         for r in rows
     ]
