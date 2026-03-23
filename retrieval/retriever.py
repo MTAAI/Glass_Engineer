@@ -33,9 +33,9 @@ from ingestion.embedder import embed_query
 load_dotenv()
 
 # ── Configuration ──────────────────────────────────────────────────────────────
-TOP_K                  = int(os.getenv("RETRIEVAL_TOP_K", 30))
-FINAL_TOP_K            = int(os.getenv("RETRIEVAL_FINAL_TOP_K", 8))
-_SIM_THRESHOLD_DEFAULT = 0.30  # lowered to let reranker decide
+TOP_K                  = int(os.getenv("RETRIEVAL_TOP_K", 20))
+FINAL_TOP_K            = int(os.getenv("RETRIEVAL_FINAL_TOP_K", 5))
+_SIM_THRESHOLD_DEFAULT = 0.42  # raised for bge-m3 to filter noisy chunks
 REDIS_URL              = os.getenv("REDIS_URL", "redis://localhost:6379")
 REDIS_TTL              = int(os.getenv("REDIS_TTL_SECONDS", 86400))
 
@@ -310,66 +310,81 @@ def retrieve(
     conn = _get_db_connection()
 
     try:
-        # ── Step 1: Dense vector search ───────────────────────────────────────
-        filters = []
-        params = []
-
-        if language_filter:
-            filters.append("language = %s")
-            params.append(language_filter)
-
-        if source_type_filter:
-            filters.append("source_type = %s")
-            params.append(source_type_filter)
-
-        where_clause = ("WHERE " + " AND ".join(filters)) if filters else ""
-
-        sql = f"""
-            SELECT
-                id::text,
-                title,
-                source_type,
-                language,
-                content,
-                metadata,
-                1 - (embedding <=> %s::vector) AS similarity
-            FROM documents_bgem3
-            {where_clause}
-            ORDER BY embedding <=> %s::vector
-            LIMIT %s
-        """
-
-        dense_limit = top_k * 4
-        params_final = [dense_vec.tolist()] + params + [dense_vec.tolist(), dense_limit]
-
-        cur = conn.cursor()
-        try:
-            cur.execute(sql, params_final)
-            rows = cur.fetchall()
-        finally:
-            cur.close()
-
+        # ── Step 1: Two-pass dense vector search ─────────────────────────────
+        # Pass 1: Search high-quality sources (textbook, qa_pair) first
+        # Pass 2: Fill remaining slots from all sources (papers, manuals)
+        # This ensures textbook definitions appear before niche research papers.
         sim_threshold = float(os.getenv("SIMILARITY_THRESHOLD", str(_SIM_THRESHOLD_DEFAULT)))
         dense_results = []
         seen_ids = set()
-        for row in rows:
-            similarity = float(row[6])
-            if similarity < sim_threshold:
-                continue
-            doc_id = row[0]
-            seen_ids.add(doc_id)
-            dense_results.append({
-                "id":          doc_id,
-                "title":       row[1],
-                "source_type": row[2],
-                "language":    row[3],
-                "content":     row[4],
-                "metadata":    row[5] if isinstance(row[5], dict) else {},
-                "similarity":  round(similarity, 4),
-                "_source":     "dense",
-            })
 
-        logger.debug(f"Dense search: {len(dense_results)} candidates (threshold={sim_threshold})")
+        _PRIORITY_TYPES = ("textbook", "qa_pair")
+        dense_limit = top_k * 4
+
+        for pass_num, type_filter in enumerate((_PRIORITY_TYPES, None), 1):
+            filters = []
+            params = []
+
+            if language_filter:
+                filters.append("language = %s")
+                params.append(language_filter)
+
+            if source_type_filter:
+                filters.append("source_type = %s")
+                params.append(source_type_filter)
+            elif type_filter:
+                # Pass 1: only textbook + qa_pair
+                placeholders = ", ".join(["%s"] * len(type_filter))
+                filters.append(f"source_type IN ({placeholders})")
+                params.extend(type_filter)
+
+            where_clause = ("WHERE " + " AND ".join(filters)) if filters else ""
+
+            sql = f"""
+                SELECT
+                    id::text,
+                    title,
+                    source_type,
+                    language,
+                    content,
+                    metadata,
+                    1 - (embedding <=> %s::vector) AS similarity
+                FROM documents_bgem3
+                {where_clause}
+                ORDER BY embedding <=> %s::vector
+                LIMIT %s
+            """
+
+            params_final = [dense_vec.tolist()] + params + [dense_vec.tolist(), dense_limit]
+
+            cur = conn.cursor()
+            try:
+                cur.execute(sql, params_final)
+                rows = cur.fetchall()
+            finally:
+                cur.close()
+
+            for row in rows:
+                similarity = float(row[6])
+                if similarity < sim_threshold:
+                    continue
+                doc_id = row[0]
+                if doc_id in seen_ids:
+                    continue
+                seen_ids.add(doc_id)
+                dense_results.append({
+                    "id":          doc_id,
+                    "title":       row[1],
+                    "source_type": row[2],
+                    "language":    row[3],
+                    "content":     row[4],
+                    "metadata":    row[5] if isinstance(row[5], dict) else {},
+                    "similarity":  round(similarity, 4),
+                    "_source":     "dense",
+                })
+
+            pass_label = "priority" if pass_num == 1 else "all"
+            logger.debug(f"Dense pass {pass_num} ({pass_label}): {len(dense_results)} total candidates (threshold={sim_threshold})")
 
         # ── Step 2: Keyword search ────────────────────────────────────────────
         keywords = _extract_keywords(query)
@@ -404,6 +419,24 @@ def retrieve(
         except Exception as e:
             logger.warning(f"Reranking skipped: {e}")
             results = all_candidates[:top_k]
+
+        # ── Step 5: Source type priority boost ──────────────────────────────
+        # Textbooks and qa_pairs are more reliable for general questions.
+        # Boost their rerank/similarity scores so they appear first.
+        # Papers get a small penalty to prevent niche research from drowning out fundamentals.
+        _BOOST = {"textbook": 0.15, "qa_pair": 0.10, "standard": 0.08, "sop": 0.05, "manual": 0.02, "paper": -0.03}
+        for r in results:
+            stype = (r.get("source_type") or "").lower()
+            boost = _BOOST.get(stype, 0.0)
+            if boost:
+                r["similarity"] = max(0.0, min(1.0, r.get("similarity", 0.5) + boost))
+                if "rerank_score" in r:
+                    r["rerank_score"] = max(0.0, min(1.0, r["rerank_score"] + boost))
+        # Re-sort after boosting
+        results.sort(
+            key=lambda r: r.get("rerank_score", r.get("similarity", 0)),
+            reverse=True,
+        )
 
         # Clean up internal fields
         for r in results:

@@ -7,7 +7,7 @@ import {
   ThumbsUp, ThumbsDown, CheckCircle, AlertCircle,
   BookOpen, FileText, FlaskConical, Layers, Star,
   MessageSquarePlus, MessageSquare, Pencil, X, Check,
-  RotateCcw, Cpu, Globe, LogOut,
+  RotateCcw, Cpu, Globe, LogOut, Copy,
 } from 'lucide-react'
 import {
   fetchHealth, queryKnowledgeBase, submitFeedback, submitSourceFeedback,
@@ -213,6 +213,25 @@ function CitationsPanel({ sources, question }: CitationsPanelProps) {
   )
 }
 
+// ── Copy Button ───────────────────────────────────────────────────────────────
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false)
+  return (
+    <button
+      onClick={() => {
+        navigator.clipboard.writeText(text).then(() => {
+          setCopied(true)
+          setTimeout(() => setCopied(false), 1500)
+        })
+      }}
+      className="flex items-center gap-1 mt-1 text-xs text-slate-500 hover:text-slate-300 transition-colors"
+      title="Copy answer to clipboard"
+    >
+      {copied ? <><CheckCircle size={12} className="text-green-400" /> Copied!</> : <><Copy size={12} /> Copy</>}
+    </button>
+  )
+}
+
 // ── Answer Feedback Bar ────────────────────────────────────────────────────────
 interface FeedbackBarProps {
   question: string
@@ -345,6 +364,7 @@ function MessageBubble({ message, prevQuestion }: MessageBubbleProps) {
         <div className={`text-slate-200 text-sm prose prose-invert prose-sm max-w-none ${useRtl ? 'text-right' : ''}`}>
           <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{message.content}</ReactMarkdown>
         </div>
+        <CopyButton text={message.content} />
 
         {/* Metadata row */}
         {message.meta && !isError && (

@@ -149,6 +149,55 @@ CREATE INDEX IF NOT EXISTS conversations_session_id_idx ON conversations (sessio
 CREATE INDEX IF NOT EXISTS conversations_updated_at_idx ON conversations (updated_at DESC);
 
 -- ============================================================
+-- DOCUMENTS_BGEM3 TABLE (bge-m3 embeddings — used by retriever)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS documents_bgem3 (
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title       TEXT NOT NULL,
+    source_type VARCHAR(50) NOT NULL
+                CHECK (source_type IN ('textbook','paper','sop','qa_pair','manual','standard')),
+    language    VARCHAR(10) DEFAULT 'en'
+                CHECK (language IN ('en','fa')),
+    content     TEXT NOT NULL,
+    metadata    JSONB DEFAULT '{}',
+    embedding   vector(1024),
+    created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS documents_bgem3_embedding_idx
+    ON documents_bgem3
+    USING ivfflat (embedding vector_cosine_ops)
+    WITH (lists = 100);
+
+CREATE INDEX IF NOT EXISTS documents_bgem3_content_fts_idx
+    ON documents_bgem3
+    USING gin(to_tsvector('english', content));
+
+CREATE INDEX IF NOT EXISTS documents_bgem3_source_type_idx ON documents_bgem3 (source_type);
+CREATE INDEX IF NOT EXISTS documents_bgem3_language_idx    ON documents_bgem3 (language);
+CREATE INDEX IF NOT EXISTS documents_bgem3_title_idx       ON documents_bgem3 (title);
+
+-- ============================================================
+-- QUERY ANALYTICS TABLE (tracks query performance)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS query_analytics (
+    id                   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id              VARCHAR(255),
+    query_text           TEXT,
+    language             VARCHAR(10),
+    retrieval_latency_ms FLOAT,
+    total_latency_ms     FLOAT,
+    chunks_retrieved     INTEGER,
+    top_rerank_score     FLOAT,
+    fallback_used        BOOLEAN DEFAULT FALSE,
+    fallback_reason      TEXT,
+    model_used           TEXT,
+    created_at           TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS query_analytics_created_at_idx ON query_analytics (created_at DESC);
+
+-- ============================================================
 -- HELPER FUNCTION: Update updated_at timestamp automatically
 -- ============================================================
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -189,6 +238,6 @@ VALUES (
 DO $$
 BEGIN
     RAISE NOTICE '✅ Glass Expert AI database initialized successfully.';
-    RAISE NOTICE '   Tables: documents, users, chat_history, conversations, feedback, source_feedback, user_memory, ingestion_log';
+    RAISE NOTICE '   Tables: documents, documents_bgem3, users, chat_history, conversations, feedback, source_feedback, user_memory, ingestion_log, query_analytics';
     RAISE NOTICE '   Extensions: vector (pgvector), uuid-ossp, pg_trgm';
 END $$;

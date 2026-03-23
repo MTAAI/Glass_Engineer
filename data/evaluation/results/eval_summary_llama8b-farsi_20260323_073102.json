@@ -1,0 +1,28 @@
+{
+  "label": "llama8b-farsi",
+  "timestamp": "20260323_073102",
+  "n_questions": 20,
+  "errors": 0,
+  "mean_judge_score": 4.65,
+  "farsi_language_accuracy_pct": 100.0,
+  "farsi_ok_count": 20,
+  "avg_latency_ms": 8396.0,
+  "models_used": {
+    "gpt-4o-mini (fallback)": 20
+  },
+  "by_category": {
+    "Applications": 5.0,
+    "Durability": 5.0,
+    "Glass Ceramics": 5.0,
+    "Glass Composition": 4.0,
+    "Glass Defects": 4.5,
+    "Glass Structure": 5.0,
+    "Manufacturing": 5.0,
+    "Mechanical Properties": 5.0,
+    "Optical Properties": 5.0,
+    "Science Fundamentals": 4.0,
+    "Strengthening": 5.0,
+    "Thermal Properties": 4.0,
+    "Viscosity": 4.0
+  }
+}

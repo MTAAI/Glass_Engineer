@@ -1,14 +1,18 @@
 """
-Glass Expert AI — FastAPI Backend
-Phase 3: RAG Query API + Specialized Engineering Endpoints + React Chat UI
+Glass Expert AI — FastAPI Backend (Llama 8B Edition)
+RAG Query API + Specialized Engineering Endpoints + React Chat UI
 """
 import os
 import sys
+import time
+import uuid
 from pathlib import Path
+from collections import defaultdict
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
+from starlette.middleware.gzip import GZipMiddleware
 from loguru import logger
 from dotenv import load_dotenv
 
@@ -17,7 +21,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 # Load environment variables from .env BEFORE importing routers
 load_dotenv(Path(__file__).parent.parent / ".env")
 
-from api.routers import query, health, ingest, analyze, design, troubleshoot, feedback, conversations
+from api.routers import query, health, ingest, analyze, design, troubleshoot, feedback, conversations, upload, export, admin
 from api.auth import router as auth_router
 
 app = FastAPI(
@@ -27,20 +31,20 @@ app = FastAPI(
         "Endpoints: /query (general Q&A), /analyze (composition analysis), "
         "/design (composition design), /troubleshoot (defect root cause)."
     ),
-    version="3.1.0",
+    version="3.2.0",
 )
 
 # ── CORS — restrict origins in production ─────────────────────────────────────
 _allowed_origins = os.getenv("CORS_ORIGINS", "").split(",")
 _allowed_origins = [o.strip() for o in _allowed_origins if o.strip()]
 if not _allowed_origins:
-    # Default: same-origin only (frontend served from same host)
     _allowed_origins = [
         "http://localhost:8080",
         "http://localhost:3000",
         "http://127.0.0.1:8080",
     ]
 
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_allowed_origins,
@@ -50,10 +54,6 @@ app.add_middleware(
 )
 
 # ── Rate limiting ─────────────────────────────────────────────────────────────
-# Simple in-memory rate limiter (no extra dependency needed)
-import time
-from collections import defaultdict
-
 _rate_limits: dict = defaultdict(list)  # ip -> list of timestamps
 _RATE_LIMIT_WINDOW = 60  # seconds
 _RATE_LIMIT_MAX = int(os.getenv("RATE_LIMIT_PER_MINUTE", "30"))  # requests per minute
@@ -84,6 +84,28 @@ async def rate_limit_middleware(request: Request, call_next):
     return await call_next(request)
 
 
+# ── Request ID + process time headers ─────────────────────────────────────────
+@app.middleware("http")
+async def add_request_metadata(request: Request, call_next):
+    """Add X-Request-ID and X-Process-Time to every response for debugging."""
+    request_id = str(uuid.uuid4())[:8]
+    start = time.perf_counter()
+    try:
+        response = await call_next(request)
+        process_ms = (time.perf_counter() - start) * 1000
+        response.headers["X-Request-ID"] = request_id
+        response.headers["X-Process-Time"] = f"{process_ms:.0f}ms"
+        return response
+    except Exception as e:
+        logger.error(f"Request {request_id} failed: {e}")
+        process_ms = (time.perf_counter() - start) * 1000
+        return JSONResponse(
+            status_code=500,
+            content={"detail": str(e)},
+            headers={"X-Request-ID": request_id, "X-Process-Time": f"{process_ms:.0f}ms"},
+        )
+
+
 # ── Auth ───────────────────────────────────────────────────────────────────────
 app.include_router(auth_router,         prefix="/api/v1", tags=["Auth"])
 
@@ -98,6 +120,9 @@ app.include_router(design.router,       prefix="/api/v1", tags=["Design"])
 app.include_router(troubleshoot.router, prefix="/api/v1", tags=["Troubleshoot"])
 app.include_router(feedback.router,     prefix="/api/v1", tags=["Feedback"])
 app.include_router(conversations.router, prefix="/api/v1", tags=["Conversations"])
+app.include_router(upload.router,        prefix="/api/v1", tags=["Upload"])
+app.include_router(export.router,        prefix="/api/v1", tags=["Export"])
+app.include_router(admin.router,         prefix="/api/v1", tags=["Admin"])
 
 # ── Serve React frontend ───────────────────────────────────────────────────────
 _frontend_dist = Path(__file__).parent.parent / "frontend" / "dist"
@@ -122,7 +147,7 @@ async def startup_event():
     except Exception as e:
         logger.error(f"Failed to initialize DB pool on startup: {e}")
 
-    logger.info("Glass Expert AI API v3.1.0 starting up...")
+    logger.info("Glass Expert AI API v3.2.0 (Llama 8B) starting up...")
     logger.info(f"CORS origins: {_allowed_origins}")
     logger.info(f"Rate limit: {_RATE_LIMIT_MAX} req/min")
     logger.info("Chat UI available at: http://localhost:8080/")

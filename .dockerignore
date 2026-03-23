@@ -1,50 +1,66 @@
+# ============================================================
+# Glass Expert AI — Docker Build Exclusions
+# ============================================================
+
 # Virtual environments
-venv/
 .venv/
+venv/
 venv_train/
 
 # Git
 .git/
 .gitignore
+.gitattributes
 
-# Data & models (large, mounted at runtime)
-data/
+# Models (large — served by vLLM separately, mounted at runtime)
 models/
-logs/
+*.safetensors
+*.bin
+*.pt
+*.gguf
 
-# Node modules (rebuilt in Docker)
+# Data files
+data/
+logs/
+*.npz
+*.jsonl
+
+# Node modules (rebuilt inside Docker)
 frontend/node_modules/
-frontend/dist/
 
 # Python cache
 __pycache__/
 *.pyc
 *.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
 
 # IDE / OS
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
+*.swp
+*.swo
 
-# Docker nested
+# Docker (avoid recursive copy)
+docker-compose.yml
 .dockerignore
-cloudflared.exe
 
-# Claude config
+# Claude / dev config
 .claude/
 
-# Training artifacts (large)
-*.safetensors
-*.bin
-*.pt
-*.npz
-unsloth_compiled_cache/
-scripts/training/
-
-# Env files
+# Env files (injected at runtime via docker-compose)
 .env
 .env.*
 
-# Test/eval results
-*.jsonl
+# Training artifacts
+scripts/training/
+unsloth_compiled_cache/
+
+# Misc
+cloudflared.exe
+*.md
+*.log
+tests/

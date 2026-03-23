@@ -100,16 +100,24 @@ SYSTEM_PROMPT_FA = """شما Glass Expert AI هستید، یک دستیار تخ
 # ── Local model prompt — matches training format ────────────────────────────
 # The local 8B model was fine-tuned on plain Q&A pairs with THIS system prompt.
 # Using the EXACT training system prompt is critical for good generation.
-LOCAL_SYSTEM_PROMPT = """You are Glass Expert AI, a highly specialized assistant trained on thousands of glass science research papers, textbooks, and material databases. You provide accurate, detailed, and technically precise answers about glass composition, properties, manufacturing processes, defects, characterization, and applications. Always cite relevant glass science principles in your answers."""
+LOCAL_SYSTEM_PROMPT = """You are Glass Expert AI, a highly specialized assistant trained on thousands of glass science research papers, textbooks, and material databases. You provide accurate, detailed, and technically precise answers about glass composition, properties, manufacturing processes, defects, characterization, and applications.
+
+RULES:
+- Answer ONLY using the reference information provided. Do NOT fabricate data.
+- Lead with the standard/textbook definition or value first, then add specific details.
+- Include exact numerical values (temperatures, compositions, percentages) from the reference.
+- If the reference lacks information, say so — do not guess.
+- Use proper glass science terminology: network formers, network modifiers, bridging oxygen (BO), non-bridging oxygen (NBO), fining agents, devitrification, etc.
+- Keep answers focused, quantitative, and technically precise."""
 
 
 def _strip_rag_formatting(context: str) -> str:
     """
-    Strip RAG metadata formatting from context to produce plain text.
+    Strip ALL RAG metadata to produce pure plain text for the local model.
 
-    The local model was trained on plain Q&A — it has never seen [Source N],
-    Type:, Language:, Relevance: metadata headers. These confuse the 8B model
-    into producing meta-commentary instead of answers.
+    The v2 model was trained on pure Q&A — no [Source N], no metadata, no
+    separators. ANY formatting the model hasn't seen during training confuses
+    it into meta-commentary. Strip EVERYTHING except the actual content text.
 
     Input format (from format_context_for_llm):
         KNOWLEDGE BASE CONTEXT:
@@ -117,14 +125,9 @@ def _strip_rag_formatting(context: str) -> str:
         [Source 1] Title (Type: paper | Language: EN | Relevance: 83%)
         actual content here...
         ----------------------------------------
-        [Source 2] Another Title (Type: textbook | Language: EN | Relevance: 75%)
-        more content...
-        ----------------------------------------
 
-    Output format (plain text for local model):
+    Output format (pure plain text):
         actual content here...
-
-        more content...
     """
     if not context:
         return context
@@ -133,14 +136,23 @@ def _strip_rag_formatting(context: str) -> str:
     clean_lines = []
     for line in lines:
         stripped = line.strip()
+        # Skip empty lines at boundaries
+        if not stripped:
+            # Keep paragraph breaks but don't stack them
+            if clean_lines and clean_lines[-1].strip():
+                clean_lines.append("")
+            continue
         # Skip header lines
         if stripped == "KNOWLEDGE BASE CONTEXT:":
             continue
         # Skip separator lines (=== or ---)
-        if stripped and all(c in "=-" for c in stripped) and len(stripped) > 5:
+        if all(c in "=-" for c in stripped) and len(stripped) > 5:
             continue
-        # Skip [Source N] metadata lines
+        # Skip [Source N] lines entirely — model has never seen these
         if re.match(r'^\[Source \d+\]', stripped):
+            continue
+        # Skip lines that are just metadata
+        if stripped.startswith("Type:") or stripped.startswith("Language:") or stripped.startswith("Relevance:"):
             continue
         # Keep everything else (the actual content)
         clean_lines.append(line)
@@ -169,16 +181,19 @@ def _is_degenerate(text: str) -> bool:
         return True
 
     # Check for meta-commentary patterns (model describes the text instead of answering)
+    # Only flag if the answer STARTS with meta-commentary (not if it appears mid-answer)
     meta_patterns = [
         "the text is written",
         "the text is a reference",
         "this text describes",
         "the passage discusses",
-        "the provided text",
         "the above text",
         "this response is referenced",
     ]
-    if any(p in lower for p in meta_patterns):
+    # Only check first 150 chars — meta-commentary at the start is bad,
+    # but "the provided text mentions..." mid-answer is fine
+    first_part = lower[:150]
+    if any(p in first_part for p in meta_patterns):
         return True
 
     # Check for truncated/fragmented output (no complete sentence)
@@ -191,44 +206,73 @@ def _is_degenerate(text: str) -> bool:
 def _compress_history(messages: list) -> list:
     """Compress conversation history to fit more turns in the token budget.
 
-    Strategy:
-      - Last 4 messages (2 turns): keep full content
-      - Older messages: truncate assistant responses to first 150 chars
-        (keeps the gist without burning tokens on full RAG answers)
-      - Strip any KNOWLEDGE BASE CONTEXT blocks from history
+    Strategy (3-tier):
+      - Last 6 messages (3 turns): keep FULL content — immediate context matters most
+      - Middle messages (turns 4-8): keep user questions full, assistant answers trimmed to 300 chars
+      - Oldest messages (turns 9+): keep user questions only (drop assistant responses)
+      - Strip any KNOWLEDGE BASE CONTEXT / Reference information blocks from all history
         (they're from previous queries, not relevant now)
+
+    This gives the model:
+      - Full context of the last 3 exchanges
+      - Topic awareness from older questions
+      - Total token budget stays manageable (~2000 tokens for history)
     """
-    if len(messages) <= 4:
-        return messages
+    if len(messages) <= 6:
+        # Short history — keep everything, just strip old context
+        return [
+            {"role": m["role"], "content": _clean_history_content(m.get("content", ""))}
+            for m in messages
+        ]
 
     compressed = []
-    cutoff = len(messages) - 4  # keep last 4 full
+    full_cutoff = len(messages) - 6     # last 6 kept full
+    middle_cutoff = len(messages) - 16  # middle tier: trimmed
 
     for i, msg in enumerate(messages):
-        content = msg.get("content", "")
+        content = _clean_history_content(msg.get("content", ""))
+        role = msg.get("role", "user")
 
-        # Strip old context blocks from all history messages
-        if "KNOWLEDGE BASE CONTEXT:" in content:
-            # Extract just the question part
-            parts = content.split("QUESTION:")
-            if len(parts) > 1:
-                content = parts[-1].strip()
-            else:
-                # Try to find the question after the context block
-                lines = content.split("\n")
-                content = " ".join(
-                    l for l in lines
-                    if not l.startswith("=") and not l.startswith("-" * 10)
-                    and not l.startswith("[Source") and "KNOWLEDGE BASE" not in l
-                )[:300]
-
-        if i < cutoff and msg.get("role") == "assistant":
-            # Summarize older assistant responses
-            content = content[:150].rsplit(" ", 1)[0] + "..." if len(content) > 150 else content
-
-        compressed.append({"role": msg["role"], "content": content})
+        if i >= full_cutoff:
+            # Tier 1: Last 6 messages — keep full
+            compressed.append({"role": role, "content": content})
+        elif i >= middle_cutoff:
+            # Tier 2: Middle — user questions full, assistant trimmed
+            if role == "assistant" and len(content) > 300:
+                content = content[:300].rsplit(". ", 1)[0] + ". [...]"
+            compressed.append({"role": role, "content": content})
+        else:
+            # Tier 3: Oldest — only keep user questions as topic markers
+            if role == "user":
+                compressed.append({"role": role, "content": content[:200]})
 
     return compressed
+
+
+def _clean_history_content(content: str) -> str:
+    """Strip old RAG context blocks from a history message."""
+    if not content:
+        return content
+
+    # Strip KNOWLEDGE BASE CONTEXT blocks
+    if "KNOWLEDGE BASE CONTEXT:" in content:
+        parts = content.split("QUESTION:")
+        if len(parts) > 1:
+            return parts[-1].strip()
+        lines = content.split("\n")
+        return " ".join(
+            l for l in lines
+            if not l.startswith("=") and not l.startswith("-" * 10)
+            and not l.startswith("[Source") and "KNOWLEDGE BASE" not in l
+        )[:400]
+
+    # Strip Reference information blocks (from local model format)
+    if "Reference information:" in content:
+        parts = content.split("Based on the reference information above, answer this question:")
+        if len(parts) > 1:
+            return parts[-1].strip()
+
+    return content
 
 
 async def generate_answer(
@@ -320,28 +364,25 @@ Provide a precise, technical answer based strictly on the knowledge base context
         plain_context = _strip_rag_formatting(context)
 
         # Truncate for 8B model token budget (~8192 tokens total)
-        # System prompt ~100 tokens + user message ~2500 tokens + response ~1500 tokens
-        local_context_limit = 6000  # chars (~1500 tokens) — leave room for response
+        # System prompt ~200 tokens + user message ~3000 tokens + response ~1500 tokens
+        local_context_limit = 12000  # chars (~3000 tokens) — more context for bge-m3 chunks
         if len(plain_context) > local_context_limit:
             plain_context = plain_context[:local_context_limit]
             logger.debug(f"Truncated context for local model: {len(context)} → {local_context_limit} chars")
 
-        # User message: context first, then question with extraction instruction.
-        # The explicit "Based on the reference" nudges the model to use the context
-        # rather than hallucinating from its parametric memory.
+        # User message: minimal wrapper — the system prompt already has all rules.
+        # The v2 model was trained on plain Q&A. Keep user message clean and simple.
         local_user_message = f"""Reference information:
 {plain_context}
 
-Based on the reference information above, answer this question: {question}
-
-Important: Use specific numbers, temperatures, and compositions from the reference information. Do not make up values."""
+Based on the reference information above, answer this question: {question}"""
 
         local_url = llm_url if llm_url else "http://localhost:8000/v1"
         try:
-            # Local model: use shorter history (4 messages = 2 turns) to save tokens
-            local_history = history[-4:] if history else None
-            # Local model gets more tokens to complete its answer
-            local_max_tokens = max(max_tokens, 1200)
+            # Local model: use compressed history (8 messages = 4 turns for continuity)
+            local_history = history[-8:] if history else None
+            # Local model gets more tokens for detailed technical answers
+            local_max_tokens = max(max_tokens, 1500)
             answer = await _call_openai_compatible(
                 base_url=local_url,
                 api_key=llm_api_key,
@@ -428,9 +469,9 @@ async def _call_openai_compatible(
     extra = {}
     if "localhost" in base_url or "127.0.0.1" in base_url:
         extra["extra_body"] = {
-            "repetition_penalty": 1.25,  # stronger penalty to prevent loops
-            "top_p": 0.9,               # nucleus sampling for diversity
-            "top_k": 40,                # limit vocabulary to top 40 tokens
+            "repetition_penalty": 1.12,  # prevent repetitive outputs without killing technical terms
+            "top_p": 0.90,              # slightly tighter nucleus sampling
+            "top_k": 40,               # focused vocabulary
         }
 
     response = await client.chat.completions.create(
