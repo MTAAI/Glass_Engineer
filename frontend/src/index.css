@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #0f1117;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Persian / RTL support */
+[dir="rtl"] body,
+[dir="rtl"] {
+  font-family: 'Vazirmatn', 'B Nazanin', 'Tahoma', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+[dir="rtl"] .rtl-message {
+  text-align: right;
+  direction: rtl;
+}
+
+.rtl-text {
+  direction: rtl;
+  text-align: right;
+  unicode-bidi: embed;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0f1117;
+}
+::-webkit-scrollbar-thumb {
+  background: #2d3748;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3d4a5c;
+}
+
+/* Glass-panel effect */
+.glass-panel {
+  border: 1px solid rgba(51, 65, 85, 0.45);
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.soft-ring {
+  box-shadow:
+    0 0 0 1px rgba(96, 165, 250, 0.10),
+    0 0 40px rgba(96, 165, 250, 0.06);
+}
+
+/* Prose overrides for dark mode */
+.prose-invert p { color: #e2e8f0; }
+.prose-invert strong { color: #f1f5f9; }
+.prose-invert h1, .prose-invert h2, .prose-invert h3 { color: #f8fafc; }
+.prose-invert code { color: #60a5fa; background: #1e2a3a; padding: 2px 5px; border-radius: 3px; }
+.prose-invert pre { background: #1a1f2e; border: 1px solid #2d3748; }
+.prose-invert ul, .prose-invert ol { color: #cbd5e1; }
+.prose-invert li { margin: 4px 0; }

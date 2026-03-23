@@ -1,0 +1,50 @@
+# Virtual environments
+venv/
+.venv/
+venv_train/
+
+# Git
+.git/
+.gitignore
+
+# Data & models (large, mounted at runtime)
+data/
+models/
+logs/
+
+# Node modules (rebuilt in Docker)
+frontend/node_modules/
+frontend/dist/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Docker nested
+.dockerignore
+cloudflared.exe
+
+# Claude config
+.claude/
+
+# Training artifacts (large)
+*.safetensors
+*.bin
+*.pt
+*.npz
+unsloth_compiled_cache/
+scripts/training/
+
+# Env files
+.env
+.env.*
+
+# Test/eval results
+*.jsonl

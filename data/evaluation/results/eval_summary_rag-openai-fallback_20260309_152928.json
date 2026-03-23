@@ -1,0 +1,25 @@
+{
+  "label": "rag-openai-fallback",
+  "timestamp": "20260309_152928",
+  "n_questions": 5,
+  "errors": 0,
+  "mean_judge_score": 4.6,
+  "mean_kw_coverage": 0.218,
+  "composite_score_pct": 70.94,
+  "score_distribution": {
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 2,
+    "5": 3
+  },
+  "by_category": {
+    "Thermal Properties": 4.6
+  },
+  "avg_latency_ms": 25308.0,
+  "avg_retrieval_ms": 10390.81,
+  "avg_similarity": 0.6783,
+  "models_used": {
+    "gpt-4o-mini": 5
+  }
+}

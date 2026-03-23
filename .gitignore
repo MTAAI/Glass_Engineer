@@ -1,0 +1,82 @@
+# Virtual environments
+.venv/
+.venv-train/
+venv/
+venv_train/
+
+# Environment variables (contains passwords)
+.env
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Model checkpoints (large binary files — root level only)
+/models/
+*.bin
+*.safetensors
+*.pt
+
+# Large data files - keep local only
+data/source_documents/
+data/textbooks/
+data/papers/
+data/processed/
+data/csv/
+data/databases/
+data/embeddings/
+data/qa_pairs/raw/
+data/qa_pairs/generated/
+data/qa_pairs/backup/
+data/qa_pairs/augmented/
+data/qa_pairs/metadata/
+data/large_datasets/
+
+# Logs
+logs/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Database files
+*.db
+*.sqlite
+
+# Node modules (frontend)
+node_modules/
+frontend/dist/
+
+# Claude Code config
+.claude/
+
+# Binaries
+*.exe
+
+# Tools
+tools/
+
+# Database backups
+docker/backup/
+
+# Nested repos
+glass-expert-ai/
+
+# Unsloth cache
+unsloth_compiled_cache/
+
+# ARJUN workspace (SQL dumps, not code)
+ARJUN/*.sql
+ARJUN/gitr/
+
+# Sub-folder clones (separate working copies)
+glass-expert-ai-llama8b/
+glass-expert-ai-qwen14b/
+
+# Textbooks 2 (merged into data/textbooks/)
+data/Textbooks 2/

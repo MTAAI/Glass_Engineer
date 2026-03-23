@@ -1,0 +1,532 @@
+{
+  "fa": {
+    "label": "fa",
+    "timestamp": "2026-03-16T14:04:31.830865",
+    "n_questions": 20,
+    "errors": 0,
+    "empty_retrievals": 0,
+    "mean_top_similarity": 0.8022,
+    "mean_avg_similarity": 0.7193,
+    "mean_keyword_overlap": 0.0214,
+    "mean_domain_kw_hit_pct": 68.59,
+    "mean_latency_ms": 15261.0,
+    "quality_distribution": {
+      "WEAK": 20
+    },
+    "by_category": {
+      "Applications": 0.6996,
+      "Durability": 0.8277,
+      "Glass Ceramics": 0.7135,
+      "Glass Composition": 0.844,
+      "Glass Defects": 0.8503,
+      "Glass Structure": 0.8314,
+      "Manufacturing": 0.8524,
+      "Mechanical Properties": 0.7984,
+      "Optical Properties": 0.6993,
+      "Science Fundamentals": 0.7596,
+      "Strengthening": 0.8697,
+      "Thermal Properties": 0.8226,
+      "Viscosity": 0.7651
+    },
+    "results": [
+      {
+        "id": 1,
+        "category": "Thermal Properties",
+        "difficulty": "intermediate",
+        "question": "دمای انتقال شیشه‌ای (Tg) شیشه سودا-آهکی چقدر است؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.6984,
+        "top_similarity": 0.847,
+        "avg_rerank_score": 0.9645,
+        "top_rerank_score": 0.9976,
+        "keyword_overlap": 0.0,
+        "domain_kw_hits": {
+          "total": 3,
+          "found": 2,
+          "pct": 66.7
+        },
+        "latency_ms": 30679.0,
+        "source_types": {
+          "textbook": 3,
+          "qa_pair": 2
+        },
+        "quality": "WEAK"
+      },
+      {
+        "id": 2,
+        "category": "Thermal Properties",
+        "difficulty": "intermediate",
+        "question": "ضریب انبساط حرارتی شیشه بوروسیلیکات چقدر است و چرا اهمیت دارد؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.7906,
+        "top_similarity": 0.8467,
+        "avg_rerank_score": 0.9746,
+        "top_rerank_score": 0.995,
+        "keyword_overlap": 0.0,
+        "domain_kw_hits": {
+          "total": 4,
+          "found": 3,
+          "pct": 75.0
+        },
+        "latency_ms": 14612.0,
+        "source_types": {
+          "qa_pair": 5
+        },
+        "quality": "WEAK"
+      },
+      {
+        "id": 3,
+        "category": "Thermal Properties",
+        "difficulty": "advanced",
+        "question": "معادله VFT چیست و چه اهمیتی در علم شیشه دارد؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.6462,
+        "top_similarity": 0.774,
+        "avg_rerank_score": 0.9521,
+        "top_rerank_score": 0.9809,
+        "keyword_overlap": 0.0,
+        "domain_kw_hits": {
+          "total": 4,
+          "found": 4,
+          "pct": 100.0
+        },
+        "latency_ms": 14684.0,
+        "source_types": {
+          "textbook": 2,
+          "qa_pair": 3
+        },
+        "quality": "WEAK"
+      },
+      {
+        "id": 4,
+        "category": "Glass Structure",
+        "difficulty": "intermediate",
+        "question": "قواعد زاخاریاسن برای تشکیل شیشه چیست؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.6579,
+        "top_similarity": 0.7805,
+        "avg_rerank_score": 0.4027,
+        "top_rerank_score": 0.9973,
+        "keyword_overlap": 0.0,
+        "domain_kw_hits": {
+          "total": 4,
+          "found": 3,
+          "pct": 75.0
+        },
+        "latency_ms": 15246.0,
+        "source_types": {
+          "qa_pair": 2,
+          "textbook": 3
+        },
+        "quality": "WEAK"
+      },
+      {
+        "id": 5,
+        "category": "Glass Structure",
+        "difficulty": "beginner",
+        "question": "تفاوت بین شبکه‌سازها، اصلاح‌کننده‌های شبکه و واسطه‌ها در شیشه چیست؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.6537,
+        "top_similarity": 0.8334,
+        "avg_rerank_score": 0.5401,
+        "top_rerank_score": 0.9847,
+        "keyword_overlap": 0.1667,
+        "domain_kw_hits": {
+          "total": 4,
+          "found": 3,
+          "pct": 75.0
+        },
+        "latency_ms": 12590.0,
+        "source_types": {
+          "textbook": 2,
+          "qa_pair": 3
+        },
+        "quality": "WEAK"
+      },
+      {
+        "id": 6,
+        "category": "Glass Structure",
+        "difficulty": "advanced",
+        "question": "اکسیژن غیرپل‌دار (NBO) چیست و چه تأثیری بر خواص شیشه دارد؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.832,
+        "top_similarity": 0.8804,
+        "avg_rerank_score": 0.9955,
+        "top_rerank_score": 0.9998,
+        "keyword_overlap": 0.0,
+        "domain_kw_hits": {
+          "total": 4,
+          "found": 4,
+          "pct": 100.0
+        },
+        "latency_ms": 14578.0,
+        "source_types": {
+          "qa_pair": 5
+        },
+        "quality": "WEAK"
+      },
+      {
+        "id": 7,
+        "category": "Glass Composition",
+        "difficulty": "beginner",
+        "question": "ترکیب معمول شیشه سودا-آهک-سیلیکا تجاری چیست؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.7961,
+        "top_similarity": 0.844,
+        "avg_rerank_score": 0.9707,
+        "top_rerank_score": 0.9972,
+        "keyword_overlap": 0.0435,
+        "domain_kw_hits": {
+          "total": 5,
+          "found": 4,
+          "pct": 80.0
+        },
+        "latency_ms": 14566.0,
+        "source_types": {
+          "qa_pair": 5
+        },
+        "quality": "WEAK"
+      },
+      {
+        "id": 8,
+        "category": "Glass Defects",
+        "difficulty": "intermediate",
+        "question": "انواع اصلی عیوب شیشه کدامند و چگونه شناسایی می‌شوند؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.7408,
+        "top_similarity": 0.793,
+        "avg_rerank_score": 0.7093,
+        "top_rerank_score": 0.9104,
+        "keyword_overlap": 0.0,
+        "domain_kw_hits": {
+          "total": 6,
+          "found": 3,
+          "pct": 50.0
+        },
+        "latency_ms": 14428.0,
+        "source_types": {
+          "qa_pair": 4,
+          "textbook": 1
+        },
+        "quality": "WEAK"
+      },
+      {
+        "id": 9,
+        "category": "Glass Defects",
+        "difficulty": "advanced",
+        "question": "آخال نیکل سولفید چیست و چرا باعث شکست خودبه‌خودی شیشه سکوریت می‌شود؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.7496,
+        "top_similarity": 0.9077,
+        "avg_rerank_score": 0.6958,
+        "top_rerank_score": 0.9999,
+        "keyword_overlap": 0.0345,
+        "domain_kw_hits": {
+          "total": 5,
+          "found": 4,
+          "pct": 80.0
+        },
+        "latency_ms": 14599.0,
+        "source_types": {
+          "qa_pair": 3,
+          "sop": 1,
+          "paper": 1
+        },
+        "quality": "WEAK"
+      },
+      {
+        "id": 10,
+        "category": "Strengthening",
+        "difficulty": "intermediate",
+        "question": "تفاوت بین شیشه سکوریت (حرارتی) و تقویت شیمیایی چیست؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.7464,
+        "top_similarity": 0.8697,
+        "avg_rerank_score": 0.668,
+        "top_rerank_score": 0.9999,
+        "keyword_overlap": 0.0,
+        "domain_kw_hits": {
+          "total": 4,
+          "found": 4,
+          "pct": 100.0
+        },
+        "latency_ms": 14513.0,
+        "source_types": {
+          "qa_pair": 4,
+          "paper": 1
+        },
+        "quality": "WEAK"
+      },
+      {
+        "id": 11,
+        "category": "Manufacturing",
+        "difficulty": "intermediate",
+        "question": "فرآیند فلوت برای تولید شیشه تخت چگونه کار می‌کند؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.8573,
+        "top_similarity": 0.8713,
+        "avg_rerank_score": 0.9995,
+        "top_rerank_score": 0.9999,
+        "keyword_overlap": 0.0,
+        "domain_kw_hits": {
+          "total": 4,
+          "found": 4,
+          "pct": 100.0
+        },
+        "latency_ms": 14387.0,
+        "source_types": {
+          "qa_pair": 5
+        },
+        "quality": "WEAK"
+      },
+      {
+        "id": 12,
+        "category": "Manufacturing",
+        "difficulty": "intermediate",
+        "question": "پالایش (فاینینگ) در ذوب شیشه چیست و چرا ضروری است؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.7149,
+        "top_similarity": 0.8336,
+        "avg_rerank_score": 0.4349,
+        "top_rerank_score": 0.9917,
+        "keyword_overlap": 0.0,
+        "domain_kw_hits": {
+          "total": 4,
+          "found": 4,
+          "pct": 100.0
+        },
+        "latency_ms": 14783.0,
+        "source_types": {
+          "qa_pair": 2,
+          "paper": 1,
+          "textbook": 2
+        },
+        "quality": "WEAK"
+      },
+      {
+        "id": 13,
+        "category": "Optical Properties",
+        "difficulty": "intermediate",
+        "question": "ضریب شکست شیشه چیست و چه عواملی بر آن تأثیر می‌گذارند؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.7813,
+        "top_similarity": 0.8079,
+        "avg_rerank_score": 0.9926,
+        "top_rerank_score": 0.997,
+        "keyword_overlap": 0.0,
+        "domain_kw_hits": {
+          "total": 4,
+          "found": 3,
+          "pct": 75.0
+        },
+        "latency_ms": 12729.0,
+        "source_types": {
+          "qa_pair": 5
+        },
+        "quality": "WEAK"
+      },
+      {
+        "id": 14,
+        "category": "Optical Properties",
+        "difficulty": "advanced",
+        "question": "عدد آبه چیست و چگونه در طراحی نوری استفاده می‌شود؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.5348,
+        "top_similarity": 0.5907,
+        "avg_rerank_score": 0.2046,
+        "top_rerank_score": 0.6451,
+        "keyword_overlap": 0.0,
+        "domain_kw_hits": {
+          "total": 5,
+          "found": 4,
+          "pct": 80.0
+        },
+        "latency_ms": 14929.0,
+        "source_types": {
+          "textbook": 3,
+          "qa_pair": 2
+        },
+        "quality": "WEAK"
+      },
+      {
+        "id": 15,
+        "category": "Mechanical Properties",
+        "difficulty": "intermediate",
+        "question": "نظریه گریفیث درباره شکست شیشه چه می‌گوید؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.7217,
+        "top_similarity": 0.7984,
+        "avg_rerank_score": 0.4737,
+        "top_rerank_score": 0.8805,
+        "keyword_overlap": 0.0,
+        "domain_kw_hits": {
+          "total": 4,
+          "found": 1,
+          "pct": 25.0
+        },
+        "latency_ms": 14515.0,
+        "source_types": {
+          "textbook": 2,
+          "qa_pair": 2,
+          "paper": 1
+        },
+        "quality": "WEAK"
+      },
+      {
+        "id": 16,
+        "category": "Durability",
+        "difficulty": "intermediate",
+        "question": "پایداری شیمیایی شیشه به چه عواملی بستگی دارد؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.8023,
+        "top_similarity": 0.8277,
+        "avg_rerank_score": 0.9944,
+        "top_rerank_score": 0.9991,
+        "keyword_overlap": 0.1364,
+        "domain_kw_hits": {
+          "total": 4,
+          "found": 2,
+          "pct": 50.0
+        },
+        "latency_ms": 14831.0,
+        "source_types": {
+          "qa_pair": 5
+        },
+        "quality": "WEAK"
+      },
+      {
+        "id": 17,
+        "category": "Glass Ceramics",
+        "difficulty": "intermediate",
+        "question": "شیشه-سرامیک چیست و چگونه تولید می‌شود؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.5427,
+        "top_similarity": 0.7135,
+        "avg_rerank_score": 0.0735,
+        "top_rerank_score": 0.1066,
+        "keyword_overlap": 0.0,
+        "domain_kw_hits": {
+          "total": 5,
+          "found": 1,
+          "pct": 20.0
+        },
+        "latency_ms": 14364.0,
+        "source_types": {
+          "manual": 1,
+          "qa_pair": 2,
+          "textbook": 1,
+          "sop": 1
+        },
+        "quality": "WEAK"
+      },
+      {
+        "id": 18,
+        "category": "Viscosity",
+        "difficulty": "intermediate",
+        "question": "نقاط مرجع ویسکوزیته در تولید شیشه کدامند؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.7219,
+        "top_similarity": 0.7651,
+        "avg_rerank_score": 0.6058,
+        "top_rerank_score": 0.793,
+        "keyword_overlap": 0.0,
+        "domain_kw_hits": {
+          "total": 5,
+          "found": 1,
+          "pct": 20.0
+        },
+        "latency_ms": 14337.0,
+        "source_types": {
+          "qa_pair": 3,
+          "textbook": 2
+        },
+        "quality": "WEAK"
+      },
+      {
+        "id": 19,
+        "category": "Applications",
+        "difficulty": "intermediate",
+        "question": "فیبر نوری چگونه کار می‌کند و از چه نوع شیشه‌ای ساخته می‌شود؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.6834,
+        "top_similarity": 0.6996,
+        "avg_rerank_score": 0.1951,
+        "top_rerank_score": 0.3819,
+        "keyword_overlap": 0.0,
+        "domain_kw_hits": {
+          "total": 5,
+          "found": 1,
+          "pct": 20.0
+        },
+        "latency_ms": 14783.0,
+        "source_types": {
+          "qa_pair": 4,
+          "paper": 1
+        },
+        "quality": "WEAK"
+      },
+      {
+        "id": 20,
+        "category": "Science Fundamentals",
+        "difficulty": "advanced",
+        "question": "تفاوت بین شیشه قوی و شیشه شکننده از نظر نمودار آنجل چیست؟",
+        "language": "fa",
+        "detected_language": "fa",
+        "n_chunks": 5,
+        "avg_similarity": 0.7142,
+        "top_similarity": 0.7596,
+        "avg_rerank_score": 0.927,
+        "top_rerank_score": 0.9592,
+        "keyword_overlap": 0.0476,
+        "domain_kw_hits": {
+          "total": 5,
+          "found": 4,
+          "pct": 80.0
+        },
+        "latency_ms": 15064.0,
+        "source_types": {
+          "qa_pair": 5
+        },
+        "quality": "WEAK"
+      }
+    ]
+  }
+}

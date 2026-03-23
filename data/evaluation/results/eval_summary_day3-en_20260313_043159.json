@@ -1,0 +1,26 @@
+{
+  "label": "day3-en",
+  "timestamp": "20260313_043159",
+  "n_questions": 3,
+  "errors": 0,
+  "mean_judge_score": 4.0,
+  "mean_kw_coverage": 0.1654,
+  "composite_score_pct": 60.96,
+  "score_distribution": {
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 3,
+    "5": 0
+  },
+  "by_category": {
+    "Thermal Properties": 4.0
+  },
+  "avg_latency_ms": 18836.0,
+  "avg_retrieval_ms": 12506.09,
+  "avg_similarity": 0.712,
+  "models_used": {
+    "glass-expert": 1,
+    "gpt-4o-mini (fallback)": 2
+  }
+}

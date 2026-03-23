@@ -1,0 +1,42 @@
+{
+  "label": "rag-finetuned-v2-optimized",
+  "timestamp": "20260309_174150",
+  "n_questions": 48,
+  "errors": 2,
+  "mean_judge_score": 4.0,
+  "mean_kw_coverage": 0.2757,
+  "composite_score_pct": 64.27,
+  "score_distribution": {
+    "1": 0,
+    "2": 2,
+    "3": 2,
+    "4": 38,
+    "5": 6
+  },
+  "by_category": {
+    "Chemical Durability": 4.0,
+    "Glass Applications": 4.0,
+    "Glass Ceramics": 4.0,
+    "Glass Composition": 4.0,
+    "Glass Defects": 4.0,
+    "Glass Defects & Quality": 4.0,
+    "Glass Forming": 3.0,
+    "Glass Manufacturing": 4.0,
+    "Glass Melting": 3.5,
+    "Glass Properties": 4.0,
+    "Glass Science Fundamentals": 4.25,
+    "Glass Strengthening": 4.0,
+    "Glass Structure": 4.0,
+    "Manufacturing": 4.33,
+    "Mechanical Properties": 4.0,
+    "Optical Properties": 4.33,
+    "Specialty Glass": 4.0,
+    "Thermal Properties": 4.0
+  },
+  "avg_latency_ms": 32772.0,
+  "avg_retrieval_ms": 8.24,
+  "avg_similarity": 0.6857,
+  "models_used": {
+    "glass-expert": 48
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "label": "qwen14b-farsi-v3",
+  "timestamp": "20260323_025758",
+  "n_questions": 15,
+  "errors": 5,
+  "mean_judge_score": 4.2,
+  "farsi_language_accuracy_pct": 93.3,
+  "farsi_ok_count": 14,
+  "avg_latency_ms": 47622.0,
+  "models_used": {
+    "glass-expert-qwen14b": 14,
+    "gpt-4o-mini (fallback)": 1
+  },
+  "by_category": {
+    "Applications": 4.0,
+    "Glass Ceramics": 3.0,
+    "Glass Composition": 4.0,
+    "Glass Defects": 4.0,
+    "Glass Structure": 4.67,
+    "Mechanical Properties": 4.0,
+    "Optical Properties": 5.0,
+    "Science Fundamentals": 4.0,
+    "Thermal Properties": 4.33,
+    "Viscosity": 4.0
+  }
+}
