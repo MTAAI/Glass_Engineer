@@ -10,8 +10,8 @@ API Endpoints:
   - GET  /health
 
 Environment variables:
-  BASE_MODEL_ID   - HuggingFace model ID (default: meta-llama/Meta-Llama-3.1-8B-Instruct)
-  LORA_ADAPTER    - Path to LoRA adapter (default: auto-detected from project root)
+  BASE_MODEL_ID   - HuggingFace model ID (default: unsloth/Qwen2.5-14B-Instruct-bnb-4bit)
+  LORA_ADAPTER    - Path to LoRA adapter (default: models/qwen14b-glass-expert/adapter)
   MODEL_NAME      - Model name for API responses (default: glass-expert)
   PORT            - Server port (default: 8000)
   MAX_NEW_TOKENS  - Max generation tokens (default: 1024)
@@ -39,17 +39,17 @@ from peft import PeftModel
 # ── Configuration ─────────────────────────────────────────────────────────────
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-BASE_MODEL_ID  = os.environ.get("BASE_MODEL_ID", "meta-llama/Meta-Llama-3.1-8B-Instruct")
-LORA_ADAPTER   = os.environ.get("LORA_ADAPTER", os.path.join(PROJECT_ROOT, "models", "glass-expert-v2", "final"))
-MERGED_MODEL   = os.environ.get("MERGED_MODEL", os.path.join(PROJECT_ROOT, "models", "glass-expert-v2-merged"))
-USE_MERGED     = os.environ.get("USE_MERGED", "true").lower() in ("true", "1", "yes")
-MODEL_NAME     = os.environ.get("MODEL_NAME", "glass-expert")
+BASE_MODEL_ID  = os.environ.get("BASE_MODEL_ID", "/root/glass-training/models/Qwen2.5-14B-Instruct-bnb-4bit")
+LORA_ADAPTER   = os.environ.get("LORA_ADAPTER", os.path.join(PROJECT_ROOT, "models", "qwen14b-glass-expert", "adapter"))
+MERGED_MODEL   = os.environ.get("MERGED_MODEL", os.path.join(PROJECT_ROOT, "models", "qwen14b-glass-expert-merged"))
+USE_MERGED     = os.environ.get("USE_MERGED", "false").lower() in ("true", "1", "yes")
+MODEL_NAME     = os.environ.get("MODEL_NAME", "glass-expert-qwen14b")
 PORT           = int(os.environ.get("PORT", "8000"))
 MAX_NEW_TOKENS = int(os.environ.get("MAX_NEW_TOKENS", "1024"))
 DEFAULT_TEMP   = float(os.environ.get("DEFAULT_TEMP", "0.1"))
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 OPENAI_MODEL   = os.environ.get("OPENAI_MODEL", "gpt-4.1-mini")
-QUANTIZE_4BIT  = os.environ.get("QUANTIZE_4BIT", "false").lower() in ("true", "1", "yes")
+QUANTIZE_4BIT  = os.environ.get("QUANTIZE_4BIT", "true").lower() in ("true", "1", "yes")
 
 SYSTEM_PROMPT = """You are Glass Expert AI, a highly specialized assistant for glass scientists and manufacturing engineers with PhD-level expertise.
 

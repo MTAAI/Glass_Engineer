@@ -4,11 +4,15 @@ Phase 3: RAG Query API + Specialized Engineering Endpoints + React Chat UI
 """
 import os
 import sys
+import time
+import uuid
 from pathlib import Path
+from collections import defaultdict
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
+from starlette.middleware.gzip import GZipMiddleware
 from loguru import logger
 from dotenv import load_dotenv
 
@@ -41,6 +45,7 @@ if not _allowed_origins:
         "http://127.0.0.1:8080",
     ]
 
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_allowed_origins,
@@ -50,10 +55,6 @@ app.add_middleware(
 )
 
 # ── Rate limiting ─────────────────────────────────────────────────────────────
-# Simple in-memory rate limiter (no extra dependency needed)
-import time
-from collections import defaultdict
-
 _rate_limits: dict = defaultdict(list)  # ip -> list of timestamps
 _RATE_LIMIT_WINDOW = 60  # seconds
 _RATE_LIMIT_MAX = int(os.getenv("RATE_LIMIT_PER_MINUTE", "30"))  # requests per minute
@@ -82,6 +83,28 @@ async def rate_limit_middleware(request: Request, call_next):
 
     _rate_limits[client_ip].append(now)
     return await call_next(request)
+
+
+# ── Request ID + process time headers ─────────────────────────────────────────
+@app.middleware("http")
+async def add_request_metadata(request: Request, call_next):
+    """Add X-Request-ID and X-Process-Time to every response for debugging."""
+    request_id = str(uuid.uuid4())[:8]
+    start = time.perf_counter()
+    try:
+        response = await call_next(request)
+        process_ms = (time.perf_counter() - start) * 1000
+        response.headers["X-Request-ID"] = request_id
+        response.headers["X-Process-Time"] = f"{process_ms:.0f}ms"
+        return response
+    except Exception as e:
+        logger.error(f"Request {request_id} failed: {e}")
+        process_ms = (time.perf_counter() - start) * 1000
+        return JSONResponse(
+            status_code=500,
+            content={"detail": str(e)},
+            headers={"X-Request-ID": request_id, "X-Process-Time": f"{process_ms:.0f}ms"},
+        )
 
 
 # ── Auth ───────────────────────────────────────────────────────────────────────

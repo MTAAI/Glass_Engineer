@@ -43,8 +43,8 @@ BASE_MODEL = "Qwen/Qwen2.5-14B-Instruct"
 BASE_DIR = Path(os.environ.get("TRAIN_BASE_DIR", os.path.expanduser("~/glass-training")))
 OUTPUT_DIR = BASE_DIR / "output" / "adapter"
 MERGED_DIR = BASE_DIR / "output" / "merged"
-TRAIN_FILE = BASE_DIR / "data" / "combined_train.jsonl"
-VAL_FILE = BASE_DIR / "data" / "combined_val.jsonl"
+TRAIN_FILE = BASE_DIR / "data" / "train.jsonl"
+VAL_FILE = BASE_DIR / "data" / "val.jsonl"
 LOG_DIR = BASE_DIR / "logs"
 
 # ── LoRA Config ───────────────────────────────────────────────────────────────
@@ -55,18 +55,18 @@ LORA_TARGET_MODULES = [
     "gate_proj", "up_proj", "down_proj",
 ]
 
-# ── Training Hyperparams ─────────────────────────────────────────────────────
+# ── Training Hyperparams (matched to original run.log) ───────────────────────
 NUM_EPOCHS = 1
 LEARNING_RATE = 5e-5
 MAX_LENGTH = 2048
 WEIGHT_DECAY = 0.01
 WARMUP_RATIO = 0.03
-SAVE_STEPS = 250          # checkpoint every 250 steps (~4000 examples)
-EVAL_STEPS = 500
+SAVE_STEPS = 1000
+EVAL_STEPS = 1000
 LOGGING_STEPS = 25
-SAVE_TOTAL_LIMIT = 5      # keep 5 checkpoints (rolling) for crash recovery
+SAVE_TOTAL_LIMIT = 5
 BATCH_SIZE = 2
-GRAD_ACCUM = 8
+GRAD_ACCUM = 4            # original run used 4 (effective batch = 8)
 
 # ── Logging ───────────────────────────────────────────────────────────────────
 LOG_DIR.mkdir(parents=True, exist_ok=True)
@@ -123,10 +123,13 @@ def main():
     logger.info(f"  Base dir: {BASE_DIR}")
     logger.info("=" * 65)
 
-    # ── Use local HF cache (symlinked from Windows) ──────────────────────────
-    local_model = os.path.expanduser(
-        "~/.cache/huggingface/hub/models--Qwen--Qwen2.5-14B-Instruct/snapshots/cf98f3b3bbb457ad9e2bb7baf9a0125b6b88caa8"
-    )
+    # ── Use local pre-quantized bnb-4bit model (matches original run) ────────
+    local_model = os.path.expanduser("~/glass-training/models/Qwen2.5-14B-Instruct-bnb-4bit")
+    if not os.path.exists(local_model):
+        # Fallback to HF cache
+        local_model = os.path.expanduser(
+            "~/.cache/huggingface/hub/models--Qwen--Qwen2.5-14B-Instruct/snapshots/cf98f3b3bbb457ad9e2bb7baf9a0125b6b88caa8"
+        )
     if not os.path.exists(local_model):
         logger.info("Local cache not found, will download from HuggingFace...")
         local_model = BASE_MODEL
@@ -169,7 +172,7 @@ def main():
         model,
         r=LORA_R,
         lora_alpha=LORA_ALPHA,
-        lora_dropout=0.05,
+        lora_dropout=0,
         target_modules=LORA_TARGET_MODULES,
         bias="none",
         use_gradient_checkpointing="unsloth",
@@ -185,24 +188,29 @@ def main():
     train_data = Dataset.from_list(load_jsonl(TRAIN_FILE))
     val_data = Dataset.from_list(load_jsonl(VAL_FILE))
 
-    # ── Effective batch size ──────────────────────────────────────────────────
+    # ── Force max_steps to match original run (checkpoint compatibility) ──────
+    # Original run: bnb-4bit tokenizer expanded 82,703 JSONL → 141,505 examples
+    # 141,505 / 8 effective batch = 17,689 steps
+    # We MUST set max_steps=17689 so checkpoint-14000 resume works correctly.
+    ORIGINAL_MAX_STEPS = 17689
+
     effective_batch = batch_size * grad_accum
     steps_per_epoch = math.ceil(len(train_data) / effective_batch)
-    total_steps = steps_per_epoch * NUM_EPOCHS
-    logger.info(f"  Effective batch: {effective_batch} | Steps/epoch: {steps_per_epoch:,} | Total: {total_steps:,}")
+    logger.info(f"  Effective batch: {effective_batch} | JSONL steps/epoch: {steps_per_epoch:,}")
+    logger.info(f"  Overriding max_steps to {ORIGINAL_MAX_STEPS} (matching original run)")
 
     # ── Training config ───────────────────────────────────────────────────────
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
     training_args = SFTConfig(
         output_dir=str(OUTPUT_DIR),
-        num_train_epochs=NUM_EPOCHS,
+        max_steps=ORIGINAL_MAX_STEPS,
         per_device_train_batch_size=batch_size,
         per_device_eval_batch_size=batch_size,
         gradient_accumulation_steps=grad_accum,
         learning_rate=LEARNING_RATE,
         weight_decay=WEIGHT_DECAY,
-        warmup_steps=int(total_steps * WARMUP_RATIO),
+        warmup_steps=int(ORIGINAL_MAX_STEPS * WARMUP_RATIO),
         lr_scheduler_type="cosine",
         max_length=MAX_LENGTH,
         logging_steps=LOGGING_STEPS,
@@ -219,10 +227,10 @@ def main():
         gradient_checkpointing=True,
         gradient_checkpointing_kwargs={"use_reentrant": False},
         report_to="none",
-        save_safetensors=True,       # safetensors format (faster save/load)
-        save_on_each_node=True,      # ensure checkpoint is saved locally
+        save_on_each_node=True,
         seed=42,
         dataset_text_field="text",
+        dataset_num_proc=4,
     )
 
     # ── Trainer ───────────────────────────────────────────────────────────────
@@ -238,7 +246,6 @@ def main():
     # ── Auto-detect checkpoint for resume ─────────────────────────────────────
     resume_checkpoint = None
     if args.resume:
-        # Find latest checkpoint automatically
         checkpoints = sorted(OUTPUT_DIR.glob("checkpoint-*"), key=os.path.getmtime)
         if checkpoints:
             resume_checkpoint = str(checkpoints[-1])

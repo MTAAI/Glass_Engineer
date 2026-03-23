@@ -15,6 +15,43 @@ from api.auth import require_auth, UserInToken
 router = APIRouter()
 
 
+def _log_analytics(
+    user_id: str,
+    query_text: str,
+    language: str,
+    retrieval_latency_ms: float,
+    total_latency_ms: float,
+    chunks_retrieved: int,
+    top_rerank_score: float,
+    fallback_used: bool,
+    fallback_reason: str,
+    model_used: str,
+) -> None:
+    """Log query analytics to query_analytics table — fire and forget.
+    Non-critical: if table doesn't exist or insert fails, log and move on."""
+    try:
+        from api.database import get_db
+        with get_db() as conn:
+            cur = conn.cursor()
+            cur.execute("""
+                INSERT INTO query_analytics (
+                    user_id, query_text, language,
+                    retrieval_latency_ms, total_latency_ms,
+                    chunks_retrieved, top_rerank_score,
+                    fallback_used, fallback_reason, model_used
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (
+                user_id, query_text[:500], language,
+                round(retrieval_latency_ms, 2), round(total_latency_ms, 2),
+                chunks_retrieved, top_rerank_score,
+                fallback_used, fallback_reason, model_used,
+            ))
+            conn.commit()
+            cur.close()
+    except Exception as e:
+        logger.debug(f"Analytics logging failed (non-critical): {e}")
+
+
 def _validate_citations(answer: str, num_sources: int) -> str:
     """
     Validate [Source N] citations in the LLM answer.
@@ -218,6 +255,24 @@ async def query_knowledge_base(request: QueryRequest, user: UserInToken = Depend
             )
         except Exception as e:
             logger.warning(f"Failed to save chat history: {e}")
+
+    total_time_ms = (time.time() - start_time) * 1000
+
+    # ── Step 6: Log query analytics (fire and forget) ─────────────────────
+    top_rerank = max((c.get("rerank_score", 0) for c in chunks), default=0)
+    is_fallback = "(fallback)" in model_used
+    _log_analytics(
+        user_id=user.user_id,
+        query_text=request.question,
+        language=detected_language,
+        retrieval_latency_ms=retrieval_time_ms,
+        total_latency_ms=total_time_ms,
+        chunks_retrieved=len(chunks),
+        top_rerank_score=round(top_rerank, 4),
+        fallback_used=is_fallback,
+        fallback_reason="local_unavailable" if is_fallback else "",
+        model_used=model_used,
+    )
 
     return QueryResponse(
         question=request.question,

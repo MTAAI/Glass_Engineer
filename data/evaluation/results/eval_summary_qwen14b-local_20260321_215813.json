@@ -1,0 +1,26 @@
+{
+  "label": "qwen14b-local",
+  "timestamp": "20260321_215813",
+  "n_questions": 5,
+  "errors": 0,
+  "mean_judge_score": 4.2,
+  "mean_kw_coverage": 0.3565,
+  "composite_score_pct": 69.49,
+  "score_distribution": {
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 4,
+    "5": 1
+  },
+  "by_category": {
+    "Thermal Properties": 4.2
+  },
+  "avg_latency_ms": 84865.0,
+  "avg_retrieval_ms": 9.37,
+  "avg_similarity": 0.7074,
+  "models_used": {
+    "glass-expert-qwen14b": 2,
+    "gpt-4o-mini (fallback)": 3
+  }
+}

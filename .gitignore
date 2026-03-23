@@ -1,6 +1,7 @@
-# Virtual environment
-venv/
+# Virtual environments
 .venv/
+.venv-train/
+venv/
 venv_train/
 
 # Environment variables (contains passwords)
@@ -57,8 +58,25 @@ frontend/dist/
 # Binaries
 *.exe
 
+# Tools
+tools/
+
 # Database backups
 docker/backup/
 
 # Nested repos
 glass-expert-ai/
+
+# Unsloth cache
+unsloth_compiled_cache/
+
+# ARJUN workspace (SQL dumps, not code)
+ARJUN/*.sql
+ARJUN/gitr/
+
+# Sub-folder clones (separate working copies)
+glass-expert-ai-llama8b/
+glass-expert-ai-qwen14b/
+
+# Textbooks 2 (merged into data/textbooks/)
+data/Textbooks 2/

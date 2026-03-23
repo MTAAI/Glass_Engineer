@@ -5,10 +5,15 @@ Evaluates the full RAG pipeline (retrieval + LLM) against the 50-question golden
 Queries through the /api/v1/query endpoint and compares with the fine-tuned LLM-only baseline.
 """
 import argparse
+import io
 import json
 import os
 import sys
 import time
+
+# Fix Windows console encoding
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 from datetime import datetime
 from pathlib import Path
 import requests
@@ -123,7 +128,7 @@ def main():
     client = OpenAI()
     auth_headers = _get_auth_headers(api_url)
     if auth_headers:
-        print(f"  Auth: authenticated ✓")
+        print(f"  Auth: authenticated")
     else:
         print(f"  Auth: anonymous (set EVAL_EMAIL/EVAL_PASSWORD for auth)")
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)

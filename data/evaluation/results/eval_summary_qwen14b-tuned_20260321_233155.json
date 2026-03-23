@@ -1,0 +1,38 @@
+{
+  "label": "qwen14b-tuned",
+  "timestamp": "20260321_233155",
+  "n_questions": 34,
+  "errors": 16,
+  "mean_judge_score": 4.1765,
+  "mean_kw_coverage": 0.3417,
+  "composite_score_pct": 68.72,
+  "score_distribution": {
+    "1": 0,
+    "2": 2,
+    "3": 2,
+    "4": 18,
+    "5": 12
+  },
+  "by_category": {
+    "Chemical Durability": 4.0,
+    "Glass Ceramics": 4.5,
+    "Glass Composition": 4.0,
+    "Glass Defects": 3.25,
+    "Glass Forming": 4.0,
+    "Glass Melting": 4.5,
+    "Glass Strengthening": 4.5,
+    "Glass Structure": 4.67,
+    "Manufacturing": 5.0,
+    "Mechanical Properties": 4.5,
+    "Optical Properties": 4.33,
+    "Specialty Glass": 4.5,
+    "Thermal Properties": 3.67
+  },
+  "avg_latency_ms": 36844.0,
+  "avg_retrieval_ms": 13.44,
+  "avg_similarity": 0.6633,
+  "models_used": {
+    "glass-expert-qwen14b": 32,
+    "gpt-4o-mini (fallback)": 2
+  }
+}

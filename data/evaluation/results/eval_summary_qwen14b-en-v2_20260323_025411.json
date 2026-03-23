@@ -1,0 +1,25 @@
+{
+  "label": "qwen14b-en-v2",
+  "timestamp": "20260323_025411",
+  "n_questions": 5,
+  "errors": 0,
+  "mean_judge_score": 4.0,
+  "mean_kw_coverage": 0.2742,
+  "composite_score_pct": 64.23,
+  "score_distribution": {
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 5,
+    "5": 0
+  },
+  "by_category": {
+    "Thermal Properties": 4.0
+  },
+  "avg_latency_ms": 22732.0,
+  "avg_retrieval_ms": 9434.41,
+  "avg_similarity": 0.7074,
+  "models_used": {
+    "glass-expert-qwen14b": 5
+  }
+}

@@ -6,6 +6,7 @@ Evaluates the full RAG pipeline for Persian/Farsi queries.
 import argparse
 import io
 import json
+import os
 import sys
 import time
 from datetime import datetime
@@ -39,11 +40,31 @@ Score 1-5: 5=excellent (accurate + Farsi), 4=good, 3=acceptable, 2=poor, 1=wrong
 Respond with ONLY a JSON object: {{"score": N, "reason": "one sentence", "language_ok": true/false}}"""
 
 
-def query_rag_api(api_url, question):
+def _get_auth_headers(api_url: str) -> dict:
+    eval_email = os.getenv("EVAL_EMAIL", "")
+    eval_password = os.getenv("EVAL_PASSWORD", "")
+    if not eval_email or not eval_password:
+        return {}
+    try:
+        resp = requests.post(
+            f"{api_url}/api/v1/auth/login",
+            data={"username": eval_email, "password": eval_password},
+            timeout=10,
+        )
+        if resp.ok:
+            token = resp.json().get("access_token", "")
+            return {"Authorization": f"Bearer {token}"}
+    except Exception:
+        pass
+    return {}
+
+
+def query_rag_api(api_url, question, headers=None):
     start = time.time()
     resp = requests.post(
         f"{api_url}/api/v1/query",
         json={"question": question, "top_k": 5},
+        headers=headers or {},
         timeout=REQUEST_TIMEOUT,
     )
     resp.raise_for_status()
@@ -101,6 +122,11 @@ def main():
     sys.stdout.flush()
 
     client = OpenAI()
+    auth_headers = _get_auth_headers(api_url)
+    if auth_headers:
+        print(f"  Auth: authenticated")
+    else:
+        print(f"  Auth: anonymous (set EVAL_EMAIL/EVAL_PASSWORD for auth)")
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     results_file = RESULTS_DIR / f"eval_results_{args.label}_{ts}.jsonl"
@@ -122,7 +148,7 @@ def main():
         sys.stdout.flush()
 
         try:
-            rag_resp, latency = query_rag_api(api_url, question)
+            rag_resp, latency = query_rag_api(api_url, question, auth_headers)
             answer = rag_resp.get("answer", "")
             model_used = rag_resp.get("model_used", "unknown")
             lang_detected = rag_resp.get("language_detected", "unknown")
