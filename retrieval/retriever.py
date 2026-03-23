@@ -41,9 +41,9 @@ from ingestion.embedder import embed_query
 load_dotenv()
 
 # ── Configuration ──────────────────────────────────────────────────────────────
-TOP_K                  = int(os.getenv("RETRIEVAL_TOP_K", 24))
+TOP_K                  = int(os.getenv("RETRIEVAL_TOP_K", 20))
 FINAL_TOP_K            = int(os.getenv("RETRIEVAL_FINAL_TOP_K", 6))
-_SIM_THRESHOLD_DEFAULT = 0.30  # lowered to let reranker decide
+_SIM_THRESHOLD_DEFAULT = 0.35  # raised — bge-m3 scores are well-calibrated, 0.30 lets noise through
 REDIS_URL              = os.getenv("REDIS_URL", "redis://localhost:6379")
 REDIS_TTL              = int(os.getenv("REDIS_TTL_SECONDS", 86400))
 
@@ -69,6 +69,11 @@ def _get_db_connection():
     conn_id = id(conn)
     if conn_id not in _pgvector_registered:
         register_vector(conn)
+        # Set HNSW search ef parameter — controls recall vs speed tradeoff
+        # Higher ef = better recall but slower. 100 is good for 247K docs.
+        cur = conn.cursor()
+        cur.execute("SET hnsw.ef_search = 100")
+        cur.close()
         _pgvector_registered.add(conn_id)
     return conn
 
@@ -351,7 +356,7 @@ def _bm25_search(
             WHERE ({keyword_where}){extra_where}
             LIMIT %s
         """
-        params.append(limit * 5)  # fetch 5x candidates, BM25 will rank them
+        params.append(limit * 3)  # fetch 3x candidates (was 5x — smaller pool = faster BM25)
 
         cur.execute(sql, params)
         rows = cur.fetchall()
@@ -460,60 +465,79 @@ def retrieve(
     conn = _get_db_connection()
 
     try:
-        # ── Step 1: Dense vector search ───────────────────────────────────
-        filters = []
-        params = []
-
-        if language_filter:
-            filters.append("language = %s")
-            params.append(language_filter)
-        if source_type_filter:
-            filters.append("source_type = %s")
-            params.append(source_type_filter)
-
-        where_clause = ("WHERE " + " AND ".join(filters)) if filters else ""
-
-        sql = f"""
-            SELECT
-                id::text, title, source_type, language, content, metadata,
-                1 - (embedding <=> %s::vector) AS similarity
-            FROM documents_bgem3
-            {where_clause}
-            ORDER BY embedding <=> %s::vector
-            LIMIT %s
-        """
-
-        dense_limit = top_k * 4
-        params_final = [dense_vec.tolist()] + params + [dense_vec.tolist(), dense_limit]
-
-        cur = conn.cursor()
-        try:
-            cur.execute(sql, params_final)
-            rows = cur.fetchall()
-        finally:
-            cur.close()
+        # ── Step 1: Two-pass dense vector search ──────────────────────────
+        # Pass 1: Priority sources (textbook + qa_pair) — ensures fundamentals surface first
+        # Pass 2: All sources — fills remaining slots with papers, manuals, etc.
+        # This prevents niche research papers from drowning out textbook definitions.
+        _PRIORITY_TYPES = ("textbook", "qa_pair")
 
         sim_threshold = float(os.getenv("SIMILARITY_THRESHOLD", str(_SIM_THRESHOLD_DEFAULT)))
         dense_results = []
         seen_ids = set()
-        for row in rows:
-            similarity = float(row[6])
-            if similarity < sim_threshold:
-                continue
-            doc_id = row[0]
-            seen_ids.add(doc_id)
-            dense_results.append({
-                "id":          doc_id,
-                "title":       row[1],
-                "source_type": row[2],
-                "language":    row[3],
-                "content":     row[4],
-                "metadata":    row[5] if isinstance(row[5], dict) else {},
-                "similarity":  round(similarity, 4),
-                "_source":     "dense",
-            })
+        dense_limit = top_k * 3  # reduced from *4 — faster pgvector scan
 
-        logger.debug(f"Dense search: {len(dense_results)} candidates (threshold={sim_threshold})")
+        for pass_num, type_filter in enumerate((_PRIORITY_TYPES, None), 1):
+            filters = []
+            params = []
+
+            if language_filter:
+                filters.append("language = %s")
+                params.append(language_filter)
+            if source_type_filter:
+                filters.append("source_type = %s")
+                params.append(source_type_filter)
+            elif type_filter:
+                # Pass 1: only priority types
+                placeholders = ",".join(["%s"] * len(type_filter))
+                filters.append(f"source_type IN ({placeholders})")
+                params.extend(type_filter)
+
+            where_clause = ("WHERE " + " AND ".join(filters)) if filters else ""
+
+            sql = f"""
+                SELECT
+                    id::text, title, source_type, language, content, metadata,
+                    1 - (embedding <=> %s::vector) AS similarity
+                FROM documents_bgem3
+                {where_clause}
+                ORDER BY embedding <=> %s::vector
+                LIMIT %s
+            """
+
+            pass_limit = dense_limit // 2 if type_filter else dense_limit
+            params_final = [dense_vec.tolist()] + params + [dense_vec.tolist(), pass_limit]
+
+            cur = conn.cursor()
+            try:
+                cur.execute(sql, params_final)
+                rows = cur.fetchall()
+            finally:
+                cur.close()
+
+            for row in rows:
+                similarity = float(row[6])
+                if similarity < sim_threshold:
+                    continue
+                doc_id = row[0]
+                if doc_id in seen_ids:
+                    continue
+                seen_ids.add(doc_id)
+                dense_results.append({
+                    "id":          doc_id,
+                    "title":       row[1],
+                    "source_type": row[2],
+                    "language":    row[3],
+                    "content":     row[4],
+                    "metadata":    row[5] if isinstance(row[5], dict) else {},
+                    "similarity":  round(similarity, 4),
+                    "_source":     "dense",
+                })
+
+            logger.debug(f"Dense pass {pass_num}: {len(dense_results)} total candidates (threshold={sim_threshold})")
+
+            # If pass 1 filled enough slots, skip pass 2
+            if len(dense_results) >= dense_limit:
+                break
 
         # ── Step 2: BM25 Okapi search (English only) ─────────────────────
         # BM25 = English keyword matching (SiO2, Na2O, glass terms).
@@ -551,6 +575,23 @@ def retrieve(
         except Exception as e:
             logger.warning(f"Reranking skipped: {e}")
             results = all_candidates[:top_k]
+
+        # ── Source type priority boost ──────────────────────────────────
+        # Textbooks and qa_pairs are more reliable for general questions.
+        # Papers get a small penalty to prevent niche research from drowning out fundamentals.
+        _BOOST = {"textbook": 0.15, "qa_pair": 0.10, "standard": 0.08, "sop": 0.05, "manual": 0.02, "paper": -0.03}
+        for r in results:
+            stype = (r.get("source_type") or "").lower()
+            boost = _BOOST.get(stype, 0.0)
+            if boost:
+                r["similarity"] = max(0.0, min(1.0, r.get("similarity", 0.5) + boost))
+                if "rerank_score" in r:
+                    r["rerank_score"] = max(0.0, min(1.0, r["rerank_score"] + boost))
+        # Re-sort after boosting
+        results.sort(
+            key=lambda r: r.get("rerank_score", r.get("similarity", 0)),
+            reverse=True,
+        )
 
         # Clean up internal fields
         for r in results:
@@ -602,14 +643,16 @@ def retrieve_with_auto_language(
             retrieval_query = f"{query} ({', '.join(hints[:5])})"
             logger.info(f"Glossary-enhanced query: '{retrieval_query[:80]}'")
 
-    # Bilingual retrieval: single search across ALL languages.
-    # bge-m3 multilingual embeddings enable cross-lingual matching.
-    # English corpus has the best glass science coverage, so Farsi queries
-    # naturally match relevant English chunks. The reranker handles relevance.
+    # Bilingual retrieval strategy:
+    # - English queries: search all languages (bge-m3 cross-lingual matching)
+    # - Farsi queries: search all languages too (English corpus has best glass science coverage)
+    #   but bge-m3 natively handles Farsi, so relevant Farsi docs will naturally rank higher
+    # Note: we do NOT filter by language — the reranker handles relevance across languages.
+    # This ensures Farsi queries can still access English-only technical content.
     results = retrieve(
         retrieval_query,
         top_k=top_k,
-        language_filter=None,  # search all languages
+        language_filter=None,  # cross-lingual: let bge-m3 + reranker decide
         source_type_filter=source_type_filter,
     )
 
@@ -658,8 +701,8 @@ def _smart_truncate(text: str, max_chars: int = 1500) -> str:
 
 def format_context_for_llm(
     results: list,
-    max_total_tokens: int = 2000,
-    max_chunk_chars: int = 1200,
+    max_total_tokens: int = 1800,
+    max_chunk_chars: int = 1000,
 ) -> str:
     """
     Format retrieved chunks into a structured context block for the LLM prompt.

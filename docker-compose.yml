@@ -1,0 +1,195 @@
+# ============================================================
+# Glass Expert AI (Qwen 14B) — Production Docker Compose
+# Services: API, PostgreSQL (pgvector), Redis, vLLM, Nginx
+# ============================================================
+
+services:
+
+  # -- PostgreSQL + pgvector --
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: glass_ai_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-glassai}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-glassai_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-glass_expert_ai}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-glassai} -d ${POSTGRES_DB:-glass_expert_ai}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - glass-ai-network
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+
+  # -- Redis --
+  redis:
+    image: redis:7-alpine
+    container_name: glass_ai_redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    command: >
+      redis-server
+        --appendonly yes
+        --maxmemory 2gb
+        --maxmemory-policy allkeys-lru
+        --save 60 1000
+        --save 300 100
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - glass-ai-network
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+
+  # -- vLLM — Qwen 2.5-14B Glass Expert (4-bit quantized + LoRA) --
+  vllm:
+    image: vllm/vllm-openai:latest
+    container_name: glass_ai_vllm_qwen
+    volumes:
+      - ./models/Qwen2.5-14B-Instruct-bnb-4bit:/models/base:ro
+      - ./models/qwen14b-glass-expert/adapter:/models/adapter:ro
+    environment:
+      - HUGGING_FACE_HUB_TOKEN=${HF_TOKEN:-}
+    command: >
+      --model /models/base
+      --quantization bitsandbytes
+      --load-format bitsandbytes
+      --enable-lora
+      --max-lora-rank 64
+      --lora-modules glass-expert-qwen14b=/models/adapter
+      --served-model-name glass-expert-qwen14b
+      --host 0.0.0.0
+      --port 8000
+      --max-model-len ${MAX_MODEL_LEN:-4096}
+      --gpu-memory-utilization ${GPU_MEM_UTIL:-0.92}
+      --dtype float16
+      --api-key ${LLM_API_KEY:-token-glass-ai}
+      --trust-remote-code
+      --disable-log-requests
+      --enable-prefix-caching
+      --max-num-seqs 8
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 15s
+      start_period: 180s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - glass-ai-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  # -- FastAPI Application --
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: glass_ai_api_qwen
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-glassai}:${POSTGRES_PASSWORD:-glassai_secret}@postgres:5432/${POSTGRES_DB:-glass_expert_ai}
+      REDIS_URL: redis://redis:6379
+      LLM_BASE_URL: http://vllm:8000/v1
+    ports:
+      - "${API_PORT:-8080}:8080"
+    volumes:
+      - api_logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      vllm:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 20s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - glass-ai-network
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+
+  # -- Nginx Reverse Proxy --
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: glass_ai_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - glass-ai-network
+
+  # -- pgAdmin (dev profile only) --
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: glass_ai_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@glassai.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    networks:
+      - glass-ai-network
+    profiles:
+      - dev
+
+# -- Volumes --
+volumes:
+  postgres_data:
+    name: glass_ai_qwen_postgres_data
+  redis_data:
+    name: glass_ai_qwen_redis_data
+  api_logs:
+    name: glass_ai_qwen_api_logs
+
+# -- Network --
+networks:
+  glass-ai-network:
+    name: glass-ai-qwen-network
+    driver: bridge

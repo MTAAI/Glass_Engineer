@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- ============================================================
--- DOCUMENTS TABLE (Knowledge Base Chunks)
+-- DOCUMENTS TABLE (Legacy — bge-large-en embeddings)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS documents (
     id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -40,21 +40,44 @@ CREATE TABLE IF NOT EXISTS documents (
     created_at  TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Vector similarity search index (cosine distance)
-CREATE INDEX IF NOT EXISTS documents_embedding_idx
-    ON documents
-    USING ivfflat (embedding vector_cosine_ops)
-    WITH (lists = 100);
-
--- Full-text search index
-CREATE INDEX IF NOT EXISTS documents_content_fts_idx
-    ON documents
-    USING gin(to_tsvector('english', content));
-
--- Metadata and filter indexes
 CREATE INDEX IF NOT EXISTS documents_source_type_idx ON documents (source_type);
 CREATE INDEX IF NOT EXISTS documents_language_idx    ON documents (language);
-CREATE INDEX IF NOT EXISTS documents_title_idx       ON documents (title);
+
+-- ============================================================
+-- DOCUMENTS_BGEM3 TABLE (Primary — bge-m3 multilingual embeddings)
+-- This is the active table used by the retrieval pipeline.
+-- 1024-dim dense vectors from BAAI/bge-m3 multilingual model.
+-- ============================================================
+CREATE TABLE IF NOT EXISTS documents_bgem3 (
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title       TEXT NOT NULL,
+    source_type VARCHAR(50) NOT NULL
+                CHECK (source_type IN ('textbook','paper','sop','qa_pair','manual','standard')),
+    language    VARCHAR(10) DEFAULT 'en'
+                CHECK (language IN ('en','fa')),
+    content     TEXT NOT NULL,
+    metadata    JSONB DEFAULT '{}',
+    embedding   vector(1024),
+    created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- HNSW index — 2-5x faster than IVFFlat for vector search
+-- m=16: connections per node (higher = more accurate, more memory)
+-- ef_construction=200: build quality (higher = slower build, better recall)
+CREATE INDEX IF NOT EXISTS documents_bgem3_embedding_hnsw_idx
+    ON documents_bgem3
+    USING hnsw (embedding vector_cosine_ops)
+    WITH (m = 16, ef_construction = 200);
+
+-- Composite index for filtered vector search (source_type + language)
+CREATE INDEX IF NOT EXISTS documents_bgem3_source_type_idx ON documents_bgem3 (source_type);
+CREATE INDEX IF NOT EXISTS documents_bgem3_language_idx    ON documents_bgem3 (language);
+CREATE INDEX IF NOT EXISTS documents_bgem3_title_idx       ON documents_bgem3 USING gin (title gin_trgm_ops);
+
+-- Full-text search index for BM25 pre-filter
+CREATE INDEX IF NOT EXISTS documents_bgem3_content_trgm_idx
+    ON documents_bgem3
+    USING gin (content gin_trgm_ops);
 
 -- ============================================================
 -- CHAT HISTORY TABLE
@@ -115,6 +138,27 @@ CREATE TABLE IF NOT EXISTS user_memory (
 );
 
 CREATE INDEX IF NOT EXISTS user_memory_user_id_idx ON user_memory (user_id);
+
+-- ============================================================
+-- QUERY ANALYTICS TABLE (Track query performance)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS query_analytics (
+    id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id             UUID REFERENCES users(id) ON DELETE SET NULL,
+    query_text          TEXT NOT NULL,
+    language            VARCHAR(10) DEFAULT 'en',
+    retrieval_latency_ms FLOAT,
+    total_latency_ms    FLOAT,
+    chunks_retrieved    INTEGER,
+    top_rerank_score    FLOAT,
+    fallback_used       BOOLEAN DEFAULT FALSE,
+    fallback_reason     TEXT,
+    model_used          TEXT,
+    created_at          TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS query_analytics_created_at_idx ON query_analytics (created_at DESC);
+CREATE INDEX IF NOT EXISTS query_analytics_user_id_idx    ON query_analytics (user_id);
 
 -- ============================================================
 -- INGESTION LOG TABLE (Track what has been ingested)
@@ -189,6 +233,7 @@ VALUES (
 DO $$
 BEGIN
     RAISE NOTICE '✅ Glass Expert AI database initialized successfully.';
-    RAISE NOTICE '   Tables: documents, users, chat_history, conversations, feedback, source_feedback, user_memory, ingestion_log';
+    RAISE NOTICE '   Tables: documents, documents_bgem3, users, chat_history, conversations, feedback, source_feedback, user_memory, query_analytics, ingestion_log';
     RAISE NOTICE '   Extensions: vector (pgvector), uuid-ossp, pg_trgm';
+    RAISE NOTICE '   Index: HNSW on documents_bgem3.embedding (m=16, ef_construction=200)';
 END $$;

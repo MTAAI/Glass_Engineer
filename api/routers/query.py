@@ -108,22 +108,58 @@ def _load_user_memory(user_id: str) -> list:
         return []
 
 
-def _load_conversation_history(user_id: str, session_id: str, limit: int = 10) -> list:
-    """Load recent messages from chat_history for conversation continuity."""
+def _load_conversation_history(user_id: str, session_id: str, limit: int = 20) -> list:
+    """
+    Load conversation history with smart tiered loading for continuity.
+
+    Strategy:
+      - Load up to 20 recent messages (10 Q&A turns)
+      - Recent messages (last 6) kept in full
+      - Older messages: keep user questions full, summarize assistant answers
+      - This gives the LLM enough context to understand the conversation flow
+        without blowing the token budget
+    """
     try:
         from api.database import get_db
         with get_db() as conn:
             cur = conn.cursor()
             cur.execute("""
-                SELECT role, content FROM chat_history
+                SELECT role, content, created_at FROM chat_history
                 WHERE user_id = %s AND session_id = %s
                 ORDER BY created_at DESC
                 LIMIT %s
             """, [user_id, session_id, limit])
             rows = cur.fetchall()
             cur.close()
+
+        if not rows:
+            return []
+
         # Reverse to chronological order
-        return [{"role": r[0], "content": r[1]} for r in reversed(rows)]
+        messages = [{"role": r[0], "content": r[1]} for r in reversed(rows)]
+
+        # Smart compression: keep recent full, compress older
+        if len(messages) > 6:
+            compressed = []
+            cutoff = len(messages) - 6  # last 6 messages kept full
+
+            for i, msg in enumerate(messages):
+                if i < cutoff:
+                    content = msg["content"]
+                    # Strip old RAG context from user messages
+                    if "KNOWLEDGE BASE CONTEXT:" in content:
+                        parts = content.split("QUESTION:")
+                        content = parts[-1].strip() if len(parts) > 1 else content[:200]
+                    # Summarize older assistant answers to key points
+                    if msg["role"] == "assistant" and len(content) > 300:
+                        first_part = content[:250].rsplit(". ", 1)[0] + "."
+                        content = first_part + " [...]"
+                    compressed.append({"role": msg["role"], "content": content})
+                else:
+                    compressed.append(msg)
+            return compressed
+
+        return messages
     except Exception as e:
         logger.warning(f"Could not load conversation history: {e}")
         return []

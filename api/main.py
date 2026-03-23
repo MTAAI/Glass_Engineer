@@ -148,6 +148,30 @@ async def startup_event():
     except Exception as e:
         logger.error(f"Failed to initialize DB pool on startup: {e}")
 
+    # Pre-load embedding model + reranker so first request is fast
+    try:
+        from ingestion.embedder import warmup as embed_warmup
+        embed_warmup()
+    except Exception as e:
+        logger.warning(f"Embedding warmup failed (will lazy-load): {e}")
+
+    try:
+        from retrieval.reranker import _get_reranker, RERANK_ENABLED
+        if RERANK_ENABLED:
+            _get_reranker()
+            logger.info("Reranker model pre-loaded")
+    except Exception as e:
+        logger.warning(f"Reranker warmup failed (will lazy-load): {e}")
+
+    # Pre-connect to Redis
+    try:
+        from retrieval.retriever import _get_redis
+        r = _get_redis()
+        if r:
+            logger.info("Redis connection established")
+    except Exception as e:
+        logger.warning(f"Redis warmup failed: {e}")
+
     logger.info("Glass Expert AI API v3.1.0 starting up...")
     logger.info(f"CORS origins: {_allowed_origins}")
     logger.info(f"Rate limit: {_RATE_LIMIT_MAX} req/min")

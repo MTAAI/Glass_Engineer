@@ -73,10 +73,16 @@ def rerank(
 
     try:
         # Build (query, passage) pairs for the cross-encoder
-        pairs = [(query, chunk.get("content", "")) for chunk in chunks]
+        # Truncate long chunks to 512 tokens (~2000 chars) — cross-encoder max_length is 512 tokens
+        # Sending longer text just gets truncated internally anyway, but wastes tokenization time
+        _MAX_PASSAGE_CHARS = 2000
+        pairs = [
+            (query, chunk.get("content", "")[:_MAX_PASSAGE_CHARS])
+            for chunk in chunks
+        ]
 
         # Score all pairs — cross-encoder reads both texts together
-        scores = model.predict(pairs, show_progress_bar=False)
+        scores = model.predict(pairs, show_progress_bar=False, batch_size=16)
 
         # Attach scores and sort
         for chunk, score in zip(chunks, scores):

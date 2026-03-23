@@ -255,44 +255,64 @@ def _is_english_response(text: str) -> bool:
 def _compress_history(messages: list) -> list:
     """Compress conversation history to fit more turns in the token budget.
 
-    Strategy:
-      - Last 4 messages (2 turns): keep full content
-      - Older messages: truncate assistant responses to first 150 chars
-        (keeps the gist without burning tokens on full RAG answers)
-      - Strip any KNOWLEDGE BASE CONTEXT blocks from history
-        (they're from previous queries, not relevant now)
+    Strategy (3-tier for Qwen 14B — has larger context window than 8B):
+      - Last 8 messages (4 turns): keep FULL content — immediate context matters most
+      - Middle messages (turns 5-10): keep user questions full, assistant answers trimmed to 400 chars
+      - Oldest messages (turns 11+): keep user questions only (topic markers)
+      - Strip any KNOWLEDGE BASE CONTEXT blocks from all history
+
+    Qwen 14B handles longer context better than Llama 8B, so we keep more history.
+    This gives ~3000 tokens of history while maintaining conversation flow.
     """
-    if len(messages) <= 4:
-        return messages
+    if len(messages) <= 8:
+        return [
+            {"role": m["role"], "content": _clean_history_content(m.get("content", ""))}
+            for m in messages
+        ]
 
     compressed = []
-    cutoff = len(messages) - 4  # keep last 4 full
+    full_cutoff = len(messages) - 8     # last 8 kept full
+    middle_cutoff = len(messages) - 20  # middle tier: trimmed
 
     for i, msg in enumerate(messages):
-        content = msg.get("content", "")
+        content = _clean_history_content(msg.get("content", ""))
+        role = msg.get("role", "user")
 
-        # Strip old context blocks from all history messages
-        if "KNOWLEDGE BASE CONTEXT:" in content:
-            # Extract just the question part
-            parts = content.split("QUESTION:")
-            if len(parts) > 1:
-                content = parts[-1].strip()
-            else:
-                # Try to find the question after the context block
-                lines = content.split("\n")
-                content = " ".join(
-                    l for l in lines
-                    if not l.startswith("=") and not l.startswith("-" * 10)
-                    and not l.startswith("[Source") and "KNOWLEDGE BASE" not in l
-                )[:300]
-
-        if i < cutoff and msg.get("role") == "assistant":
-            # Summarize older assistant responses
-            content = content[:150].rsplit(" ", 1)[0] + "..." if len(content) > 150 else content
-
-        compressed.append({"role": msg["role"], "content": content})
+        if i >= full_cutoff:
+            compressed.append({"role": role, "content": content})
+        elif i >= middle_cutoff:
+            if role == "assistant" and len(content) > 400:
+                content = content[:400].rsplit(". ", 1)[0] + ". [...]"
+            compressed.append({"role": role, "content": content})
+        else:
+            if role == "user":
+                compressed.append({"role": role, "content": content[:250]})
 
     return compressed
+
+
+def _clean_history_content(content: str) -> str:
+    """Strip old RAG context blocks from a history message."""
+    if not content:
+        return content
+
+    if "KNOWLEDGE BASE CONTEXT:" in content:
+        parts = content.split("QUESTION:")
+        if len(parts) > 1:
+            return parts[-1].strip()
+        lines = content.split("\n")
+        return " ".join(
+            l for l in lines
+            if not l.startswith("=") and not l.startswith("-" * 10)
+            and not l.startswith("[Source") and "KNOWLEDGE BASE" not in l
+        )[:500]
+
+    if "Reference information:" in content:
+        parts = content.split("Based on the reference information above, answer this question:")
+        if len(parts) > 1:
+            return parts[-1].strip()
+
+    return content
 
 
 async def generate_answer(
@@ -368,16 +388,16 @@ QUESTION: {question}
 Provide a precise, technical answer based strictly on the knowledge base context above. Reference sources by their [Source N] numbers."""
 
     # Smart history compression: keep recent turns full, summarize older ones
-    history = _compress_history((conversation_history or [])[-10:])
+    history = _compress_history((conversation_history or [])[-20:])
 
     # ── Try local LLM (Qwen 14B — handles both English and Farsi) ──────────
     local_failed = False
     plain_context = _strip_rag_formatting(context)
 
     # Context limit: balance quality vs latency
-    # 8000 chars (~2000 tokens) is enough for 6-8 good sources
-    # Larger context = more prompt tokens = slower inference
-    local_context_limit = 8000  # chars (~2000 tokens)
+    # 6000 chars (~1500 tokens) gives 5-6 good sources without bloating prompt
+    # Smaller prompt = fewer prompt tokens = faster time-to-first-token
+    local_context_limit = 6000  # chars (~1500 tokens)
     if len(plain_context) > local_context_limit:
         plain_context = plain_context[:local_context_limit]
         logger.debug(f"Truncated context for local model: {len(context)} → {local_context_limit} chars")
@@ -414,11 +434,12 @@ Instructions: Answer STRICTLY from the reference information above.
 
     local_url = llm_url if llm_url else "http://localhost:8000/v1"
     try:
-        # Local model: use shorter history (4 messages = 2 turns) to save tokens
-        local_history = history[-4:] if history else None
-        # Local model: 1024 tokens is enough for detailed answer
+        # Qwen 14B has larger context — give it 10 messages (5 turns) for better continuity
+        local_history = history[-10:] if history else None
+        # Local model: 800 tokens is enough for detailed answer
         # Higher values increase latency linearly (each token = ~50ms on 14B)
-        local_max_tokens = max(max_tokens, 1024)
+        # Qwen 14B is verbose enough at 800 tokens — 1024 rarely adds value
+        local_max_tokens = max(max_tokens, 800)
         answer = await _call_openai_compatible(
             base_url=local_url,
             api_key=llm_api_key,
@@ -538,12 +559,16 @@ async def _call_openai_compatible(
         }
         extra["top_p"] = 0.8            # official Qwen 2.5 value
 
+    # Timeout: 45s for local vLLM (should respond in 5-15s), 60s for OpenAI
+    is_local = "localhost" in base_url or "127.0.0.1" in base_url or "vllm" in base_url
+    timeout_s = 45.0 if is_local else 60.0
+
     response = await client.chat.completions.create(
         model=model,
         messages=messages,
         temperature=temperature,
         max_tokens=max_tokens,
-        timeout=60.0,
+        timeout=timeout_s,
         **extra,
     )
 
