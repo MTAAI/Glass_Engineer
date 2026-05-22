@@ -5,9 +5,10 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { LoginPage } from "@/pages/Login";
 import { DashboardPage } from "@/pages/Dashboard";
 import { FarmPage } from "@/pages/Farm";
+import { LivestockPage } from "@/pages/Livestock";
+import { InventoryPage } from "@/pages/Inventory";
 import {
   MapPage,
-  LivestockPage,
   AquaculturePage,
   ProcessingPage,
   KitchenPage,
@@ -15,7 +16,6 @@ import {
   HACCPPage,
   MachineryPage,
   WorkersPage,
-  InventoryPage,
   CostPricePage,
   ReportsPage,
   CameraPage,

@@ -95,9 +95,9 @@ export function DashboardPage() {
               <ul className="space-y-2 text-sm">
                 <Phase done label="فاز ۰: پایه‌گذاری (Auth, DB, Layout)" />
                 <Phase done label="فاز ۱: هسته مزرعه + موتور هزینه" />
-                <Phase label="فاز ۲: دامداری — API آماده، UI در راه" />
-                <Phase label="فاز ۳: فراوری" />
-                <Phase label="فاز ۴: انبار — API آماده، UI در راه" />
+                <Phase done label="فاز ۲: دامداری + آبزی‌پروری" />
+                <Phase label="فاز ۳: فراوری — API آماده" />
+                <Phase done label="فاز ۴: انبار یکپارچه" />
                 <Phase label="فاز ۵: آشپزخانه" />
                 <Phase label="فاز ۶: مالی و گزارش" />
                 <Phase label="فاز ۷: ابزارها و تکمیل" />
