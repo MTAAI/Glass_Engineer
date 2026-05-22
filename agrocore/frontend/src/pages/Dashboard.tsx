@@ -94,13 +94,13 @@ export function DashboardPage() {
               <p className="text-sm text-slate-500 mb-3">پیشرفت پیاده‌سازی AgroCore OS</p>
               <ul className="space-y-2 text-sm">
                 <Phase done label="فاز ۰: پایه‌گذاری (Auth, DB, Layout)" />
-                <Phase label="فاز ۱: هسته مزرعه — ۳ هفته" />
-                <Phase label="فاز ۲: دامداری — ۳ هفته" />
-                <Phase label="فاز ۳: فراوری — ۲ هفته" />
-                <Phase label="فاز ۴: انبار و زنجیره — ۱.۵ هفته" />
-                <Phase label="فاز ۵: آشپزخانه — ۲ هفته" />
-                <Phase label="فاز ۶: مالی و گزارش — ۲ هفته" />
-                <Phase label="فاز ۷: ابزارها و تکمیل — ۱.۵ هفته" />
+                <Phase done label="فاز ۱: هسته مزرعه + موتور هزینه" />
+                <Phase label="فاز ۲: دامداری — API آماده، UI در راه" />
+                <Phase label="فاز ۳: فراوری" />
+                <Phase label="فاز ۴: انبار — API آماده، UI در راه" />
+                <Phase label="فاز ۵: آشپزخانه" />
+                <Phase label="فاز ۶: مالی و گزارش" />
+                <Phase label="فاز ۷: ابزارها و تکمیل" />
               </ul>
             </div>
 

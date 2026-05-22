@@ -4,9 +4,9 @@ import { Layout } from "@/components/Layout";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { LoginPage } from "@/pages/Login";
 import { DashboardPage } from "@/pages/Dashboard";
+import { FarmPage } from "@/pages/Farm";
 import {
   MapPage,
-  FarmPage,
   LivestockPage,
   AquaculturePage,
   ProcessingPage,

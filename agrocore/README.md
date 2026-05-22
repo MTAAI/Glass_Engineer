@@ -8,15 +8,15 @@
 
 ## وضعیت توسعه
 
-**فاز ۰ — پایه‌گذاری: ✅ تکمیل شد**
+**فاز ۰ و ۱: ✅ تکمیل شد** — موتور هزینه + UI کامل مزرعه
 
 | فاز | عنوان | وضعیت |
 |----|------|------|
-| ۰ | Docker، Auth، Layout، Migrations | ✅ |
-| ۱ | هسته مزرعه (کشت، نهاده، ماشین‌آلات، کارگر) | ⏳ |
-| ۲ | دامداری + آبزی‌پروری | ⏳ |
+| ۰ | Docker، Auth، Layout، Migrations، Seed | ✅ |
+| ۱ | هسته مزرعه + موتور هزینه (Cost Engine) | ✅ |
+| ۲ | دامداری + آبزی‌پروری | API ✅ · UI ⏳ |
 | ۳ | فراوری | ⏳ |
-| ۴ | انبار + زنجیره تأمین | ⏳ |
+| ۴ | انبار + زنجیره تأمین | API ✅ · UI ⏳ |
 | ۵ | آشپزخانه + HACCP | ⏳ |
 | ۶ | مالی و گزارش‌ها | ⏳ |
 | ۷ | دوربین، GPS، QR، تکمیل | ⏳ |
@@ -153,22 +153,34 @@ agrocore/
 
 ---
 
-## API — Endpoints فاز ۰
+## API — Endpoints
 
-| Method | Endpoint | Auth | شرح |
-|--------|----------|------|----|
-| GET | `/api/v1/health` | Public | سلامت سامانه + اتصال DB |
-| POST | `/api/v1/auth/register` | Public | ثبت‌نام کاربر |
-| POST | `/api/v1/auth/login` | Public | ورود + دریافت JWT |
-| POST | `/api/v1/auth/token` | Public | OAuth2-compatible برای Swagger |
-| GET | `/api/v1/auth/me` | JWT | پروفایل کاربر فعلی |
-| GET | `/api/v1/dashboard/kpis` | JWT | KPI‌های زنده داشبورد |
-| GET | `/api/v1/farms` | JWT | فهرست مزارع |
-| POST | `/api/v1/farms` | JWT | ساخت مزرعه |
-| GET | `/api/v1/farms/{id}` | JWT | جزئیات مزرعه |
-| GET | `/api/v1/alerts` | JWT | فهرست هشدارها |
-| POST | `/api/v1/alerts/{id}/read` | JWT | علامت‌گذاری هشدار خوانده‌شده |
-| POST | `/api/v1/alerts/read-all` | JWT | علامت‌گذاری همه |
+### عمومی و احراز هویت
+- `GET /api/v1/health` · `POST /api/v1/auth/register` · `POST /api/v1/auth/login` · `POST /api/v1/auth/token` · `GET /api/v1/auth/me`
+
+### داشبورد و هشدار
+- `GET /api/v1/dashboard/kpis` · `GET /api/v1/alerts` · `POST /api/v1/alerts/{id}/read` · `POST /api/v1/alerts/read-all`
+
+### مزرعه (فاز ۱)
+- `GET|POST /api/v1/farms` · `GET /api/v1/farms/{id}`
+- `GET|POST /api/v1/blocks` · `DELETE /api/v1/blocks/{id}`
+- `GET /api/v1/crops/types` · `GET|POST /api/v1/crops/cycles` · `PATCH|DELETE /api/v1/crops/cycles/{id}`
+- `GET|POST /api/v1/crops/cycles/{id}/inputs` · `DELETE /api/v1/crops/cycles/{id}/inputs/{input_id}`
+- `GET /api/v1/crops/cycles/{id}/cost` — **موتور قیمت تمام‌شده**
+
+### دامداری (فاز ۲)
+- `GET|POST /api/v1/livestock/groups` · `GET /api/v1/livestock/groups/{id}`
+- `GET|POST /api/v1/livestock/groups/{id}/inputs`
+- `GET|POST /api/v1/livestock/groups/{id}/production`
+- `GET /api/v1/livestock/groups/{id}/cost`
+
+### عملیاتی
+- `GET|POST /api/v1/machinery` · `GET|POST /api/v1/machinery/{id}/usage`
+- `GET|POST /api/v1/workers` · `GET|POST /api/v1/workers/labor`
+- `GET|POST /api/v1/inventory/items` · `GET|POST /api/v1/inventory/items/{id}/transactions`
+
+### بازار
+- `GET /api/v1/market/prices` — قیمت‌های مرجع بازار
 
 مستندات کامل: http://localhost:8000/docs
 

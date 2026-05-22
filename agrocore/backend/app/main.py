@@ -2,7 +2,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.routers import auth, health, dashboard, farms, alerts
+from app.routers import (
+    auth, health, dashboard, farms, alerts,
+    blocks, crops, machinery, workers, livestock, inventory, market,
+)
 
 
 app = FastAPI(
@@ -23,6 +26,13 @@ app.include_router(health.router)
 app.include_router(auth.router)
 app.include_router(dashboard.router)
 app.include_router(farms.router)
+app.include_router(blocks.router)
+app.include_router(crops.router)
+app.include_router(machinery.router)
+app.include_router(workers.router)
+app.include_router(livestock.router)
+app.include_router(inventory.router)
+app.include_router(market.router)
 app.include_router(alerts.router)
 
 
