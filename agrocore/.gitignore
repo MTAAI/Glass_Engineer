@@ -1,0 +1,13 @@
+.env
+*.pyc
+__pycache__/
+.venv/
+node_modules/
+dist/
+build/
+.DS_Store
+.idea/
+.vscode/
+*.log
+postgres_data/
+minio_data/
